@@ -41,8 +41,8 @@ input{font:inherit;font-size:.9em;padding:.5em;background:#16213a;color:#fff;bor
 .pips s{width:.7em;height:1em;background:#2b3a55;text-decoration:none}
 .pips s.f{background:#4ee08a}
 .row{display:flex;gap:.7em;align-items:center;justify-content:center;flex-wrap:wrap}
-#ctl{position:absolute;left:0;right:0;bottom:0;height:11.5%;display:flex;gap:.6em;align-items:center;justify-content:center;pointer-events:none}
-#ctl .btn{pointer-events:auto;padding:.45em .8em;font-size:.8em}
+#ctl{position:absolute;left:0;right:0;bottom:0;height:11.5%;display:flex;gap:.6em;align-items:center;justify-content:center;pointer-events:none;padding:0 9.5em;box-sizing:border-box} /* v1.81: side room for the EXIT and ? corner buttons, so the row never runs into them */
+#ctl .btn{pointer-events:auto;padding:.45em .8em;font-size:.8em;min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #ctl .btn.hide{display:none}
 #pd{background:transparent;pointer-events:none;flex-direction:row;justify-content:flex-end;align-items:stretch;padding:0;gap:0;overflow:visible}
 #pdp{pointer-events:auto;width:30%;height:100%;background:rgba(8,12,24,.97);border-left:.2em solid #2e4170;padding:.6em;display:flex;flex-direction:column;gap:.5em;overflow:auto;text-align:left}
@@ -119,6 +119,66 @@ html{background:#070a12}
 #mver{position:absolute;right:.9em;bottom:.6em;font-size:.5em;color:#6b7a99;pointer-events:none}
 #nvbar{display:flex;gap:.4em;align-items:center;justify-content:center;width:100%;flex:none}
 #nvbar .btn{font-size:.6em}
+/* v1.76 report panel */
+.rpg{display:grid;grid-template-columns:1fr 1fr;gap:.8em;width:100%;max-width:62em;text-align:left;align-items:start}
+.rpc{display:flex;flex-direction:column;gap:.5em;min-width:0}
+#rp textarea{width:100%;font:inherit;font-size:.95em;line-height:1.5;background:#16213a;color:#fff;border:.15em solid #3a4d78;padding:.5em;resize:none;user-select:text;-webkit-user-select:text}
+#rp #rpout{font-size:.62em;line-height:1.55;color:#cfe0ff}
+#rp .row{justify-content:flex-start}
+#mrep .btn{opacity:.85}
+/* v1.84 game log and stats panel */
+#gl{align-items:center}
+.glw{width:100%;max-width:62em;display:flex;flex-direction:column;gap:.6em;align-items:center;text-align:left}
+.glr{width:100%;justify-content:center}
+.glh{margin:0;flex:1;text-align:center}
+.glg{display:grid;grid-template-columns:repeat(auto-fit,minmax(15em,1fr));gap:.7em;width:100%}
+.glwide{width:100%;box-sizing:border-box}
+.gle{width:100%;box-sizing:border-box;text-align:center;font-size:.8em;padding:1em}
+.gltw{width:100%;overflow-x:auto}
+.glt{width:100%;border-collapse:collapse;font-size:.9em}
+.glt th{font-weight:normal;color:#ffd400;text-align:right;padding:.25em .3em;white-space:nowrap}.glt th:first-child{text-align:left}
+.glt td{padding:.25em .3em;text-align:right;color:#b8c4dc}.glt td:first-child{text-align:left;color:#fff}
+.glt.glwt td:nth-child(2){text-align:left}.glt.glwt th:nth-child(2){text-align:left}
+.glt.gll td:nth-child(2),.glt.gll td:nth-child(3){white-space:nowrap}
+.glcf{width:100%;box-sizing:border-box;color:#ffd400;text-align:center;font-size:.8em;display:flex;flex-direction:column;gap:.5em;align-items:center}
+#gl textarea{width:100%;font:inherit;font-size:.7em;line-height:1.5;background:#16213a;color:#fff;border:.15em solid #3a4d78;padding:.5em;resize:none;user-select:text;-webkit-user-select:text;box-sizing:border-box}
+/* v1.78 cloud save panel */
+#cg .lst{max-width:46em}
+#cg .slot{flex-wrap:wrap;justify-content:flex-end}
+#cg .slot .nm{flex:1 1 12em;min-width:10em;text-align:left}
+#cg .slot .btn.xs{font-size:.75em;padding:.55em .75em}
+#cg input{width:100%;max-width:19em;box-sizing:border-box;font:inherit;font-size:1em;letter-spacing:.08em;text-align:center;text-transform:uppercase;background:#16213a;color:#fff;border:.15em solid #3a4d78;padding:.5em}
+.cgcode{font-size:1.9em;letter-spacing:.08em;color:#7dff9a;word-break:break-all;user-select:all;-webkit-user-select:all}
+#cg .cgw{max-width:34em}
+#hp .hpt{max-width:40em;width:100%;text-align:left;flex:none}
+#hp .hpt p{margin:.15em 0 .45em;line-height:1.7;font-size:.8em}
+#hp .hpt h4,#menu .hpt h4{color:#ffd400;margin:.9em 0 .2em;font-size:.9em}
+#menu .hpt{text-align:left;line-height:1.9;max-width:44em;margin:0 auto}
+#menu .hpt p{margin:.15em 0 .5em;font-size:.8em;line-height:1.8}
+#hp .hpbar{position:sticky;bottom:0;flex:none;width:100%;display:flex;justify-content:center;padding:.5em 0;background:#070a12}
+.stw{width:100%}.stg{width:100%}.stg .stt{text-align:left;color:#ffd400;margin:.2em 0 0}#xp .stg .stt{text-align:center}
+.stw .row{justify-content:flex-start;gap:.4em}
+.stw .spdn{text-align:left;line-height:1.6;font-size:.7em;margin:.2em 0 .4em}
+#xp .stw .row{justify-content:center}
+#xp .stw .spdn{text-align:center}
+#xp .xpc .stw .row .btn{min-width:0}
+#dcs .dcl{width:100%;max-width:60em;flex:none}
+#dcs .dcl h4{color:#ffd400;margin:.7em 0 .3em;font-size:.8em;text-align:left}
+#dcs .dcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(10em,1fr));gap:.5em;width:100%}
+#dcs .btn.dcc{box-shadow:none;border:.2em solid #2e4170;padding:.5em .4em;display:flex;flex-direction:column;align-items:center;gap:.3em;font-size:.6em;background:#16213a;min-width:0;text-align:center}
+#dcs .btn.dcc.on{border-color:#ffd400;outline:none;background:#223156}
+#dcs .btn.dcc b{font-size:1.15em;color:#fff}
+#dcs .btn.dcc span{font-size:.85em;color:#b8c4dc;line-height:1.4}
+#dcs .dcbar{position:sticky;bottom:0;flex:none;width:100%;display:flex;justify-content:center;padding:.5em 0;background:#070a12}
+#dcs .btn.dcgo{font-size:1.1em;padding:.7em 1.6em;min-width:14em}
+#bcorner{position:absolute;right:.7em;bottom:.45em;display:flex;gap:.4em}
+#bcorner .btn{padding:.45em .9em;font-size:.8em}
+#bcorner .btn.hide{display:none}
+#xp{justify-content:flex-start}
+#xp .xpc{background:#0e1830;border:.2em solid #3a4d78;padding:1em 1.4em;display:flex;flex-direction:column;gap:.7em;align-items:center;max-width:26em;width:100%;box-sizing:border-box;margin:auto 0;flex:none}
+#xp .xpc .btn{min-width:14em}
+#xp .xpc .row .btn{min-width:6em}
+#cg .bad{color:#ffd400}#cg .good{color:#7dff9a}
 </style></head><body>
 <div id="wrap"><div id="app">
 <canvas id="c" width="640" height="360"></canvas>
@@ -133,6 +193,7 @@ html{background:#070a12}
  <button class="btn hide" id="bXP">KICK XP +1 [1]</button>
  <button class="btn alt hide" id="b2PT">GO FOR 2 [2]</button>
 </div>
+<div id="bcorner"><button class="btn alt hide" id="bExit" title="EXIT GAME" aria-label="EXIT GAME">EXIT</button><button class="btn alt hide" id="bHelp" title="HELP" aria-label="HELP">?</button></div>
 <div class="screen top on" id="menu">
  <h1 class="mh">PIXEL PIGSKIN</h1>
  <div class="row" id="mtabs"></div>
@@ -150,13 +211,31 @@ html{background:#070a12}
 <div class="screen" id="post"></div>
 <div class="screen" id="season"></div>
 <div class="screen top" id="pcs"></div>
+<div class="screen top" id="dcs"></div>
 <div class="screen" id="pd"><div id="pdp"></div></div>
 </div></div>
 <div id="saProbe"></div>
 <script>
 (function(){
 'use strict';
-const APP_VERSION="1.75"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="1.84"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+/* =====================================================================================================
+   v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
+   not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
+   Nothing here is used until the player taps a cloud button; the SDK is loaded then, not at startup. */
+const CLOUD_CONFIG={apiKey:"AIzaSyAp3vPyxdsRs7LRcc_iPQRQVNDXJ9W6GUI",authDomain:"pixel-pigskin.firebaseapp.com",projectId:"pixel-pigskin",storageBucket:"pixel-pigskin.firebasestorage.app",messagingSenderId:"1094292197633",appId:"1:1094292197633:web:bb836df9bd720f33140b00"};
+const CLOUD_SDK="10.14.1"; /* Firebase web SDK version, loaded from the official CDN (same as cloud-test.html) */
+/* ===================================================================================================== */
+/* v1.76: the last 5 errors, in memory only (message + line:col, URLs stripped, 160 chars each). Used by REPORT A PROBLEM. Nothing here may ever throw. */
+const ERRS=[];
+function errLoc(er){try{const st=er&&er.stack?String(er.stack).split('\n'):[];for(const l of st){const m=/:(\d+):(\d+)\)?\s*$/.exec(l);if(m)return[m[1],m[2]]}}catch(x){}return[0,0]}
+function errPush(msg,ln,col,dedupe){try{
+ let m=String(msg==null?'':msg).replace(/(?:[A-HJKMNP-Z2-9]{4}-){3}[A-HJKMNP-Z2-9]{4}/gi,'[CODE]').replace(/[a-z][a-z0-9+.\-]*:\/\/\S*/gi,'').replace(/\bdata:[^\s,]*,\S*/gi,'').replace(/\s+/g,' ').trim()||'(NO MESSAGE)';
+ const loc=ln?' ('+ln+':'+(col||0)+')':'';m=m.slice(0,160-loc.length)+loc;
+ if(dedupe&&ERRS.length&&ERRS[ERRS.length-1]===m)return;
+ ERRS.push(m);while(ERRS.length>5)ERRS.shift()}catch(x){}}
+try{addEventListener('error',e=>{try{errPush(e&&e.message,e&&e.lineno,e&&e.colno)}catch(x){}});
+ addEventListener('unhandledrejection',e=>{try{const r=e&&e.reason;let s=r&&r.message!=null?r.message:r;if(typeof s!=='string'){try{s=JSON.stringify(s)}catch(x){s=String(s)}}const l=errLoc(r);errPush(s,l[0],l[1])}catch(x){}})}catch(x){}
 const $=id=>document.getElementById(id);
 const cv=$('c'),cx=cv.getContext('2d');cx.imageSmoothingEnabled=false; /* v1.60: rotated tackle poses stay crisp */
 const W=640,H=360,PPY=12,FT=58,FB=316,UNIT=(FB-FT)/40,VW=W/PPY;
@@ -236,7 +315,7 @@ function loadSlot(id){
  try{d=migrate(d)}catch(e){return null}
  if(restored){lsSet(key,raw);notice('RESTORED FROM BACKUP')}
  return d}
-function delSlot(id){delete PEND[id];[SLOT+id,SLOT+id+'.bak',SLOT+id+'.next'].forEach(lsDel);wrIdx(rdIdx().filter(e=>e.id!==id))}
+function delSlot(id){delete PEND[id];[SLOT+id,SLOT+id+'.bak',SLOT+id+'.next',GSK+id].forEach(lsDel);wrIdx(rdIdx().filter(e=>e.id!==id))}
 let PERSISTED=null;
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(r=>{PERSISTED=r;console.log('[pixelPigskin] storage.persist() ->',r)},e=>console.log('[pixelPigskin] storage.persist() failed',e))}catch(e){}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow()});
@@ -264,7 +343,7 @@ const nextOpp=()=>S.lg?lgNextOpp():S.phase==='reg'?S.sched[S.week]:S.po[S.round]
 const nextLabel=()=>S.lg?lgLabel():S.phase==='reg'?'WEEK '+(S.week+1)+' OF 8':(S.round?'CHAMPIONSHIP':'SEMIFINAL');
 const upCost=r=>Math.ceil(r*.7);
 const pips=(v,n)=>'<span class="pips">'+Array.from({length:n||10},(_,i)=>'<s class="'+(i<Math.round(v)?'f':'')+'"></s>').join('')+'</span>';
-function show(id){['menu','hub','post','season','stand','lock','half','roster','exh','pd','pcs'].forEach(s=>$(s).classList.toggle('on',s===id));if(id==='menu'||id==='hub')nvBar()}
+function show(id){['menu','hub','post','season','stand','lock','half','roster','exh','pd','pcs','dcs'].forEach(s=>$(s).classList.toggle('on',s===id));if(id==='menu'||id==='hub')nvBar()}
 
 function renderHub(){
  if(S.lg)return lgHub();
@@ -274,7 +353,7 @@ function renderHub(){
  <div class="up"><b>OFFENSE</b>${pips(o.off)}</div><div class="up"><b>DEFENSE</b>${pips(o.def)}</div>
  <p style="margin-top:.8em">${S.last?'LAST: '+S.last:'FIRST GAME OF THE SEASON'}</p></div>
  <div class="card"><h3>COACH ROOM - CREDITS ${S.credits}</h3>${RK.map(k=>{const r=S.r[k],mx=r>=10;return`<div class="up"><b>${RL[k]}</b>${pips(r)}<button class="btn xs" data-up="${k}" ${mx||S.credits<upCost(r)?'disabled':''}>${mx?'MAX':'+'+upCost(r)}</button></div>`}).join('')}</div></div>
- <div class="row"><span class="sm">DRIVE:</span><button class="btn xs ${S.flip!==false?'alt':''}" data-dir="0">RIGHT &gt;</button><button class="btn xs ${S.flip!==false?'':'alt'}" data-dir="1">&lt; LEFT</button><span class="sm">LEVEL:</span><button class="btn xs alt" data-dl="-1">-</button><span class="sm">${DIFF()} ${dName()}</span><button class="btn xs alt" data-dl="1">+</button><span class="sm">QUARTER:</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'':'alt'}" data-q="${q}">${q}S</button>`).join('')}<button class="btn" data-act="play">PLAY GAME</button><button class="btn xs alt" data-act="exh">EXHIBITION</button><button class="btn xs alt" data-act="roster">ROSTER</button><button class="btn xs alt" data-act="designer">PLAYBOOK</button><button class="btn xs alt" data-act="menu">MENU</button></div>`;
+ ${gsRow()}<div class="row"><span class="sm">DRIVE:</span><button class="btn xs ${S.flip!==false?'alt':''}" data-dir="0">RIGHT &gt;</button><button class="btn xs ${S.flip!==false?'':'alt'}" data-dir="1">&lt; LEFT</button><span class="sm">LEVEL:</span><button class="btn xs alt" data-dl="-1">-</button><span class="sm">${DIFF()} ${dName()}</span><button class="btn xs alt" data-dl="1">+</button><span class="sm">QUARTER:</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'':'alt'}" data-q="${q}">${q}S</button>`).join('')}<button class="btn" data-act="play">PLAY GAME</button><button class="btn xs alt" data-act="exh">EXHIBITION</button><button class="btn xs alt" data-act="roster">ROSTER</button><button class="btn xs alt" data-act="designer">PLAYBOOK</button><button class="btn xs alt" data-act="stats">STATS</button><button class="btn xs alt" data-act="menu">MENU</button></div>`;
  show('hub');bkNag()}
 /* ---------- exhibition game (v1.52): one game against any opponent, nothing counts ---------- */
 let EXH=null;const EXS={team:null,name:null,lvl:5,site:true};
@@ -289,14 +368,14 @@ function openExh(){
  <div class="card" style="flex:none;width:100%;max-width:40em"><h3>GAME SETTINGS</h3><div class="row"><span class="sm">DRIVE:</span><button class="btn xs ${S.flip!==false?'alt':''}" data-ex="d0">RIGHT &gt;</button><button class="btn xs ${S.flip!==false?'':'alt'}" data-ex="d1">&lt; LEFT</button><span class="sm">QUARTER:</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'':'alt'}" data-ex="q${q}">${q}S</button>`).join('')}</div>
  <div class="row" style="margin-top:.5em"><span class="sm">SITE:</span>${[[true,'HOME'],[false,'AWAY'],[null,'NEUTRAL']].map(([v,t])=>`<button class="btn xs ${EXS.site===v?'':'alt'}" data-ex="s${v}">${t}</button>`).join('')}</div>
  <div class="row" style="margin-top:.5em"><span class="sm">LEVEL:</span><button class="btn xs alt" data-ex="dl-1">-</button><span class="sm">${DIFF()} ${dName()}</span><button class="btn xs alt" data-ex="dl1">+</button></div></div>
- <div class="row"><button class="btn" data-ex="go">KICK OFF</button><button class="btn xs alt" data-ex="back">BACK</button></div>`;
+ ${gsRow()}<div class="row"><button class="btn" data-ex="go">KICK OFF</button><button class="btn xs alt" data-ex="back">BACK</button></div>`;
  show('exh')}
 function exhMake(){const x=EXS,L=S.lg;
  if(L){const t=L.teams[x.team];return{name:t.name,off:t.off,def:t.def,col:t.col,uni:lgUni(t),id:t.id}}
  return mkOpp(x.name,x.lvl)}
 $('exh').onchange=e=>{const el=e.target;if(el.id==='exT')EXS.team=+el.value;else if(el.id==='exN')EXS.name=el.value};
 $('exh').onclick=e=>{const b=e.target.closest('button');if(!b)return;const v=b.dataset.ex;if(!v)return;
- if(v==='go'){EXH={o:exhMake(),home:EXS.site};startGame()}
+ if(v==='go')gsAsk(()=>{EXH={o:exhMake(),home:EXS.site};startGame()})
  else if(v==='back')renderHub();
  else{if(v==='rnd'){EXS.team=null;EXS.name=S.lg?null:pick(OPPN)}
   else if(v[0]==='l'&&v[1]==='v')EXS.lvl=clamp(EXS.lvl+ +v.slice(2),1,10);
@@ -328,11 +407,12 @@ $('hub').onclick=e=>{const b=e.target.closest('button');if(!b)return;
  else if(b.dataset.up){const k=b.dataset.up,c=upCost(S.r[k]);if(S.credits>=c&&S.r[k]<10){S.credits-=c;S.r[k]++;save();renderHub()}}
  else if(b.dataset.dir!=null){S.flip=b.dataset.dir==='1';save();renderHub()}
  else if(b.dataset.q){S.qLen=+b.dataset.q;save();renderHub()}
- else if(b.dataset.act==='play')S.lg?openLocker():startGame();
+ else if(b.dataset.act==='play')gsAsk(()=>S.lg?openLocker():startGame());
  else if(b.dataset.act==='designer')openDesigner();
  else if(b.dataset.act==='roster')openRoster();
+ else if(b.dataset.act==='stats')glOpen();
  else if(b.dataset.act==='exh')openExh();
- else if(b.dataset.act==='sim')lgSimMine();
+ else if(b.dataset.act==='sim')gsAsk(lgSimMine);
  else if(b.dataset.act==='stand')lgOpenStand();
  else if(b.dataset.act==='menu')openMenu()};
 
@@ -618,7 +698,7 @@ function lgHub(){
  <p style="margin-top:.8em">${S.last?'LAST: '+S.last:'FIRST GAME OF THE SEASON'}</p></div>
  <div class="card"><h3>COACH ROOM - CREDITS ${S.credits}</h3>${RK.map(k=>{const v=S.r[k],mx=v>=10;return`<div class="up"><b>${RL[k]}</b>${pips(v)}<button class="btn xs" data-up="${k}" ${mx||S.credits<upCost(v)?'disabled':''}>${mx?'MAX':'+'+upCost(v)}</button></div>`}).join('')}</div></div>
  <div class="row"><span class="sm">DRIVE:</span><button class="btn xs ${S.flip!==false?'alt':''}" data-dir="0">RIGHT &gt;</button><button class="btn xs ${S.flip!==false?'':'alt'}" data-dir="1">&lt; LEFT</button><span class="sm">LEVEL:</span><button class="btn xs alt" data-dl="-1">-</button><span class="sm">${DIFF()} ${dName()}</span><button class="btn xs alt" data-dl="1">+</button><span class="sm">QUARTER:</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'':'alt'}" data-q="${q}">${q}S</button>`).join('')}</div>
- <div class="row"><button class="btn" data-act="play">PLAY GAME</button><button class="btn alt" data-act="sim">SIM GAME</button><button class="btn xs alt" data-act="stand">STANDINGS</button><button class="btn xs alt" data-act="exh">EXHIBITION</button><button class="btn xs alt" data-act="roster">ROSTER</button><button class="btn xs alt" data-act="designer">PLAYBOOK</button><button class="btn xs alt" data-act="menu">HOME</button></div>`;
+ ${gsRow()}<div class="row"><button class="btn" data-act="play">PLAY GAME</button><button class="btn alt" data-act="sim">SIM GAME</button><button class="btn xs alt" data-act="stand">STANDINGS</button><button class="btn xs alt" data-act="exh">EXHIBITION</button><button class="btn xs alt" data-act="roster">ROSTER</button><button class="btn xs alt" data-act="designer">PLAYBOOK</button><button class="btn xs alt" data-act="stats">STATS</button><button class="btn xs alt" data-act="menu">HOME</button></div>`;
  show('hub');bkNag()}
 
 /* ----- standings, schedule, playoffs, scores ----- */
@@ -669,15 +749,15 @@ function renderHome(){
  const f={lg:hmLeagues,new:hmNew,cz:hmCustom,help:hmHelp}[HOME.tab];$('mbody').innerHTML=f();
  if(HOME.tab==='cz')czDraw()
  $('mrot').innerHTML=coarse()?`<span class="sm">ROTATION:</span><button class="btn xs ${rotPref()===1?'':'alt'}" data-rot="1">AUTO</button><button class="btn xs ${rotPref()===-1?'':'alt'}" data-rot="-1">FLIP</button>`:''
- pwaUI()}
+ pwaUI();cgFoot()}
 
 /* ----- tab 1: saved leagues ----- */
 function hmLeagues(){
  const ix=rdIdx();
- if(!ix.length)return`<p style="margin:2em 0">NO SAVED LEAGUES YET.<br>START ONE IN THE NEW LEAGUE TAB.</p><div class="row"><button class="btn" data-tab="new">NEW LEAGUE</button><button class="btn alt" data-bk="import">IMPORT</button></div>`;
- return'<div class="lst">'+ix.map(e=>`<div class="slot"><div style="flex:1;text-align:left"><b>${hmEsc(e.name)}</b><div class="sm">${hmEsc(e.team)} - ${e.fmt} - SEASON ${e.season} - ${e.w}-${e.l}${e.t?'-'+e.t:''}${e.champs?' - TITLES '+e.champs:''}</div></div>
+ if(!ix.length)return`<p style="margin:2em 0">NO SAVED LEAGUES YET.<br>START ONE IN THE NEW LEAGUE TAB.</p><div class="row"><button class="btn" data-tab="new">NEW LEAGUE</button><button class="btn alt" data-bk="import">IMPORT</button>${cgRestoreBtn()}</div>`;
+ return'<div class="lst">'+ix.map(e=>`<div class="slot"><div style="flex:1;text-align:left"><b>${hmEsc(e.name)}</b><div class="sm">${hmEsc(e.team)} - ${e.fmt} - SEASON ${e.season} - ${e.w}-${e.l}${e.t?'-'+e.t:''}${e.champs?' - TITLES '+e.champs:''}</div>${gsHas(e.id)?'<div class="sm gtag" style="color:#ffd400">GAME IN PROGRESS</div>':''}</div>
  <button class="btn xs" data-play="${e.id}">PLAY</button><button class="btn xs alt" data-bk="export" data-id="${e.id}">EXPORT</button><button class="btn xs alt" data-del="${e.id}">${HOME.del===e.id?'SURE?':'DELETE'}</button></div>`).join('')+'</div>'+
- `<div class="row"><button class="btn" data-tab="new">NEW LEAGUE</button><button class="btn alt" data-bk="import">IMPORT</button><button class="btn alt" data-bk="all">BACK UP ALL LEAGUES</button></div>`}
+ `<div class="row"><button class="btn" data-tab="new">NEW LEAGUE</button><button class="btn alt" data-bk="import">IMPORT</button><button class="btn alt" data-bk="all">BACK UP ALL LEAGUES</button>${cgRestoreBtn()}</div>`}
 
 /* ----- tab 2: new league wizard ----- */
 function hmNew(){
@@ -753,7 +833,18 @@ function czRedraw(){resetSprites();czDraw()}
 function czRefreshTeamOpt(){const{L}=czTarget();const s=$('czteam');if(s)[...s.options].forEach((o,i)=>o.textContent=L.teams[i].name)}
 
 /* ----- tab 4: help ----- */
-function hmHelp(){return`<p style="text-align:left;line-height:2">SNAP: DRAG THE QB BACK TO PASS (SNAPS AND AIMS), TAP THE RB TO RUN<br>PASS: RELEASE TO THROW (OR TAP A RECEIVER / PRESS 1-5 FOR AUTO-LEAD)<br>RUN: SWIPE UP OR DOWN TO STEER (KEEP YOUR FINGER DOWN), JUKE BUTTON OR SPACE<br>KICK: PULL BACK FOR POWER, SIDEWAYS TO AIM (WATCH THE WIND)<br><br>NFL LEAGUE: ${LGF.NFL.help}<br>COLLEGE LEAGUE: ${LGF.COL.help}<br>EARN COACH CREDITS AFTER EVERY GAME AND UPGRADE YOUR TEAM.<br><br>VERSION V${APP_VERSION}</p>`}
+function hmHelp(){return`<div class="hpt"><h1 class="mh" style="font-size:1.3em">HOW TO PLAY</h1>
+<p>IN A GAME, TAP ? FOR THE CONTROLS.</p>
+<div class="row" style="justify-content:flex-start"><button class="btn xs alt" data-hp="open">CONTROLS</button></div>
+${stGroup()}
+<h4>STARTING OUT</h4><p>NEW LEAGUE: NAME IT, PICK THE FORMAT AND YOUR TEAM, THEN START LEAGUE. YOUR LEAGUES LIVE ON MY LEAGUES.</p>
+<h4>EACH WEEK</h4><p>PLAY GAME: PLAY IT YOURSELF. THE LOCKER ROOM LETS YOU PICK UNIFORMS FIRST. SIM GAME: THE COMPUTER PLAYS IT.<br>PLAYBOOK: DESIGN YOUR OWN PLAYS.<br>LEFT A GAME HALFWAY? TAP RESUME GAME ON YOUR LEAGUE SCREEN.<br>EARN COACH CREDITS AFTER EVERY LEAGUE GAME AND UPGRADE YOUR TEAM IN THE COACH ROOM ON YOUR LEAGUE SCREEN.</p>
+<h4>LEAGUE FORMATS</h4><p>NFL LEAGUE: ${LGF.NFL.help}<br>COLLEGE LEAGUE: ${LGF.COL.help}</p>
+<h4>INSTALL</h4><p>ON IPHONE: SAFARI, SHARE, ADD TO HOME SCREEN. ON ANDROID OR DESKTOP CHROME: TAP INSTALL BELOW WHEN IT SHOWS.</p>
+<p>PROBLEMS? TAP REPORT A PROBLEM.</p></div>
+<div class="row"><button class="btn xs alt" data-cg="open">CLOUD SAVE</button>${cgRestoreBtn('xs alt')}<button class="btn xs alt" data-rp="open">REPORT A PROBLEM</button></div>
+<div class="row"><button class="btn xs alt" data-hn="reset">${HOME.hnDone?'TIPS WILL SHOW AGAIN':'SHOW TIPS AGAIN'}</button></div>
+<p class="sm">VERSION V${APP_VERSION}</p>`}
 
 /* ----- events ----- */
 function hmStart(){
@@ -763,6 +854,8 @@ function hmPlay(id){const s=loadSlot(id);if(!s)return;S=s;if(S.lg){if(!S.lg.ho){
 $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
  if(d.ret){HOME.ret=null;openLocker()}
  else if(d.rot)setRotPref(+d.rot)
+ else if(d.hp==='open')hpOpen(true)
+ else if(d.hn==='reset'){hnReset();HOME.hnDone=true;renderHome();HOME.hnDone=false}
  else if(d.tab){HOME.tab=d.tab;HOME.del=null;HOME.ret=null;renderHome()}
  else if(d.play)hmPlay(d.play);
  else if(d.del){if(HOME.del===d.del){if(S&&S.id===d.del)S=null;delSlot(d.del);HOME.del=null}else HOME.del=d.del;renderHome()}
@@ -1028,6 +1121,668 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
  else{try{saveNow()}catch(x){}try{location.reload()}catch(x){}}});
 {const mv=$('mver');if(mv)mv.textContent='V'+APP_VERSION}
 if(NV_ON){setTimeout(nvCheck,10000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')nvCheck()})}
+/* ----- REPORT A PROBLEM (v1.76). Builds a plain-text report on the device; nothing is sent anywhere. No team, league or player names, no saves. ----- */
+const RP_SCR={menu:'HOME',hub:'HUB',post:'POST-GAME',season:'SEASON END',stand:'STANDINGS',lock:'LOCKER ROOM',half:'HALFTIME',roster:'ROSTER',exh:'EXHIBITION',pd:'PLAY DESIGNER',pcs:'CALL SHEET'};
+function rpUA(){const u=navigator.userAgent||'';let b='UNKNOWN BROWSER',o='UNKNOWN OS',m;
+ if(m=/(?:Edg|EdgA|EdgiOS)\/(\d+)/.exec(u))b='EDGE '+m[1];
+ else if(m=/OPR\/(\d+)/.exec(u))b='OPERA '+m[1];
+ else if(m=/(?:Firefox|FxiOS)\/(\d+)/.exec(u))b='FIREFOX '+m[1];
+ else if(m=/(?:Chrome|CriOS)\/(\d+)/.exec(u))b='CHROME '+m[1];
+ else if((m=/Version\/(\d+(?:\.\d+)?)/.exec(u))&&/Safari/.test(u))b='SAFARI '+m[1];
+ if(m=/Android (\d+(?:\.\d+)?)/.exec(u))o='ANDROID '+m[1];
+ else if(m=/(?:iPhone|CPU) OS (\d+)[_.](\d+)/.exec(u))o='IOS '+m[1]+'.'+m[2];
+ else if(/iPad|iPhone|iPod/.test(u))o='IOS';
+ else if(m=/Windows NT (\d+(?:\.\d+)?)/.exec(u))o='WINDOWS NT '+m[1];
+ else if(m=/Mac OS X (\d+)[_.](\d+)/.exec(u))o='MACOS '+m[1]+'.'+m[2];
+ else if(/CrOS/.test(u))o='CHROMEOS';else if(/Linux/.test(u))o='LINUX';
+ return b+' / '+o}
+function rpScreen(){for(const k in RP_SCR){const e=$(k);if(e&&e.classList.contains('on'))return RP_SCR[k]}return'GAME FIELD'}
+function buildReport(text){
+ const L=[],add=(k,f)=>{let v;try{v=f()}catch(e){v='(UNAVAILABLE)'}L.push(k+': '+v)},yn=x=>x?'YES':'NO',p2=n=>String(n).padStart(2,'0');
+ const t=String(text==null?'':text).replace(/\s+/g,' ').trim().slice(0,300);
+ L.push('PIXEL PIGSKIN PROBLEM REPORT');
+ L.push('WHAT HAPPENED: '+(t||'(NOTHING WRITTEN)'));
+ add('VERSION',()=>'V'+APP_VERSION);
+ add('SPEED',()=>spdName());
+ add('TIME',()=>{const d=new Date(),o=-d.getTimezoneOffset(),a=Math.abs(o);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+' '+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds())+' (UTC'+(o<0?'-':'+')+p2(Math.floor(a/60))+':'+p2(a%60)+')'});
+ add('HOST',()=>location.hostname||'(NONE)');
+ add('INSTALLED APP',()=>yn(pwaStandalone()));
+ add('SERVICE WORKER',()=>!('serviceWorker'in navigator)?'NOT SUPPORTED':'CONTROLLER '+yn(navigator.serviceWorker.controller));
+ add('PLATFORM',()=>navigator.platform||'(UNKNOWN)');
+ add('BROWSER / OS',rpUA);
+ add('SCREEN',()=>screen.width+'x'+screen.height);
+ add('WINDOW',()=>innerWidth+'x'+innerHeight);
+ add('PIXEL RATIO',()=>devicePixelRatio);
+ add('POINTER',()=>coarse()?'COARSE (TOUCH)':'FINE (MOUSE)');
+ add('ORIENTATION',()=>(screen.orientation&&screen.orientation.type)||(innerHeight>innerWidth?'portrait':'landscape'));
+ add('ROTATION',()=>'ROT '+ROT+', SETTING '+(rotPref()===-1?'FLIP':'AUTO'));
+ add('SAFE-AREA INSETS (T R B L)',()=>{const i=insets();return[i.t,i.r,i.b,i.l].map(v=>Math.round(v)).join(' ')});
+ add('NETWORK',()=>navigator.onLine===false?'OFFLINE':'ONLINE');
+ add('STORAGE',()=>{const s=saveInfo(),b=Object.keys(s.bytesPerSlot).map(k=>s.bytesPerSlot[k]);return s.slotCount+' SLOT'+(s.slotCount===1?'':'S')+', BYTES PER SLOT '+(b.length?b.join(', '):'NONE')+', PERSISTED '+(s.persisted===true?'YES':s.persisted===false?'NO':'UNKNOWN')+', SAVE VERSION '+s.version});
+ add('CLOUD COPY',cgReportLine); /* v1.78: only whether a copy exists and when it was last uploaded; never a code */
+ add('SCREEN NOW',rpScreen);
+ add('GAME MODE',()=>G&&G.mode?G.mode:'NONE');
+ add('LEAGUE',()=>{if(!S)return'NONE LOADED';const f=S.lg?((S.lg.fmt||'NFL')==='COL'?'COLLEGE':'NFL'):'NONE (CLASSIC FRANCHISE)';return f+', SEASON '+S.season+', WEEK '+((+S.week||0)+1)+', PHASE '+S.phase});
+ if(!ERRS.length)L.push('ERRORS: NONE');else ERRS.forEach((e,i)=>L.push('ERROR '+(i+1)+': '+e));
+ return L.join('\n')}
+/* ----- panel (an overlay like the backup panels; it does not touch the game) ----- */
+const RP={msg:''};
+function rpPanel(){let e=$('rp');
+ if(!e){e=document.createElement('div');e.id='rp';e.className='screen top';e.style.background='#070a12';$('app').appendChild(e);
+  e.addEventListener('input',()=>rpRebuild());
+  for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>x.stopPropagation()); /* typing must never reach the game's key controls */
+  e.innerHTML=`<h1 class="mh">REPORT A PROBLEM</h1>
+  <div class="rpg">
+   <div class="rpc"><div class="sm">WHAT HAPPENED?</div>
+    <textarea id="rpin" maxlength="300" rows="5" placeholder="TYPE HERE" autocomplete="off" autocapitalize="sentences"></textarea>
+    <div class="sm" id="rpn">0 / 300</div>
+    <div class="row"><button class="btn" data-rp="copy">COPY REPORT</button><button class="btn alt" data-rp="share" id="rpsh">SHARE</button><button class="btn alt" data-rp="close">CLOSE</button></div>
+    <div class="sm" id="rpm"></div>
+    <div class="sm">NOTHING IS SENT ANYWHERE. PASTE THIS INTO A MESSAGE TO THE PERSON WHO SENT YOU THE LINK.</div></div>
+   <div class="rpc"><div class="sm">THE REPORT</div><textarea id="rpout" readonly rows="22"></textarea></div>
+  </div>`}
+ return e}
+function rpRebuild(){try{const i=$('rpin'),o=$('rpout');if(!i||!o)return;o.value=buildReport(i.value);const n=$('rpn');if(n)n.textContent=i.value.length+' / 300'}catch(e){}}
+function rpOpen(){try{const e=rpPanel();$('rpsh').style.display=navigator.share?'':'none';$('rpm').textContent='';rpRebuild();e.classList.add('on');e.scrollTop=0}catch(x){}}
+function rpClose(){try{const e=$('rp');if(e)e.classList.remove('on')}catch(x){}}
+const rpSay=t=>{const m=$('rpm');if(m)m.textContent=t};
+async function rpCopy(){
+ try{rpRebuild();const o=$('rpout'),t=o.value,b=document.querySelector('#rp [data-rp=copy]');
+  const ok=()=>{rpSay('COPIED');if(b){b.textContent='COPIED';setTimeout(()=>{b.textContent='COPY REPORT'},2000)}};
+  try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(t);ok();return}}catch(e){}
+  o.focus();o.select();try{o.setSelectionRange(0,t.length)}catch(e){}
+  let done=false;try{done=document.execCommand&&document.execCommand('copy')}catch(e){}
+  if(done)ok();else rpSay('COPY WAS BLOCKED. THE REPORT IS SELECTED: PRESS AND HOLD, THEN COPY.')
+ }catch(e){}}
+async function rpShare(){try{rpRebuild();await navigator.share({title:'Pixel Pigskin problem report',text:$('rpout').value});rpSay('SHARED')}catch(e){if(!e||e.name!=='AbortError')rpSay('SHARING FAILED. USE COPY REPORT.')}}
+document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-rp]');if(!b)return;const a=b.dataset.rp;
+ if(a==='open')rpOpen();else if(a==='close')rpClose();else if(a==='copy')rpCopy();else if(a==='share')rpShare()}catch(x){}});
+/* ----- mid-game resume (v1.77). A device-only snapshot of the game is written each time a play is about to be called (pre-snap) and
+   removed when the game ends, the league is deleted, a different game starts or the player abandons it. Not part of backup codes. ----- */
+const GSK='pixelPigskin.g.',GS_PLAIN=['opp','oc','label','exh','home','qLen','clock','me','op','los','down','fd','ot','t','poss','st','qs','pl','ost','half','first','pat','hold','rev','bullet','bp','dcStyles','dcLast'];
+const gsRound=()=>S.lg?((S.lg.po&&S.lg.po.round)||0):(S.round||0);
+const gsGames=()=>(+S.w||0)+(+S.l||0)+(+S.t||0);
+const gsNum=v=>typeof v==='number'&&isFinite(v);
+function gsClear(id){try{id=id||(S&&S.id);if(id)lsDel(GSK+id)}catch(e){}}
+function gsWrite(){try{
+ if(!G||!S||!S.id||G.mode!=='presnap')return;
+ const g={};for(const k of GS_PLAIN)if(G[k]!==undefined)g[k]=G[k];
+ const o={gv:1,sv:SAVE_VERSION,app:APP_VERSION,id:S.id,season:S.season,week:S.week,phase:S.phase,round:gsRound(),games:gsGames(),exh:!!G.exh,g};
+ if(G.exh)o.ex={o:G.opp,home:G.home};
+ const k=GSK+S.id,txt=JSON.stringify(o);
+ if(!lsSet(k,txt)||lsGet(k)!==txt)lsDel(k)
+}catch(e){}}
+function gsShape(o){const g=o&&o.g;
+ return!!g&&typeof g==='object'&&o.gv===1&&['me','op','clock','los','down','fd','qLen'].every(k=>gsNum(g[k]))&&g.down>=1&&g.down<=4&&(g.first==='me'||g.first==='opp')
+  &&['st','qs','pl','ost','opp','oc'].every(k=>g[k]&&typeof g[k]==='object')&&typeof g.opp.name==='string'&&Array.isArray(g.qs.me)&&Array.isArray(g.qs.op)}
+function gsPeek(id){try{id=id||(S&&S.id);if(!id)return null;const t=lsGet(GSK+id);if(!t)return null;const o=JSON.parse(t);
+ return o&&o.sv===SAVE_VERSION&&o.id===id&&gsShape(o)?o:false}catch(e){return false}} /* null = none, false = unusable */
+function gsMatch(o){try{
+ if(!o||o.season!==S.season)return false;if(o.exh)return true;
+ const n=nextOpp(),p=o.g.opp;
+ return o.week===S.week&&o.phase===S.phase&&o.round===gsRound()&&o.games===gsGames()&&n&&n.name===p.name&&(n.id==null||p.id==null||n.id===p.id)
+}catch(e){return false}}
+function gsRead(){const o=gsPeek();if(o===null)return null;if(o===false||!gsMatch(o)){gsClear();return null}return o}
+function gsLine(o){const g=o.g,c=Math.ceil(g.clock),q=g.ot?'OT':'Q'+clamp(Math.ceil((g.qLen*4-g.clock)/g.qLen+.0001),1,4);
+ return(o.exh?'EXHIBITION IN PROGRESS: ':'GAME IN PROGRESS: ')+(g.home===false?'AT ':'VS ')+g.opp.name+' - '+q+' '+Math.floor(c/60)+':'+String(c%60).padStart(2,'0')+' - '+g.me+'-'+g.op+' - '+ORD[Math.min(g.down,4)-1]+' & '+(g.fd>=100?'GOAL':Math.max(1,Math.round(g.fd-g.los)))}
+function gsRow(){try{const o=gsRead();if(!o)return'';
+ return`<div class="sm" style="color:#ffd400">${hmEsc(gsLine(o))}</div><div class="row"><button class="btn" data-gs="resume">RESUME GAME</button></div>`}catch(e){return''}}
+function gsResume(){
+ try{
+  const o=gsRead();if(!o){if(S.lg)renderHub();else renderHub();return}
+  const g=JSON.parse(JSON.stringify(o.g));
+  EXH=null;BN_PRE=0;fx=[];
+  G=Object.assign({play:null,bn:null,kick:null,ka:null,rev:null,bullet:false},g,{mode:'banner'});
+  if(S.lg){const _t=S.lg.teams[S.lg.me];S.uni=lgUni(_t)||defaultUni(_t.col)}else if(!S.uni)S.uni=defaultUni(myC());G.opp.uni=G.opp.uni||defaultUni(G.oc,true);resetSprites();
+  FLIP=S.flip!==false;show(null);formation();cam.x=camTarget();
+  setPresnap() /* no banners, no coin toss */
+ }catch(e){gsClear();try{renderHub()}catch(x){}}}
+/* "ABANDON THE SAVED GAME?" before anything that would start or replace a game */
+function gsAsk(next){
+ let o=null;try{o=gsRead()}catch(e){}
+ if(!o)return next();
+ let e=$('gsq');if(!e){e=document.createElement('div');e.id='gsq';e.className='screen';e.style.background='#070a12';$('app').appendChild(e)}
+ e.innerHTML=`<h1 class="mh">ABANDON THE SAVED GAME?</h1><div class="sm">${hmEsc(gsLine(o))}</div><div class="row"><button class="btn" data-gs="no">NO</button><button class="btn alt" data-gs="yes">YES</button></div>`;
+ gsAsk.next=next;e.classList.add('on')}
+document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-gs]');if(!b)return;const a=b.dataset.gs,q=$('gsq');
+ if(a==='resume')gsResume();
+ else if(a==='no'){if(q)q.classList.remove('on');gsAsk.next=null}
+ else if(a==='yes'){if(q)q.classList.remove('on');const f=gsAsk.next;gsAsk.next=null;gsClear();if(f)f()}
+ }catch(x){}});
+/* v1.81: does this league have a usable saved game? Reads the slot without making it the current league and removes a stale snapshot, like gsRead does. */
+function gsHas(id){try{
+ if(!lsGet(GSK+id))return false;
+ const prev=S;let ok=false;
+ try{const s=loadSlot(id);if(!s)return false;S=s;if(S.lg)lgSync();
+  const o=gsPeek(id);if(o===null)return false;
+  if(o===false||!gsMatch(o)){gsClear(id);return false}
+  ok=true}finally{S=prev}
+ return ok}catch(e){return false}}
+function snapInfo(id){try{id=id||(S&&S.id);const t=id?lsGet(GSK+id):null,o=t?gsPeek(id):null;
+ if(!t)return{exists:false,key:GSK+id};
+ if(!o)return{exists:true,usable:false,key:GSK+id,bytes:t.length};
+ return{exists:true,usable:true,key:GSK+id,bytes:t.length,matches:gsMatch(o),line:gsLine(o),exh:o.exh,sv:o.sv,app:o.app,season:o.season,week:o.week,phase:o.phase,round:o.round,games:o.games,g:o.g}}catch(e){return{exists:false,error:String(e)}}}
+/* ----- CLOUD SAVE (v1.78). Manual only: nothing here runs at startup, the Firebase SDK is loaded when the player taps a cloud button.
+   One Firestore document per league: leagues/{recovery code} = {data: the PPSAVE1 export string, flag, updatedAt (ms), owner (anonymous uid), schema:1}.
+   The slot -> code map lives ONLY in localStorage 'pixelPigskin.cloud' (never in a league save, an export code or a report).
+   A recovery code is never logged, never put in an error message and never goes into REPORT A PROBLEM. ----- */
+const CG_KEY='pixelPigskin.cloud',CG_ALPHA='ABCDEFGHJKMNPQRSTUVWXYZ23456789',CG_TMO=10000,CG_MAX=100000; /* data must be UNDER 100000 characters (the rules) */
+const CG={sdk:null,sdkP:null,busy:false,view:'list',pend:null,seq:0};
+function cgHostOK(){try{const h=location.hostname;return h==='chipperbaily.github.io'||h==='localhost'}catch(e){return false}}
+function cgFoot(){try{const b=$('mcgr');if(b)b.hidden=!cgHostOK()}catch(e){}} /* the footer RESTORE FROM CODE shows only where cloud save works; a new device opens on the NEW LEAGUE tab, so it must be reachable from there */
+function cgRestoreBtn(c){return cgHostOK()?'<button class="btn '+(c||'alt')+'" data-cg="restore">RESTORE FROM CODE</button>':''}
+const cgNoNet='NO CONNECTION. TRY AGAIN LATER';
+
+/* ---- recovery codes: same generator as cloud-test.html. 31-character alphabet (no 0 O 1 I L), 16 characters = about 79 random bits,
+   crypto.getRandomValues only, rejection sampling (bytes >= 248 are dropped) so every character is equally likely ---- */
+function cgMake(){
+ const ch=[];
+ while(ch.length<16){const b=new Uint8Array(32);crypto.getRandomValues(b);for(const x of b){if(x<248&&ch.length<16)ch.push(CG_ALPHA[x%31])}}
+ const s=ch.join('');return s.slice(0,4)+'-'+s.slice(4,8)+'-'+s.slice(8,12)+'-'+s.slice(12)}
+function cgNorm(t){const s=String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+ if(s.length!==16||[...s].some(c=>!CG_ALPHA.includes(c)))return null;return s.slice(0,4)+'-'+s.slice(4,8)+'-'+s.slice(8,12)+'-'+s.slice(12)}
+
+/* ---- the slot -> code map (separate key) ---- */
+function cgRead(){try{const o=JSON.parse(localStorage.getItem(CG_KEY)||'null');if(o&&o.v===1&&o.m&&typeof o.m==='object')return o}catch(e){}return{v:1,m:{}}}
+const cgWrite=o=>{try{localStorage.setItem(CG_KEY,JSON.stringify(o));return true}catch(e){return false}};
+const cgGet=id=>{const e=cgRead().m[id];return e&&typeof e.c==='string'&&cgNorm(e.c)?e:null};
+function cgPut(id,code,up){const o=cgRead();o.m[id]={c:code,u:up};return cgWrite(o)}
+function cgDrop(id){const o=cgRead();if(o.m[id]){delete o.m[id];cgWrite(o)}}
+const cgWhen=ms=>{const d=new Date(+ms);if(!isFinite(d))return'';return d.toLocaleString([],{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).toUpperCase()};
+const cgP2=n=>String(n).padStart(2,'0');
+/* the only cloud facts that may appear in REPORT A PROBLEM */
+function cgReportLine(){
+ if(!cgHostOK())return'NOT AVAILABLE ON THIS ADDRESS';
+ if(!S||!S.id)return'NO LEAGUE LOADED';
+ const e=cgGet(S.id);if(!e)return'NO';
+ const d=new Date(+e.u);return isFinite(d)?'YES, LAST UPLOADED '+d.getFullYear()+'-'+cgP2(d.getMonth()+1)+'-'+cgP2(d.getDate())+' '+cgP2(d.getHours())+':'+cgP2(d.getMinutes()):'YES'}
+
+/* ---- Firebase, loaded lazily. Every cloud call has its own 10 second limit. A failure never throws out of this file. ---- */
+const cgT=(p,ms)=>new Promise((res,rej)=>{const t=setTimeout(()=>rej({cgKind:'net'}),ms||CG_TMO);Promise.resolve(p).then(v=>{clearTimeout(t);res(v)},e=>{clearTimeout(t);rej(e)})});
+function cgLoad(){
+ if(CG.sdk)return Promise.resolve(CG.sdk);
+ if(CG.stale){ /* an import() that failed is remembered by the browser until the page reloads; the game is saved, so reload and let the player tap again */
+  try{saveNow()}catch(e){}cgMsg('RESTARTING THE GAME TO TRY AGAIN...',false);setTimeout(()=>{try{location.reload()}catch(e){}},300);return new Promise(()=>{})}
+ if(!CG.sdkP){
+  const base='https://www.gstatic.com/firebasejs/'+CLOUD_SDK+'/';
+  CG.sdkP=(async()=>{
+   try{await fetch(base+'firebase-app.js',{mode:'no-cors'})}catch(e){throw{cgKind:'net'}} /* probe first: a plain fetch leaves nothing behind when the network is down, so a later retry works */
+   let A,F,X;
+   try{[A,F,X]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')])}catch(e){CG.stale=true;throw{cgKind:'net'}}
+   const app=A.initializeApp(CLOUD_CONFIG),auth=F.getAuth(app),db=X.getFirestore(app);
+   try{X.setLogLevel('silent')}catch(e){} /* the SDK's own console messages can contain document paths */
+   try{ /* local testing only: ?cloudemu=<firestore port>:<auth port>, honoured on localhost and nowhere else */
+    const q=location.hostname==='localhost'?new URLSearchParams(location.search).get('cloudemu'):null;
+    if(q){const[fp,ap]=q.split(':');F.connectAuthEmulator(auth,'http://127.0.0.1:'+(+ap||9099),{disableWarnings:true});X.connectFirestoreEmulator(db,'127.0.0.1',+fp||8080)}
+   }catch(e){}
+   CG.sdk={A,F,X,app,auth,db};return CG.sdk
+  })().catch(e=>{CG.sdkP=null;throw e})}
+ return CG.sdkP}
+async function cgUid(s){
+ if(s.auth.authStateReady)await s.auth.authStateReady();
+ if(!s.auth.currentUser)await s.F.signInAnonymously(s.auth);
+ return s.auth.currentUser.uid}
+/* load + anonymous sign-in + one operation; each step has its own 10 s limit */
+async function cgWith(fn){const s=await cgT(cgLoad());const uid=await cgT(cgUid(s));return cgT(fn(s,uid))}
+function cgKind(e){return e&&e.cgKind?e.cgKind:(e&&e.code==='permission-denied'?'denied':'net')}
+const cgMsgFor=k=>k==='denied'?'THE CLOUD REFUSED THIS. CHECK THE DATE AND TIME ON YOUR DEVICE, THEN TRY AGAIN.':k==='big'?'THIS LEAGUE IS TOO BIG FOR A CLOUD COPY. USE EXPORT OR BACK UP ALL LEAGUES INSTEAD.':cgNoNet;
+
+/* ---- operations ---- */
+async function cgExport(id){
+ try{if(S&&S.id===id)saveNow()}catch(e){}
+ const t=await exportCode(id);if(t.length>=CG_MAX)throw{cgKind:'big'};return t}
+async function cgCreate(id){
+ const data=await cgExport(id);
+ for(let i=0;i<4;i++){
+  const c=cgMake();
+  const r=await cgWith((s,uid)=>s.X.runTransaction(s.db,async tx=>{ /* a transaction: it needs a live connection, so nothing is queued offline */
+   const ref=s.X.doc(s.db,'leagues',c),sn=await tx.get(ref);if(sn.exists())return'taken';
+   tx.set(ref,{data,flag:'active',updatedAt:Date.now(),owner:uid,schema:1});return Date.now()}));
+  if(r!=='taken')return{code:c,up:r}}
+ throw{cgKind:'net'}}
+async function cgUpload(id,code){
+ const data=await cgExport(id);
+ return cgWith(s=>s.X.runTransaction(s.db,async tx=>{
+  const ref=s.X.doc(s.db,'leagues',code),sn=await tx.get(ref);if(!sn.exists())throw{cgKind:'gone'};
+  const ts=Math.max(Date.now(),+sn.data().updatedAt||0); /* updatedAt only ever moves forward (the rules refuse it going back) */
+  tx.update(ref,{data,updatedAt:ts});return ts}))}
+async function cgFetch(code){
+ const d=await cgWith(s=>s.X.getDocFromServer(s.X.doc(s.db,'leagues',code)).then(sn=>sn.exists()?sn.data():null));
+ if(!d)throw{cgKind:'wrong'};
+ if(!d||typeof d.data!=='string'||d.schema!==1)throw{cgKind:'damaged'};
+ const r=await bkUnpack(d.data); /* the existing checksum + decode + shape checks */
+ if(!r.ok||r.items.length!==1)throw{cgKind:/NEWER VERSION/.test(r.msg||'')?'newer':'damaged'};
+ return{item:r.items[0],up:+d.updatedAt}}
+
+/* ---- panel ---- */
+function cgPanel(){let e=$('cg');
+ if(!e){e=document.createElement('div');e.id='cg';e.className='screen top';e.style.background='#070a12';$('app').appendChild(e);
+  for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Enter'&&x.target&&x.target.id==='cgin'){x.preventDefault();cgFind()}}); /* typing never reaches the game keys */
+  e.addEventListener('input',x=>{if(x.target&&x.target.id==='cgin')cgMsg('')})}
+ return e}
+const cgMsg=(t,bad)=>{const m=$('cgmsg');if(m){m.textContent=t||'';m.className='sm '+(bad?'bad':'good')}};
+function cgBusy(on,msg){CG.busy=on;document.querySelectorAll('#cg button').forEach(b=>{b.disabled=on&&b.dataset.cg!=='close'});if(msg!=null)cgMsg(msg,false)}
+function cgShow(view,arg){
+ const e=cgPanel();CG.view=view;
+ let h='';
+ if(!cgHostOK()){h=`<h1 class="mh">CLOUD SAVE</h1><div class="sm cgw">CLOUD SAVE ONLY WORKS ON THE INSTALLED OR GITHUB VERSION</div><div class="row"><button class="btn alt" data-cg="close">CLOSE</button></div>`}
+ else if(view==='list'){
+  const ix=rdIdx();
+  h=`<h1 class="mh">CLOUD SAVE</h1><div class="sm cgw">A CLOUD COPY OPENS YOUR LEAGUE ON ANOTHER DEVICE WITH A CODE. IT DOES NOT REPLACE FILE BACKUPS (EXPORT).</div>
+  <div class="lst">`+(ix.length?ix.map(x=>{const c=cgGet(x.id);
+   return`<div class="slot"><div class="nm"><b>${hmEsc(x.name)}</b><div class="sm">${hmEsc(x.team)} - SEASON ${x.season}</div><div class="sm">${c?'LAST UPLOADED '+hmEsc(cgWhen(c.u)):'NO CLOUD COPY'}</div></div>`+
+   (c?`<button class="btn xs" data-cg="up" data-id="${x.id}">UPLOAD NOW</button><button class="btn xs alt" data-cg="show" data-id="${x.id}">SHOW MY CODE</button>`:`<button class="btn xs" data-cg="create" data-id="${x.id}">CREATE CLOUD COPY</button>`)+`</div>`}).join(''):'<div class="sm">NO SAVED LEAGUES YET.</div>')+`</div>
+  <div class="sm" id="cgmsg"></div>
+  <div class="row"><button class="btn" data-cg="restore">RESTORE FROM CODE</button><button class="btn alt" data-cg="close">CLOSE</button></div>`}
+ else if(view==='code'){
+  h=`<h1 class="mh">YOUR RECOVERY CODE</h1><div class="cgcode" id="cgcode"></div>
+  <div class="row"><button class="btn" data-cg="copy">COPY</button><button class="btn alt" data-cg="list">DONE</button></div>
+  <div class="sm cgw">THIS CODE OPENS YOUR LEAGUE ON ANY DEVICE. ANYONE WITH IT CAN OPEN IT. THE GAME OWNER CAN LOOK IT UP. NO EMAIL NEEDED.</div>
+  <div class="sm" id="cgmsg"></div>`}
+ else if(view==='restore'){
+  h=`<h1 class="mh">RESTORE FROM CODE</h1><div class="sm cgw">TYPE YOUR RECOVERY CODE. CAPITALS, DASHES AND SPACES DON'T MATTER. THE LEAGUE IS ADDED AS A NEW LEAGUE; NOTHING YOU ALREADY HAVE IS CHANGED.</div>
+  <input id="cgin" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+  <div class="sm" id="cgmsg"></div>
+  <div class="row"><button class="btn" data-cg="find">FIND LEAGUE</button><button class="btn alt" data-cg="${arg==='home'?'close':'list'}">${arg==='home'?'CLOSE':'BACK'}</button></div>`}
+ else if(view==='confirm'){
+  const it=CG.pend.item,o=it.obj,i=it.info,ph=o.phase==='reg'?'WEEK '+((+o.week||0)+1):o.phase==='playoff'?'PLAYOFFS':'OFFSEASON';
+  h=`<h1 class="mh">FOUND A LEAGUE</h1><div class="slot" style="max-width:34em"><div class="nm"><b>${hmEsc(i.name)}</b><div class="sm">${hmEsc(i.team)} - ${hmEsc(i.fmt)}</div><div class="sm">SEASON ${i.season} - ${ph} - ${hmEsc(i.rec)}</div>${CG.pend.up?`<div class="sm">LAST UPLOADED ${hmEsc(cgWhen(CG.pend.up))}</div>`:''}</div></div>
+  <div class="sm cgw">IT WILL BE ADDED AS A NEW LEAGUE. NOTHING YOU ALREADY HAVE IS CHANGED.</div>
+  <div class="sm" id="cgmsg"></div>
+  <div class="row"><button class="btn" data-cg="doit">RESTORE AS NEW LEAGUE</button><button class="btn alt" data-cg="${CG.pend.from==='home'?'close':'restore'}">CANCEL</button></div>`}
+ e.innerHTML=h;e.classList.add('on');e.scrollTop=0;CG.busy=false;
+ if(view==='code'&&arg)$('cgcode').textContent=arg;
+ if(view==='restore'){const i=$('cgin');if(i&&!coarse())i.focus()}}
+function cgClose(){const e=$('cg');if(e){e.classList.remove('on');e.innerHTML=''}CG.pend=null;CG.busy=false;CG.seq++}
+function cgOpen(view,from){CG.from=from||'';CG.pend=null;cgShow(view||'list',from)}
+
+async function cgDo(kind,id){
+ if(CG.busy)return;
+ const sq=++CG.seq,live=()=>sq===CG.seq; /* if the player closes the panel meanwhile, the result is still stored but no screen pops up */
+ try{
+  if(kind==='create'){cgBusy(true,'WORKING...');
+   const r=await cgCreate(id);const ok=cgPut(id,r.code,r.up);
+   if(live()){cgShow('code',r.code);if(!ok)cgMsg('COULD NOT STORE THE CODE ON THIS DEVICE. WRITE IT DOWN NOW.',true)}}
+  else if(kind==='up'){const e=cgGet(id);if(!e)return;cgBusy(true,'UPLOADING...');
+   const ts=await cgUpload(id,e.c);cgPut(id,e.c,ts);if(live()){cgShow('list');cgMsg('UPLOADED')}}
+  else if(kind==='show'){const e=cgGet(id);if(e)cgShow('code',e.c)}
+ }catch(x){
+  const k=cgKind(x);
+  if(k==='gone'){cgDrop(id);if(live()){cgShow('list');cgMsg('THE CLOUD COPY WAS NOT FOUND, SO THIS LEAGUE NOW HAS NO CLOUD COPY. YOU CAN CREATE A NEW ONE.',true)}return}
+  if(live()){cgBusy(false);cgMsg(cgMsgFor(k),true)}}}
+async function cgFind(){
+ if(CG.busy)return;
+ const i=$('cgin');if(!i)return;
+ const code=cgNorm(i.value);
+ if(!code){cgMsg('THAT DOES NOT LOOK LIKE A RECOVERY CODE. IT HAS 16 LETTERS AND NUMBERS, LIKE K7QM-4TXP-92HD-WNFA.',true);return}
+ const sq=++CG.seq,live=()=>sq===CG.seq;
+ cgBusy(true,'LOOKING...');
+ try{
+  const r=await cgFetch(code);if(!live())return;
+  CG.pend={item:r.item,up:r.up,from:CG.from};i.value='';cgShow('confirm')
+ }catch(x){
+  if(!live())return;cgBusy(false);const k=cgKind(x);
+  cgMsg(k==='wrong'?'NO LEAGUE WAS FOUND FOR THAT CODE. CHECK EVERY CHARACTER AND TRY AGAIN.':k==='damaged'?'THE CLOUD COPY IS DAMAGED, SO IT WAS NOT RESTORED. NOTHING WAS CHANGED.':k==='newer'?'THIS COPY WAS MADE BY A NEWER VERSION OF THE GAME. UPDATE THE GAME FIRST.':cgMsgFor(k),true)}}
+function cgRestore(){
+ if(!CG.pend||CG.busy)return;
+ const c=bkCommit([CG.pend.item]); /* the same path as IMPORT: always a new slot, never over an existing one */
+ if(!c.ok){cgMsg(c.msg||"COULDN'T SAVE THE LEAGUE. NOTHING EXISTING WAS CHANGED.",true);return}
+ const nm=c.names.join(', ').slice(0,40);cgClose();
+ try{HOME.tab='lg';HOME.del=null;if($('menu').classList.contains('on'))renderHome()}catch(e){}
+ notice('RESTORED '+nm)}
+async function cgCopy(){
+ const el=$('cgcode'),b=document.querySelector('#cg [data-cg=copy]');if(!el)return;const t=el.textContent;
+ const ok=()=>{cgMsg('COPIED');if(b){b.textContent='COPIED';setTimeout(()=>{const x=document.querySelector('#cg [data-cg=copy]');if(x)x.textContent='COPY'},2000)}};
+ try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(t);ok();return}}catch(e){}
+ try{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);
+  if(document.execCommand&&document.execCommand('copy')){ok();return}}catch(e){}
+ cgMsg('COPY WAS BLOCKED. THE CODE IS SELECTED: PRESS AND HOLD, THEN COPY.',true)}
+document.addEventListener('click',e=>{try{
+ const b=e.target.closest&&e.target.closest('[data-cg]');if(!b||b.disabled)return;
+ const a=b.dataset.cg;
+ if(a==='open')cgOpen('list');else if(a==='restore')cgOpen('restore',$('cg')&&$('cg').classList.contains('on')?CG.from:'home');
+ else if(a==='close')cgClose();else if(a==='list')cgShow('list');
+ else if(a==='create'||a==='up'||a==='show')cgDo(a,b.dataset.id);
+ else if(a==='find')cgFind();else if(a==='doit')cgRestore();else if(a==='copy')cgCopy();
+ }catch(x){}});
+queueMicrotask(()=>{try{if(window.__pp)Object.assign(window.__pp,{cloudInfo:()=>({allowed:cgHostOK(),copies:Object.keys(cgRead().m).length,loaded:!!CG.sdk,busy:CG.busy,view:CG.view}),cloudMake:cgMake,cloudNorm:cgNorm})}catch(e){}});
+/* ----- FADING TIPS + IN-GAME HELP (v1.79) -----
+   Tip counters live ONLY in localStorage 'pixelPigskin.hints' = {v:1,c:{pre,fourth,aim,run}}: never in a league save, a backup code, a mid-game snapshot, a cloud copy or a report.
+   A counter is how many times that tip has already been used up: pre = snaps, fourth = 4th downs played, aim = passes, run = runs.
+   Strength: fewer than 3 uses = full, 3 or 4 uses = half, 5 or more = hidden. The pulsing QB / RB boxes are not tips and always stay. ----- */
+const HN_KEY='pixelPigskin.hints',HN_ZERO=()=>({pre:0,fourth:0,aim:0,run:0});
+let HN=null;const HNL={aim:null,run:null}; /* HNL: the strength a pass or run tip had when its snap was taken (the counter moves at the snap) */
+function hnGet(){if(HN)return HN;HN=HN_ZERO();try{const o=JSON.parse(localStorage.getItem(HN_KEY)||'null');if(o&&o.c&&typeof o.c==='object')for(const k in HN){const n=Math.floor(+o.c[k]);if(n>0&&n<1e6)HN[k]=n}}catch(e){}return HN}
+function hnPut(){try{localStorage.setItem(HN_KEY,JSON.stringify({v:1,c:hnGet()}))}catch(e){}}
+function hnStr(k){const n=hnGet()[k];return n<3?1:n<5?.5:0}
+function hnSnap(type){const h=hnGet();HNL.aim=type==='pass'?hnStr('aim'):null;HNL.run=type==='run'?hnStr('run'):null;
+ h.pre++;if(type==='pass')h.aim++;else h.run++;if(G&&G.down===4)h.fourth++;hnPut()}
+function hnKick(){if(G&&G.down===4){hnGet().fourth++;hnPut()}}
+function hnReset(){HN=HN_ZERO();HNL.aim=HNL.run=null;try{localStorage.removeItem(HN_KEY)}catch(e){}}
+/* where a tip may be drawn: never over the QB, a receiver or the ball. Rectangles are in canvas pixels. */
+function hnBoxes(skip){const a=[],add=e=>{if(e&&e!==skip){const x=sx(e.x),y=sy(e.y);a.push([x-12,y-34,x+12,y+8])}};
+ if(!G)return a;add(G.qb);(G.recs||[]).forEach(r=>add(r));
+ try{const b=curBall();if(b&&b!==skip){const x=sx(b.x),y=sy(b.y);a.push([x-5,y-12-(b.z||0)*5,x+5,y+3])}}catch(e){}
+ return a}
+function hnFree(r,skip){return!hnBoxes(skip).some(b=>r[0]<b[2]&&r[2]>b[0]&&r[1]<b[3]&&r[3]>b[1])}
+/* draw tip text at the first free spot of cs = [[x,y,align],...] (y is the text baseline). Returns true when drawn; when every spot is taken the word is simply left out. */
+function hnText(s,size,col,str,cs,skip){
+ if(!(str>0))return false;const w=s.length*size;
+ for(const[x,y,al]of cs){const x0=al==='center'?x-w/2:al==='right'?x-w:x;if(hnFree([x0,y-size,x0+w,y+2],skip)){cx.globalAlpha=str;txt(s,x,y,size,col,al);cx.globalAlpha=1;return true}}
+ return false}
+/* ----- GAME SPEED (v1.82). A per-device preference in localStorage 'pixelPigskin.speed' = {v:1,s:"slower"|"slow"|"medium"|"fast"}.
+   Never part of a league save, backup code, export, cloud copy, report log or the mid-game snapshot. Missing, unreadable or unknown = SLOW.
+   If storage is blocked or full the choice stays in memory for the session. gameSpeed() is read every frame by update() in p4.js. ----- */
+const SPD_KEY='pixelPigskin.speed',SPD=[['slower','SLOWER',.5],['slow','SLOW',.61],['medium','MEDIUM',.75],['fast','FAST',1]];
+let spdCur='slow',spdLoaded=false;
+function spdLoad(){spdLoaded=true;try{const o=JSON.parse(localStorage.getItem(SPD_KEY)||'null');if(o&&o.v===1&&SPD.some(x=>x[0]===o.s))spdCur=o.s}catch(e){}}
+function gameSpeed(){if(!spdLoaded)spdLoad();for(const x of SPD)if(x[0]===spdCur)return x[2];return .61}
+function spdName(){if(!spdLoaded)spdLoad();for(const x of SPD)if(x[0]===spdCur)return x[1];return'SLOW'}
+/* one builder for every settings row (v1.83: GAME SPEED and CALL YOUR DEFENSE share it) and one SETTINGS group for every place they show */
+function stRow(cls,label,btns,note){return`<div class="stw ${cls}"><div class="row"><span class="sm">${label}</span>${btns}</div><div class="sm spdn">${note}</div></div>`}
+function spdRow(){if(!spdLoaded)spdLoad();
+ return stRow('spdw','GAME SPEED',SPD.map(x=>`<button class="btn xs ${x[0]===spdCur?'':'alt'}" data-spd="${x[0]}" aria-pressed="${x[0]===spdCur}">${x[1]}</button>`).join(''),'SLOWER GIVES YOU MORE TIME. FAST IS THE ORIGINAL SPEED. THE GAME CLOCK FOLLOWS THE SPEED.')}
+/* every row on the page follows the current choice, in place (keyboard focus stays on the button) */
+function spdSync(){try{document.querySelectorAll('.spdw [data-spd]').forEach(b=>{const on=b.dataset.spd===spdCur;b.classList.toggle('alt',!on);b.setAttribute('aria-pressed',on?'true':'false')})}catch(e){}}
+function spdSet(id){if(!SPD.some(x=>x[0]===id))return;if(!spdLoaded)spdLoad();spdCur=id;
+ try{localStorage.setItem(SPD_KEY,JSON.stringify({v:1,s:id}))}catch(e){} /* blocked or full: the choice still holds for this session, no error */
+ spdSync()}
+document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-spd]');if(b)spdSet(b.dataset.spd)}catch(x){}});
+/* ----- CALL YOUR DEFENSE, the setting (v1.83). A per-device preference in localStorage 'pixelPigskin.defcall' = {v:1,on:0|1}. Default OFF.
+   Missing, unreadable or unknown = OFF. If storage is blocked or full the choice stays in memory for the session. Never part of a league save,
+   backup code, export, cloud copy, report log or the mid-game snapshot. It only changes a flag: it takes effect at the next opponent possession. ----- */
+const DC_KEY='pixelPigskin.defcall';
+let dcOn=0,dcLoaded=false;
+function dcLoad(){dcLoaded=true;try{const o=JSON.parse(localStorage.getItem(DC_KEY)||'null');if(o&&o.v===1&&(o.on===0||o.on===1))dcOn=o.on}catch(e){}}
+function dcIsOn(){if(!dcLoaded)dcLoad();return dcOn===1}
+function dcRow(){const on=dcIsOn();
+ return stRow('dcw','CALL YOUR DEFENSE',[[0,'OFF'],[1,'ON']].map(x=>`<button class="btn xs ${(x[0]===1)===on?'':'alt'}" data-dcs="${x[0]}" aria-pressed="${(x[0]===1)===on}">${x[1]}</button>`).join(''),'WHEN ON, YOU PICK A DEFENSE EACH TIME THE OPPONENT HAS THE BALL. AUTO KEEPS IT RANDOM.')}
+function dcSync(){try{const on=dcIsOn();document.querySelectorAll('.dcw [data-dcs]').forEach(b=>{const v=b.dataset.dcs==='1'===on;b.classList.toggle('alt',!v);b.setAttribute('aria-pressed',v?'true':'false')})}catch(e){}}
+function dcSet(v){if(!dcLoaded)dcLoad();dcOn=v?1:0;
+ try{localStorage.setItem(DC_KEY,JSON.stringify({v:1,on:dcOn}))}catch(e){}
+ dcSync()}
+document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-dcs]');if(b)dcSet(b.dataset.dcs==='1')}catch(x){}});
+const stGroup=()=>`<div class="stg"><div class="sm stt">SETTINGS</div>${spdRow()}${dcRow()}</div>`;
+const stSync=()=>{spdSync();dcSync()};
+/* ----- the ? overlay ----- */
+const HP={on:false};
+const HP_TEXT=`<div class="hpt"><h1 class="mh">HOW TO PLAY</h1>
+<!--SPD-->
+<h4>PASS</h4><p>DRAG THE QB BACK AND LET GO. PULL AWAY FROM WHERE YOU WANT THE BALL TO GO. THE ARC AND RING SHOW WHERE IT LANDS.</p>
+<p>QUICK THROW: TAP A RECEIVER OR PRESS 1-5 (THE NUMBER OVER HIS HEAD).</p>
+<p>BULLET PASS: TAP EMPTY FIELD (OR PRESS B) WHILE YOU AIM. TAP AGAIN TO SWITCH BACK.</p>
+<p>RING COLOR WHILE YOU AIM AND WHEN THE BALL IS IN THE AIR: GREEN = OPEN, YELLOW = TIGHT, RED = COVERED.</p>
+<h4>RUN</h4><p>TAP THE RB. SWIPE UP OR DOWN TO STEER, KEEP YOUR FINGER DOWN. JUKE BUTTON OR SPACE.</p>
+<h4>PLAY CALL</h4><p>TAP THE PLAY BUTTON (OR PRESS C) TO PICK A PLAY. YOUR CALL STAYS UNTIL YOU CHANGE IT. RANDOM PICKS A NEW ONE EACH DOWN.</p>
+<h4>4TH DOWN</h4><p>PUNT [K] OR FIELD GOAL [F] WITH THE BUTTONS (FIELD GOAL ONLY WHEN IN RANGE), OR DRAG THE QB / TAP THE RB TO GO FOR IT. IN THE LAST 30 SECONDS OF A HALF YOU CAN KICK A FIELD GOAL ON ANY DOWN.</p>
+<h4>KICKS</h4><p>PULL DOWN FOR POWER, SIDEWAYS TO AIM. PULLING LEFT AIMS RIGHT. WATCH THE WIND ARROW. THE GREEN LINE IS THE MINIMUM POWER.</p>
+<p>AFTER A TOUCHDOWN: KICK = +1 POINT, GO FOR 2 = ONE PLAY FROM THE 2.</p>
+<h4>KEYS</h4><p>P PASS SNAP - R RUN - 1-5 QUICK THROW - B BULLET - C PLAY CALL - K PUNT - F FIELD GOAL - UP/DOWN OR W/S STEER - SPACE OR SHIFT JUKE - 1 / 2 EXTRA POINT / GO FOR 2 - M MUTE</p></div>
+<div class="hpbar"><button class="btn" data-hp="close">CLOSE</button></div>`;
+function hpPanel(){let e=$('hp');
+ if(!e){e=document.createElement('div');e.id='hp';e.className='screen top';e.style.background='#070a12';$('app').appendChild(e);
+  for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Escape'){x.preventDefault();hpClose()}}); /* keys typed here never reach the game */
+  e.addEventListener('click',x=>{if(x.target.closest&&x.target.closest('[data-hp=close]'))hpClose()});
+  e.innerHTML=HP_TEXT.replace('<!--SPD-->',stGroup())}
+ return e}
+function hpOpen(fromMenu){if(HP.on||PC.on||XP.on)return;if(fromMenu!==true&&(!G||G.mode!=='presnap'))return; /* from the HOW TO PLAY tab it opens over the home screen and touches no game state */
+
+ try{const e=hpPanel();stSync();HP.on=true;e.classList.add('on');e.scrollTop=0;}catch(x){HP.on=false}}
+function hpClose(){if(!HP.on)return;HP.on=false;try{const e=$('hp');if(e){e.classList.remove('on');if(e.contains(document.activeElement))document.activeElement.blur()}}catch(x){}}
+$('bHelp').onclick=()=>{$('bHelp').blur();hpOpen()};
+/* ----- EXIT GAME (v1.81). The panel opens at a pre-snap only (button in the corner, or Escape when nothing else is open).
+   SAVE AND EXIT uses the v1.77 snapshot writer (gsWrite) and records nothing; ABANDON GAME uses gsClear. KEEP PLAYING touches no game data. ----- */
+const XP={on:false,v:'main'};
+function xpQ(g){return(g.ot?'OT':'Q'+clamp(Math.ceil((g.qLen*4-g.clock)/g.qLen+.0001),1,4))+' '+Math.floor(Math.ceil(g.clock)/60)+':'+String(Math.ceil(g.clock)%60).padStart(2,'0')}
+function xpPanel(){let e=$('xp');
+ if(!e){e=document.createElement('div');e.id='xp';e.className='screen';e.style.background='rgba(4,7,16,.9)';$('app').appendChild(e);
+  for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Escape'){x.preventDefault();xpEsc()}}); /* keys typed here never reach the game */
+  e.addEventListener('click',x=>{if(x.target===e){xpEsc();return} /* a tap outside the panel */
+   const b=x.target.closest&&x.target.closest('[data-xp]');if(!b)return;const a=b.dataset.xp;
+   if(a==='save')xpSave();else if(a==='abandon'){XP.v='ask';xpDraw()}else if(a==='no'){XP.v='main';xpDraw()}
+   else if(a==='yes')xpAbandon();else if(a==='keep')xpClose()})}
+ return e}
+function xpDraw(msg){const e=xpPanel();if(!G)return;
+ const m=msg?`<div class="sm" style="color:#ffd400" id="xpm">${hmEsc(msg)}</div>`:'<div id="xpm"></div>';
+ e.innerHTML=XP.v==='ask'
+  ?`<div class="xpc"><h1 class="mh">ABANDON GAME?</h1><div class="sm" style="line-height:1.7">THIS GAME WILL NOT COUNT. THE SAVED GAME WILL BE DELETED.</div><div class="row"><button class="btn" data-xp="no">NO</button><button class="btn alt" data-xp="yes">YES</button></div></div>`
+  :`<div class="xpc"><h1 class="mh">LEAVE THIS GAME?</h1><div class="sm">${G.home===false?'AT':'VS'} ${hmEsc(G.opp.name)}</div><div style="font-size:1.3em">${hmEsc(S.name.slice(0,12))} ${G.me} - ${G.op} ${hmEsc(G.opp.name.slice(0,12))}</div><div class="sm">${xpQ(G)}</div>${stGroup()}${m}
+  <button class="btn" data-xp="save">SAVE AND EXIT</button><button class="btn alt" data-xp="abandon">ABANDON GAME</button><button class="btn alt" data-xp="keep">KEEP PLAYING</button></div>`}
+function xpOpen(){if(XP.on||HP.on||PC.on||DS.on||!G||G.mode!=='presnap'||document.querySelector('#app .screen.on'))return;
+ try{XP.v='main';XP.on=true;xpDraw();const e=$('xp');e.classList.add('on');e.scrollTop=0}catch(x){XP.on=false}}
+function xpClose(){if(!XP.on)return;XP.on=false;XP.v='main';try{const e=$('xp');if(e){e.classList.remove('on');if(e.contains(document.activeElement))document.activeElement.blur()}}catch(x){}}
+function xpEsc(){if(XP.v==='ask'){XP.v='main';xpDraw()}else xpClose()}
+/* back to where the game was started from: the exhibition entry, or the league / classic hub. G is dropped, so nothing keeps running. */
+function xpLeave(){const exh=!!(G&&G.exh);xpClose();ctrl.down=false;ctrl.aim=null;ctrl.kaim=null;ctrl.ptr=false;ctrl.dir=0;ctrl.sv=0;fx=[];EXH=null;G=null;
+ if(exh)openExh();else renderHub()}
+function xpSave(){if(!G||G.mode!=='presnap'||!S||!S.id)return;
+ gsWrite(); /* the same function v1.77 calls at every pre-snap, so the snapshot is exactly current */
+ let ok=false;try{const o=gsPeek();ok=!!o&&gsMatch(o)}catch(e){}
+ if(!ok){xpDraw('COULD NOT SAVE THE GAME ON THIS DEVICE. KEEP PLAYING OR TRY AGAIN.');return}
+ xpLeave()}
+function xpAbandon(){if(!G||!S)return;gsClear();xpLeave()}
+$('bExit').onclick=()=>{$('bExit').blur();xpOpen()};
+/* ----- GAME LOG and STATS (v1.84). Every game the player plays by hand adds ONE small record to S.gl (kept inside the league / classic save, so backup codes and
+   the cloud copy carry it; it is NOT in REPORT A PROBLEM and NOT in the mid-game snapshot). Records are flat arrays of numbers, newest last, at most GL_MAX.
+   Not logged: SIM GAME (lgSimMine never reaches endGame), exhibitions, abandoned games (no endGame), a game left with SAVE AND EXIT (logged when finished after RESUME).
+   Record fields (indexes):
+    0 season  1 week (1.. regular season, -1.. playoff round 1..)  2 opponent (league: team id, classic: name)  3 home (1 home, 0 away, 2 neutral)
+    4 my points  5 their points  6 overtime (0/1)  7 difficulty level  8 game speed step (0..3)  9 CALL YOUR DEFENSE on (0/1)
+    10 first downs  11 turnovers  12 sacks taken  13 completions  14 attempts  15 pass yards  16 pass TDs  17 interceptions (13..17 = the passer's line)
+    18 rush attempts  19 rush yards  20 rush TDs  21 FG made  22 FG tried
+    23..26 top rusher: slot, attempts, yards, TDs   27..30 top receiver: slot, catches, yards, TDs
+   Slots: 0 QB 1 RB 2 WR1 3 WR2 4 WR3 5 TE 6 K (so a renamed player keeps his stats; screens show the CURRENT names).
+   Total yards = pass yards + rush yards, plays = attempts + sacks + rush attempts (both worked out when shown). ----- */
+const GL_MAX=60,GL_SLOT=['QB','RB','WR1','WR2','WR3','TE','K'],GL_NOLOG='NO GAMES LOGGED YET. STATS START WITH THE NEXT GAME YOU PLAY.';
+const GL={on:false,tab:'season',sea:null,confirm:false,msg:'',mt:0};
+const glList=()=>S&&Array.isArray(S.gl)?S.gl:[];
+function glSlotOf(name,pos){const n=S.names||{};
+ if(name===n.qb)return 0;if(name===n.rb)return 1;const w=n.wr||[];for(let i=0;i<3;i++)if(name===w[i])return 2+i;if(name===n.te)return 5;if(name===n.k)return 6;
+ return pos==='RB'?1:pos==='TE'?5:pos==='K'?6:pos==='WR'?2:0}
+function glSlotName(s){const n=S.names||{};const v=s===0?n.qb:s===1?n.rb:s>=2&&s<=4?(n.wr||[])[s-2]:s===5?n.te:s===6?n.k:'';return v||GL_SLOT[s]||'?'}
+/* the record for the game in G, worked out from the same numbers as the end screen and the box score; null when it must not be logged */
+function glBuild(){
+ if(!S||!G||G.exh)return null;
+ const st=G.st,pls=Object.entries(G.pl||{}),n=x=>Math.round(+x)||0;
+ const ratt=pls.reduce((a,[,v])=>a+n(v.att),0);
+ const R=pls.filter(([,v])=>v.att>0).sort((a,b)=>b[1].ruy-a[1].ruy)[0],C=pls.filter(([,v])=>v.rec>0).sort((a,b)=>b[1].recy-a[1].recy)[0];
+ let wk;if(S.phase==='reg')wk=(S.week|0)+1;else wk=-(((S.lg?S.lg.po&&S.lg.po.round:S.round)|0)+1);
+ const opp=S.lg?(G.opp&&G.opp.id!=null?G.opp.id:-1):String(G.opp&&G.opp.name||'');
+ if(!spdLoaded)spdLoad();
+ const sp=Math.max(0,SPD.findIndex(x=>x[0]===spdCur));
+ return[S.season|0,wk,opp,G.home===true?1:G.home===false?0:2,n(G.me),n(G.op),G.ot?1:0,DIFF(),sp,dcIsOn()?1:0,
+  n(st.fdn),n(st.to),n(st.sacks),n(st.comp),n(st.att),n(st.pyd),n(st.ptd),n(st.ints),
+  ratt,n(st.ryd),n(st.rtd),n(st.fg&&st.fg[0]),n(st.fg&&st.fg[1]),
+  R?glSlotOf(R[0],R[1].pos):-1,R?n(R[1].att):0,R?n(R[1].ruy):0,R?n(R[1].rtd):0,
+  C?glSlotOf(C[0],C[1].pos):-1,C?n(C[1].rec):0,C?n(C[1].recy):0,C?n(C[1].td):0]}
+/* called by endGame() right before the result is recorded, so the same save call writes both. Exactly once per game: G.glDone, plus one record per season+week. */
+function glAdd(){try{
+ if(!S||!G||G.exh||G.glDone)return;
+ const r=glBuild();if(!r)return;
+ if(!Array.isArray(S.gl))S.gl=[];
+ G.glDone=1;
+ if(S.gl.some(x=>x&&x[0]===r[0]&&x[1]===r[1]))return;
+ S.gl.push(r);while(S.gl.length>GL_MAX)S.gl.shift()}catch(e){}}
+/* ---------- numbers shown ---------- */
+const glDiv=(a,b)=>b>0?a/b:0,glF=(v,d)=>(Math.round((+v||0)*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+function glRating(c,a,y,td,i){if(!(a>0))return 0;const k=v=>Math.max(0,Math.min(2.375,v));
+ return(k((c/a-.3)*5)+k((y/a-3)*.25)+k(td/a*20)+k(2.375-i/a*25))/6*100}
+function glAgg(L){
+ const t={g:L.length,w:0,l:0,t:0,pf:0,pa:0,fdn:0,to:0,sk:0,comp:0,att:0,pyd:0,ptd:0,ints:0,ratt:0,ryd:0,rtd:0,fgm:0,fga:0,ru:{},rc:{}};
+ for(const r of L){
+  t.pf+=r[4];t.pa+=r[5];r[4]>r[5]?t.w++:r[4]<r[5]?t.l++:t.t++;
+  t.fdn+=r[10];t.to+=r[11];t.sk+=r[12];t.comp+=r[13];t.att+=r[14];t.pyd+=r[15];t.ptd+=r[16];t.ints+=r[17];
+  t.ratt+=r[18];t.ryd+=r[19];t.rtd+=r[20];t.fgm+=r[21];t.fga+=r[22];
+  if(r[23]>=0){const u=t.ru[r[23]]||(t.ru[r[23]]={a:0,y:0,td:0});u.a+=r[24];u.y+=r[25];u.td+=r[26]}
+  if(r[27]>=0){const u=t.rc[r[27]]||(t.rc[r[27]]={c:0,y:0,td:0});u.c+=r[28];u.y+=r[29];u.td+=r[30]}}
+ t.yds=t.pyd+t.ryd;t.plays=t.att+t.sk+t.ratt;return t}
+const glRec=t=>t.w+'-'+t.l+(t.t?'-'+t.t:'');
+function glBest(o,key){let b=null;for(const k in o)if(!b||o[k][key]>b[1][key])b=[+k,o[k]];return b}
+function glSeasons(){return[...new Set(glList().map(r=>r[0]))].sort((a,b)=>a-b)}
+function glOppName(r){if(typeof r[2]==='string')return r[2];const t=S.lg&&S.lg.teams&&S.lg.teams[r[2]];return t?t.name:'?'}
+function glWkName(r,full){const w=r[1];if(w>0)return(full?'WEEK ':'W')+w;
+ if(S.lg){const nm=lgCfg(S.lg).rnd[-w-1];return full?(nm||'PLAYOFFS'):'PO'+(-w)}
+ return full?(w===-1?'SEMIFINAL':'CHAMPIONSHIP'):(w===-1?'SF':'CH')}
+const glRes=r=>(r[4]>r[5]?'W':r[4]<r[5]?'L':'T')+' '+r[4]+'-'+r[5]+(r[6]?' OT':'');
+/* ---------- models: one structure feeds both the screen and the copied text, so they always match ---------- */
+function glModel(tab){
+ const all=glList();if(!all.length)return{empty:true,title:tab.toUpperCase()};
+ if(tab==='games'){
+  const rows=all.slice().reverse().map(r=>['S'+r[0]+' '+glWkName(r),(r[3]===1?'VS ':r[3]===0?'AT ':'')+glOppName(r),glRes(r),String(r[7]),String(r[15]),String(r[19]),String(r[11])]);
+  return{title:'GAMES',table:{head:['GAME','OPPONENT','RESULT','LVL','PASS','RUSH','TO'],rows},note:'ONLY GAMES YOU PLAY ARE LOGGED. SIMULATED GAMES AND EXHIBITIONS ARE NOT.'}}
+ if(tab==='history'){
+  const rows=glSeasons().map(s=>{const t=glAgg(all.filter(r=>r[0]===s)),h=S.lg&&Array.isArray(S.lg.hist)?S.lg.hist.find(x=>x&&x.s===s):null;
+   return['S'+s,glRec(t),t.pf+'-'+t.pa,String(t.pyd),String(t.ryd),String(t.ptd+t.rtd),String(t.ints),h&&h.id===S.lg.me?'CHAMPS':'-']});
+  return{title:'HISTORY',table:{head:['SEASON','RECORD','PF-PA','PASS YD','RUSH YD','TD','INT','TITLE'],rows},note:'RECORD, POINTS AND YARDS COUNT ONLY GAMES YOU PLAYED.'}}
+ const ss=glSeasons();if(ss.indexOf(GL.sea)<0)GL.sea=ss[ss.length-1];
+ const L=all.filter(r=>r[0]===GL.sea),t=glAgg(L),g=t.g,pg=v=>glF(glDiv(v,g),1);
+ const QB=glSlotName(0),ru=glBest(t.ru,'y'),rc=glBest(t.rc,'y');
+ const sec=[
+  {h:'RECORD',head:['','TOTAL','PER GAME'],rows:[['GAMES PLAYED',String(g),''],['RECORD',glRec(t),''],['POINTS FOR',String(t.pf),pg(t.pf)],['POINTS AGAINST',String(t.pa),pg(t.pa)]]},
+  {h:'PASSING',head:['','TOTAL','PER GAME'],rows:[['COMP/ATT',t.comp+'/'+t.att,''],['COMP PCT',glF(glDiv(t.comp,t.att)*100,1)+'%',''],['YARDS',String(t.pyd),pg(t.pyd)],['YARDS/ATT',glF(glDiv(t.pyd,t.att),1),''],
+   ['TOUCHDOWNS',String(t.ptd),pg(t.ptd)],['INTERCEPTIONS',String(t.ints),pg(t.ints)],['SACKS TAKEN',String(t.sk),pg(t.sk)],['PASSER RATING',glF(glRating(t.comp,t.att,t.pyd,t.ptd,t.ints),1),'']]},
+  {h:'RUSHING',head:['','TOTAL','PER GAME'],rows:[['ATTEMPTS',String(t.ratt),pg(t.ratt)],['YARDS',String(t.ryd),pg(t.ryd)],['YARDS/CARRY',glF(glDiv(t.ryd,t.ratt),1),''],['TOUCHDOWNS',String(t.rtd),pg(t.rtd)]]},
+  {h:'TEAM',head:['','TOTAL','PER GAME'],rows:[['TOTAL YARDS',String(t.yds),pg(t.yds)],['FIRST DOWNS',String(t.fdn),pg(t.fdn)],['PLAYS',String(t.plays),pg(t.plays)],['TURNOVERS',String(t.to),pg(t.to)],['FIELD GOALS',t.fgm+'/'+t.fga,'']]},
+  {h:'LEADERS',head:['','',''],rows:[
+   ['QB '+QB,t.pyd+' PASS YDS',t.ptd+' TD '+t.ints+' INT'],
+   ru?['RUSHER '+glSlotName(ru[0]),ru[1].y+' RUSH YDS',ru[1].a+' CAR '+ru[1].td+' TD']:['RUSHER','-',''],
+   rc?['RECEIVER '+glSlotName(rc[0])+' ('+GL_SLOT[rc[0]]+')',rc[1].y+' REC YDS',rc[1].c+' REC '+rc[1].td+' TD']:['RECEIVER','-','']]}];
+ return{title:'SEASON '+GL.sea,sea:GL.sea,sec,note:'ALL NUMBERS ARE FROM GAMES YOU PLAYED.'}}
+function glHead(){const f=S.lg?lgCfg(S.lg).tag+' - '+S.lg.teams.length+' TEAMS':'CLASSIC FRANCHISE - 8 GAME SEASON';return'PIXEL PIGSKIN V'+APP_VERSION+' - '+f+' - STATS'}
+const glRow=a=>a.filter(x=>x!=='').join(' | ');
+function glText(tab){
+ const m=glModel(tab),o=[glHead(),S.name+' - '+m.title];
+ if(m.empty){o.push(GL_NOLOG);return o.join('\n')}
+ if(m.table){o.push(glRow(m.table.head));m.table.rows.forEach(r=>o.push(glRow(r)))}
+ if(m.sec)m.sec.forEach(s=>{o.push('');o.push(glRow([s.h,...s.head.slice(1)]));s.rows.forEach(r=>o.push(glRow(r)))});
+ if(m.note){o.push('');o.push(m.note)}
+ return o.join('\n')}
+function glLogText(){
+ const all=glList(),o=[glHead(),S.name];
+ if(!all.length){o.push(GL_NOLOG);return o.join('\n')}
+ o.push('GAMES LOGGED '+all.length+' (LATEST '+GL_MAX+')');
+ o.push('SEASONS');
+ for(const s of glSeasons()){const t=glAgg(all.filter(r=>r[0]===s));
+  o.push('SEASON '+s+': '+glRec(t)+' PF '+t.pf+' PA '+t.pa+' PASS '+t.comp+'/'+t.att+' '+t.pyd+' YDS '+t.ptd+' TD '+t.ints+' INT RUSH '+t.ratt+' '+t.ryd+' YDS '+t.rtd+' TD TURNOVERS '+t.to+' SACKS '+t.sk)}
+ o.push('GAMES (NEWEST FIRST)');
+ for(const r of all.slice().reverse()){
+  o.push('S'+r[0]+' '+glWkName(r,true)+' | '+(r[3]===1?'VS ':r[3]===0?'AT ':'')+glOppName(r)+' | '+glRes(r)+' | LEVEL '+r[7]+' SPEED '+r[8]+' DEFENSE '+r[9]
+   +' | PASS YD '+r[15]+' RUSH YD '+r[19]+' TURNOVERS '+r[11]
+   +' | TOTAL YD '+(r[15]+r[19])+' FIRST DOWNS '+r[10]+' SACKS '+r[12]+' PLAYS '+(r[14]+r[12]+r[18])
+   +' | PASSING '+r[13]+'/'+r[14]+' '+r[15]+' YDS '+r[16]+' TD '+r[17]+' INT | RUSHING '+r[18]+' CAR '+r[19]+' YDS '+r[20]+' TD | FG '+r[21]+'/'+r[22]
+   +' | '+glSlotName(0)+' (QB) '+r[13]+'/'+r[14]+' '+r[15]+' YDS '+r[16]+' TD '+r[17]+' INT'
+   +' | '+(r[23]>=0?glSlotName(r[23])+' ('+GL_SLOT[r[23]]+') '+r[24]+' CAR '+r[25]+' YDS '+r[26]+' TD':'NO RUSHER')
+   +' | '+(r[27]>=0?glSlotName(r[27])+' ('+GL_SLOT[r[27]]+') '+r[28]+' REC '+r[29]+' YDS '+r[30]+' TD':'NO RECEIVER'))}
+ return o.join('\n')}
+/* ---------- the screen (an overlay like REPORT A PROBLEM and HOW TO PLAY; it reads S and never writes G, the snapshot or a save) ---------- */
+function glTable(h,rows,cls){return'<div class="gltw"><table class="glt'+(cls||'')+'"><tr>'+h.map(x=>'<th>'+hmEsc(x)+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+hmEsc(c)+'</td>').join('')+'</tr>').join('')+'</table></div>'}
+function glRender(){
+ const e=$('gl');if(!e)return;const m=glModel(GL.tab),tabs=[['season','SEASON'],['history','HISTORY'],['games','GAMES']];
+ let h='<div class="glw"><div class="row glr"><button class="btn xs alt" data-gl="back">BACK</button><h1 class="mh glh">STATS</h1></div><div class="sm">'+hmEsc(S.name)+'</div>'
+  +'<div class="row glr" role="tablist">'+tabs.map(t=>'<button class="btn xs'+(GL.tab===t[0]?'':' alt')+'" data-gl="tab" data-t="'+t[0]+'" role="tab" aria-selected="'+(GL.tab===t[0])+'">'+t[1]+'</button>').join('')+'</div>';
+ if(m.empty)h+='<div class="dv gle">'+GL_NOLOG+'</div>';
+ else{
+  if(GL.tab==='season'){const ss=glSeasons(),i=ss.indexOf(GL.sea);
+   h+='<div class="row glr"><button class="btn xs alt" data-gl="prev" aria-label="EARLIER SEASON"'+(i<=0?' disabled':'')+'>&lt;</button><span class="sm glsea">SEASON '+GL.sea+'</span><button class="btn xs alt" data-gl="next" aria-label="LATER SEASON"'+(i>=ss.length-1?' disabled':'')+'>&gt;</button></div>'}
+  if(m.sec)h+='<div class="glg">'+m.sec.map(s=>'<div class="dv"><h4>'+s.h+'</h4>'+glTable(s.head,s.rows,s.h==='LEADERS'?' gll':'')+'</div>').join('')+'</div>';
+  if(m.table)h+='<div class="dv glwide">'+glTable(m.table.head,m.table.rows,' glwt')+'</div>';
+  if(m.note)h+='<div class="sm">'+m.note+'</div>'}
+ h+='<div class="row glr"><button class="btn xs" data-gl="copy">COPY STATS</button>'
+  +(GL.tab==='games'?'<button class="btn xs alt" data-gl="copylog">COPY LOG</button><button class="btn xs alt" data-gl="clear">CLEAR GAME LOG</button>':'')+'</div>';
+ if(GL.confirm)h+='<div class="dv glcf" role="alert"><div>THIS DELETES THE GAME LOG FOR THIS LEAGUE. THE LEAGUE ITSELF IS NOT CHANGED.</div><div class="row glr"><button class="btn xs" data-gl="yes">YES</button><button class="btn xs alt" data-gl="no">NO</button></div></div>';
+ h+='<div class="sm" id="glm" aria-live="polite">'+hmEsc(GL.msg)+'</div><textarea id="glbox" readonly rows="8" style="display:none" aria-label="STATS TEXT"></textarea></div>';
+ const keep=e.scrollTop;e.innerHTML=h;e.scrollTop=keep}
+function glSay(t){GL.msg=t;const m=$('glm');if(m)m.textContent=t;clearTimeout(GL.mt);if(t)GL.mt=setTimeout(()=>{GL.msg='';const m=$('glm');if(m)m.textContent=''},2500)}
+async function glCopy(text,btn){
+ try{
+  const label=btn?btn.textContent:'',ok=()=>{glSay('COPIED');if(btn){btn.textContent='COPIED';setTimeout(()=>{try{if(btn.textContent==='COPIED')btn.textContent=label}catch(x){}},2000)}};
+  try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(text);ok();return}}catch(e){}
+  const o=$('glbox');if(!o)return;o.style.display='block';o.value=text;o.focus();o.select();try{o.setSelectionRange(0,text.length)}catch(e){}
+  let done=false;try{done=document.execCommand&&document.execCommand('copy')}catch(e){}
+  if(done){o.style.display='none';ok()}else glSay('COPY WAS BLOCKED. THE TEXT IS SELECTED BELOW: PRESS AND HOLD, THEN COPY.')
+ }catch(e){}}
+function glPanel(){let e=$('gl');
+ if(!e){e=document.createElement('div');e.id='gl';e.className='screen top';e.style.background='#070a12';$('app').appendChild(e);
+  for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Escape'){x.preventDefault();glEsc()}else if(ev==='keydown'&&x.key==='Tab')glTab(x)}); /* keys typed here never reach the game; Tab stays inside the panel */
+  e.addEventListener('click',x=>{const b=x.target.closest&&x.target.closest('[data-gl]');if(!b||b.disabled)return;const a=b.dataset.gl,ss=glSeasons();
+   if(a==='back')glClose();
+   else if(a==='tab'){GL.tab=b.dataset.t;GL.confirm=false;glRender();const n=e.querySelector('[data-gl=tab][data-t='+GL.tab+']');if(n)n.focus({preventScroll:true})}
+   else if(a==='prev'||a==='next'){const i=ss.indexOf(GL.sea)+(a==='next'?1:-1);if(i>=0&&i<ss.length){GL.sea=ss[i];glRender();const n=e.querySelector('[data-gl='+a+']');if(n&&!n.disabled)n.focus({preventScroll:true})}}
+   else if(a==='copy')glCopy(glText(GL.tab),b);
+   else if(a==='copylog')glCopy(glLogText(),b);
+   else if(a==='clear'){GL.confirm=true;glRender();const n=e.querySelector('[data-gl=no]');if(n)n.focus({preventScroll:true})}
+   else if(a==='no'){GL.confirm=false;glRender();const n=e.querySelector('[data-gl=clear]');if(n)n.focus({preventScroll:true})}
+   else if(a==='yes'){GL.confirm=false;S.gl=[];GL.sea=null;save();try{saveNow()}catch(x2){}glRender();glSay('GAME LOG CLEARED')}})}
+ return e}
+function glTab(x){const e=$('gl');if(!e)return;const f=[...e.querySelectorAll('button:not([disabled]),textarea')].filter(b=>b.offsetParent);if(!f.length)return;const a=document.activeElement,i=f.indexOf(a);
+ if(x.shiftKey&&i<=0){x.preventDefault();f[f.length-1].focus()}else if(!x.shiftKey&&(i<0||i===f.length-1)){x.preventDefault();f[0].focus()}}
+function glOpen(){if(GL.on||!S||HP.on||XP.on)return;
+ try{const e=glPanel();GL.on=true;GL.confirm=false;GL.msg='';GL.sea=null;glRender();e.classList.add('on');e.scrollTop=0;const n=e.querySelector('[data-gl=tab].btn:not(.alt)')||e.querySelector('[data-gl]');if(n)n.focus({preventScroll:true})}catch(x){GL.on=false}}
+function glClose(){if(!GL.on)return;GL.on=false;GL.confirm=false;try{const e=$('gl');if(e){e.classList.remove('on');if(e.contains(document.activeElement))document.activeElement.blur()}
+ const b=document.querySelector('#hub [data-act=stats]');if(b)b.focus({preventScroll:true})}catch(x){}}
+function glEsc(){if(GL.confirm){GL.confirm=false;glRender();return}glClose()}
+/* ----- CALL YOUR DEFENSE, stage 1 (v1.83). Only when the setting is ON (see hp.js): each time the opponent gets the ball you pick one of the DEFD schemes
+   (or AUTO) before the simulated drive is rolled, and the pick shifts that drive's odds. OFF or AUTO = exactly the old behavior (simOpp gets no call).
+   Nothing here is stored in a save: the opponent's hidden tendency comes from a hash of its id (league) or name (classic, exhibition), and the
+   only per-game state is G.dcStyles (the last three drive styles) and G.dcLast (the scheme called last), both plain values that ride in the snapshot. ----- */
+/* families of the DEFD schemes. Z zone, M man, P pressure, B 46 BEAR (run stopper), V PREVENT */
+const DC_FAM={c3:'Z',c2:'Z',t2:'Z',c4:'Z',c6:'Z',c1:'M',c2m:'M',c0:'P',b1:'P',fz:'P',six:'P',sb:'P',bear:'B',pv:'V'};
+const DC_GRP=[['ZONE','Z'],['MAN','M'],['PRESSURE','P'],['SPECIAL','BV']];
+/* factors on [pTD, pFG, pTO] by family and drive style */
+const DC_F={
+ Z:{PASS:[.95,1,1],RUN:[1.12,1,1]},
+ M:{PASS:[.90,1,1.15],RUN:[1.10,1,.95]},
+ P:{PASS:[1.10,.90,1.45],RUN:[.88,1,1.15]},
+ B:{PASS:[1.07,1,1],RUN:[.85,1,1.20]}};
+const DC_C4RUN=[1.18,1,1]; /* COVER 4 has a light box */
+const DC_PV_LATE=[.60,1.40,.90],DC_PV_EARLY=[1.30,1.10,.80];
+function dcFactors(id,style,lateLead){
+ const f=DC_FAM[id];if(!f)return[1,1,1];
+ if(f==='V')return lateLead?DC_PV_LATE:DC_PV_EARLY;
+ if(id==='c4'&&style==='RUN')return DC_C4RUN;
+ return(DC_F[f][style]||DC_F[f].PASS)}
+function dcHash(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0}
+ h^=h>>>16;h=Math.imul(h,2246822507)>>>0;h^=h>>>13;h=Math.imul(h,3266489909)>>>0;h^=h>>>16;return h>>>0}
+/* 0 pass-heavy, 1 balanced, 2 run-heavy: derived, never stored */
+const dcTend=o=>dcHash('dc'+(o&&o.id!=null?'i'+o.id:'n'+((o&&o.name)||'')))%3; /* the 'dc' salt gives an even split on real league sizes (8 to 60 teams) and the classic names */
+function dcPickStyle(){
+ const late=G.clock<=G.qLen*1.2;let p=[.7,.5,.3][dcTend(G.opp)];
+ if(late&&G.op<G.me)p=.85;else if(late&&G.op>G.me)p=.25;
+ return Math.random()<p?'PASS':'RUN'}
+function dcTags(id){
+ const f=DC_FAM[id];if(f==='V')return['ANY CALL, WHEN YOU LEAD LATE','ANY CALL, EARLY IN THE GAME'];
+ const a=dcFactors(id,'PASS')[0],b=dcFactors(id,'RUN')[0];
+ return a<=b?['PASS','RUN']:['RUN','PASS']}
+const dcName=id=>{const d=DEFD.find(x=>x.id===id);return d?d.name:'AUTO'};
+/* ----- the pick screen ----- */
+const DC={on:false,sel:'auto',start:25};
+function dcCard(d){const t=dcTags(d.id),on=DC.sel===d.id;
+ return`<button class="btn alt dcc${on?' on':''}" data-dc="${d.id}" aria-pressed="${on}"><b>${d.name}</b><span>BEST VS: ${t[0]}</span><span>WEAK VS: ${t[1]}</span></button>`}
+function dcPaint(){const e=$('dcs');if(!e)return;
+ const sd=G.dcStyles||[];
+ e.innerHTML=`<h1 class="mh">CALL YOUR DEFENSE</h1>
+<div class="sm">${hmEsc(S.name.slice(0,12))} ${G.me} - ${G.op} ${hmEsc(G.opp.name.slice(0,12))} - ${xpQ(G)}</div>
+<div class="sm" style="color:#ffd400">THEIR BALL AT OWN ${Math.round(DC.start)}</div>
+<div class="sm">LAST DRIVES: ${sd.length?sd.join(', '):'NONE YET'}</div>
+<div class="dcl"><div class="dcg"><button class="btn alt dcc${DC.sel==='auto'?' on':''}" data-dc="auto" aria-pressed="${DC.sel==='auto'}"><b>AUTO</b><span>THE GAME PICKS, RANDOMLY, AS BEFORE</span></button></div>${
+ DC_GRP.map(g=>{const L=DEFD.filter(d=>g[1].includes(DC_FAM[d.id]||'?'));return L.length?`<h4>${g[0]}</h4><div class="dcg">${L.map(dcCard).join('')}</div>`:''}).join('')}</div>
+<div class="dcbar"><button class="btn dcgo" data-dc="go">CALL IT: ${DC.sel==='auto'?'AUTO':dcName(DC.sel)}</button></div>`}
+function dcAsk(start){
+ G.poss='opp';G.mode='dcall';DC.on=true;DC.start=start;DC.sel=G.dcLast&&DEFD.some(d=>d.id===G.dcLast)?G.dcLast:'auto';
+ updCtl();dcPaint();show('dcs');const e=$('dcs');e.scrollTop=0;
+ try{const b=e.querySelector('[data-dc=go]');b&&b.focus({preventScroll:true})}catch(x){}}
+function dcSelect(id){if(!DC.on)return;if(id!=='auto'&&!DEFD.some(d=>d.id===id))return;DC.sel=id;
+ const e=$('dcs');e.querySelectorAll('[data-dc]').forEach(b=>{const k=b.dataset.dc;if(k==='go'){b.textContent='CALL IT: '+(id==='auto'?'AUTO':dcName(id));return}const on=k===id;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
+function dcGo(){
+ if(!DC.on)return;DC.on=false;const sel=DC.sel;show(null);
+ const style=dcPickStyle(),sch=sel==='auto'?null:sel;
+ G.dcStyles=(G.dcStyles||[]).concat(style).slice(-3);G.dcLast=sch;
+ oppDrive(DC.start,sch?{sch,style}:null)}
+function dcEsc(){if(!DC.on)return;DC.sel='auto';dcGo()}
+const dcLine=c=>'YOU CALLED '+dcName(c.sch)+' - THEY '+(c.style==='RUN'?'RAN':'PASSED')+' IT';
+document.addEventListener('click',e=>{try{if(!DC.on)return;const b=e.target.closest&&e.target.closest('#dcs [data-dc]');if(!b)return;
+ if(b.dataset.dc==='go')dcGo();else dcSelect(b.dataset.dc)}catch(x){}});
+(function(){const e=document.getElementById('dcs');if(e)for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Escape'){x.preventDefault();dcEsc()}})})(); /* keys typed here never reach the game; Escape means AUTO */
 
 /* ---------- game setup ---------- */
 const cam={x:0},ctrl={dir:0,ptr:false,ty:20};
@@ -1035,6 +1790,7 @@ let fx=[];
 const pop=(t,x,y,c)=>fx.push({t,x,y,c:c||'#fff',life:1});
 function mk(k,x,y,ex){return Object.assign({k,x,y,x0:x,y0:y,vx:0,vy:0,stun:0,cool:0,wait:0,inv:0,stumble:0,ph:Math.random()*2},ex)}
 function startGame(){
+ gsClear(); /* v1.77: a new game replaces any saved one */
  const ex=EXH;EXH=null;const o=ex?ex.o:nextOpp(),home=ex?ex.home:homeOf(o);
  G={opp:o,oc:o.col||COLORS[o.ci],label:ex?'EXHIBITION':nextLabel(),exh:!!ex,home,qLen:S.qLen,clock:S.qLen*4,me:0,op:0,los:25,down:1,fd:35,mode:'banner',ot:false,play:null,bn:null,kick:null,t:0,poss:'me',
   st:{att:0,comp:0,pyd:0,ryd:0,to:0,ints:0,sacks:0,fdn:0,ptd:0,rtd:0,xp:[0,0],fg:[0,0],tp:[0,0]},qs:{me:[0,0,0,0,0],op:[0,0,0,0,0]},pl:{},ost:{dr:0,pl:0,yd:0,td:0,fg:0,to:0,pt:0},half:false,first:Math.random()<.5?'me':'opp',bp:{x:25,y:20,z:0}}; /* v1.48: coin toss, random who gets the ball first */
@@ -1054,12 +1810,12 @@ function formation(){
  G.defs=[...G.dl,...G.lb,...G.db];G.play=null;G.bp={x:l,y:20,z:0};G.def=pickDef();G.look=pickLook(G.def);alignDef()}
 const fgDist=()=>117-G.los;
 const fgPct=()=>clamp(.97-Math.max(0,fgDist()-28)*.022+((RO().k.acc+RO().k.rng)/2-5)*.02,.03,.98);
-function setPresnap(){if(halfDue())return showHalf(secondHalf);formation();G.mode='presnap';G.poss='me';updCtl()}
+function setPresnap(){if(halfDue())return showHalf(secondHalf);formation();G.mode='presnap';G.poss='me';updCtl();gsWrite()}
 /* v1.50: with 30 seconds or less left in a half, or in the game, you can kick a field goal on any down. The kick is the last play of the half or game */
 function lateKick(){if(!G||G.ot)return null;const h=G.qLen*2;if(!G.half&&G.clock>h&&G.clock-h<=30)return'half';if(G.half&&G.clock>0&&G.clock<=30)return'end';return null}
 function updCtl(){
  const pre=G.mode==='presnap';
- $('bPass').classList.add('hide');$('bRun').classList.add('hide');
+ $('bPass').classList.add('hide');$('bRun').classList.add('hide');$('bHelp').classList.toggle('hide',!pre);$('bExit').classList.toggle('hide',!pre);if(!pre){hpClose();xpClose()}
  $('bCall').classList.toggle('hide',!pre);$('bCall').textContent='PLAY: '+callName()+' [C]';
  $('bPunt').classList.toggle('hide',!(pre&&G.down===4));
  const lk=lateKick();$('bFG').classList.toggle('hide',!(pre&&(G.down===4||lk)&&fgDist()<=68));
@@ -1087,6 +1843,7 @@ function mkRoute(r,i){
  r.path=pts;r.cont=cont;r.pi=0;r.route=t}
 function snap(type){
  if(!G||G.mode!=='presnap')return;
+ hnSnap(type);
  const R=S.r,o=G.opp,l=G.los;
  const ro=RO(),wrB=i=>7.6+.34*ro.wr[i].spd,teB=7.6+.34*ro.te.spd,wrS=(wrB(0)+wrB(1)+wrB(2)+teB)/4,pm=G.pat?.9:1,dsp=(8+o.def*.34)*DEF_BOOST*dSpd();G.wrS=wrS; /* v1.46: wrS is the average speed of the four receivers */
  G.recs.forEach((r,i)=>{r.cat=i===3?R.rb:i===4?ro.te.cat:ro.wr[i].cat;r.sr=i===3?R.rb:i===4?ro.te.spd:ro.wr[i].spd}); /* v1.45: defenders are 10% slower on the two-point try */
@@ -1298,13 +2055,14 @@ function afterScore(){if(G.ot)endGame();else if(G.clock<=0)timeUp();else oppPoss
 function safety(){addSc('op',2);sfx('bad');showBanner('SAFETY!','OPPONENT +2',2,()=>{if(G.ot)endGame();else if(G.clock<=0)timeUp();else oppPossession(40)},'#ff6b6b')}
 function turnover(x,label){const st=x>=100?20:clamp(100-x,2,98);showBanner(label,'OPPONENT BALL - OWN '+Math.round(st),1.8,()=>oppPossession(st),'#ff6b6b')}
 
-function simOpp(start){
+function simOpp(start,call){
  const o=G.opp,edge=o.off-S.r.def,fb=(start-25)*.0075,fbF=(start-25)*.0025; /* v1.59: where the drive starts matters about twice as much for scoring */
  const k=DK(); /* v1.53: difficulty also moves the opponent's scoring drives (5 = unchanged) */
  /* v1.55: a better opponent offense: higher base chances, a steeper rating edge, a two-minute drill when it trails late and clock-killing when it leads */
  const late=G.clock<=G.qLen*1.2,trail=G.op<G.me,lead=G.op>G.me;
  const ha=G.home===false?.025:G.home===true?-.025:0; /* v1.56: the opponent scores a little less on your field */
- const pTD=clamp(.32+edge*.052+fb+.03*k+ha+(late&&trail?.06:0),.08,.75),pFG=clamp(.15+edge*.008+.006*k+fbF,.07,.3),pTO=clamp(.095-edge*.012-.008*k,.03,.2);
+ let pTD=clamp(.32+edge*.052+fb+.03*k+ha+(late&&trail?.06:0),.08,.75),pFG=clamp(.15+edge*.008+.006*k+fbF,.07,.3),pTO=clamp(.095-edge*.012-.008*k,.03,.2);
+ if(call){const f=dcFactors(call.sch,call.style,late&&trail);pTD=clamp(pTD*f[0],.08,.75);pFG=clamp(pFG*f[1],.07,.3);pTO=clamp(pTO*f[2],.03,.2)} /* v1.83: CALL YOUR DEFENSE, only with a called scheme; the same clamps as above */
  const r=Math.random(),time=G.qLen*rnd(.22,.45)*(late&&lead?1.3:late&&trail?.8:1),plays=ri(3,9);let out;
  if(r<pTD){const pts=Math.random()<.93?7:6;out={pts,next:25,kind:'td',yd:Math.round(100-start),text:plays+' PLAYS, '+Math.round(100-start)+' YDS - TOUCHDOWN! (+'+pts+')'}}
  else if(r<pTD+pFG){if(Math.random()<.85)out={pts:3,next:25,kind:'fg',yd:ri(30,62),text:plays+' PLAYS - FIELD GOAL IS GOOD (+3)'};else{const yd=ri(20,50),spot=Math.min(start+yd,85);out={pts:0,next:clamp(100-spot+7,20,70),kind:'pt',yd,text:plays+' PLAYS - FIELD GOAL MISSED!'}}}
@@ -1312,12 +2070,15 @@ function simOpp(start){
  else{ /* v1.59: the punt starts from where their drive stalled, so a short field for them means a long way back for you and the reverse */
   const yd=ri(0,22),line=Math.min(start+yd,92),land=line+ri(34,46),next=land>=100?20:clamp(100-land+ri(0,8),5,60);
   out={pts:0,next,kind:'pt',yd,text:plays+' PLAYS - PUNT TO YOUR '+next+'. YOUR D HELD'}}
- out.time=time;out.plays=plays;return out}
+ out.time=time;out.plays=plays;out.p=[pTD,pFG,pTO];return out}
 function oppPossession(start){
  if(G.clock<=0){timeUp();return}
  if(halfDue())return showHalf(secondHalf);
- G.poss='opp';const s=simOpp(start);{const o2=G.ost;o2.dr++;o2.pl+=s.plays;o2.yd+=s.yd;if(s.kind==='td')o2.td++;else if(s.kind==='fg')o2.fg++;else if(s.kind==='to')o2.to++;else if(s.kind==='pt')o2.pt++}
- showBanner('OPPONENT DRIVE',s.text,2.7,()=>{
+ if(dcIsOn()){dcAsk(start);return} /* v1.83: CALL YOUR DEFENSE (setting ON) asks first, then oppDrive rolls the drive */
+ oppDrive(start,null)}
+function oppDrive(start,call){
+ G.poss='opp';const s=simOpp(start,call);{const o2=G.ost;o2.dr++;o2.pl+=s.plays;o2.yd+=s.yd;if(s.kind==='td')o2.td++;else if(s.kind==='fg')o2.fg++;else if(s.kind==='to')o2.to++;else if(s.kind==='pt')o2.pt++}
+ showBanner('OPPONENT DRIVE',call?s.text+'\n'+dcLine(call):s.text,2.7,()=>{
   G.clock=Math.max(0,G.clock-s.time);if(s.pts)addSc('op',s.pts);if(s.pts)sfx('bad');
   if(G.ot&&s.pts>0){endGame();return}
   if(G.clock<=0){timeUp();return}
@@ -1358,6 +2119,7 @@ function kickFire(dx,dy){
  G.ka=null;ctrl.kaim=null;G.mode='kick';if(a.type==='fg')G.clock=Math.max(0,G.clock-4);sfx('throw')}
 function doKick(type){
  if(!G||G.mode!=='presnap')return;
+ hnKick();
  if(type==='fg'){const lk=lateKick();if(lk)G.clock=lk==='half'?G.qLen*2:0;startKickAim('fg');return}
  const l=G.los,k={type,t:0,dur:1.8},net=clamp(34+RO().k.rng*1.7+rnd(-5,7),24,64);
  k.sx=l-6;k.land=l+net;k.tb=k.land>=100;k.fx=Math.min(k.land,108);k.fy=20+rnd(-5,5);
@@ -1381,7 +2143,7 @@ function updateKick(dt){
 function endGame(){
  G.mode='over';updCtl();
  const win=G.me>G.op,tie=G.me===G.op;
- if(G.exh){const st=G.st,o=G.opp;
+ if(G.exh){gsClear();const st=G.st,o=G.opp;
   $('post').innerHTML=`<div class="sm">EXHIBITION - DOES NOT COUNT</div><h1 class="${win?'win':tie?'':'lose'}" style="font-size:2em;${win?'color:#4ee08a;text-shadow:none':''}">${win?'VICTORY!':tie?'TIE GAME':'DEFEAT'}</h1>
   <div style="font-size:1.4em">${hmEsc(S.name)} ${G.me} - ${G.op} ${hmEsc(o.name)}</div>
   <p>PASSING ${st.comp}/${st.att} FOR ${st.pyd} YDS - RUSHING ${st.ryd} YDS - TURNOVERS ${st.to}</p>
@@ -1391,8 +2153,9 @@ function endGame(){
  let cr=win?4+(G.me-G.op>=14?1:0):tie?3:2;
  if(S.phase==='playoff'&&win)cr+=2;
  const lbl=G.label;
+ glAdd(); /* v1.84: the game log record goes in S right before the result is recorded, so the same save writes both */
  cr=afterGameRecord(win,tie&&S.phase==='reg',cr);
- S.last=(win?'W ':tie?'T ':'L ')+G.me+'-'+G.op+' VS '+G.opp.name;save();
+ S.last=(win?'W ':tie?'T ':'L ')+G.me+'-'+G.op+' VS '+G.opp.name;save();try{saveNow()}catch(e){}gsClear(); /* v1.77: the result is on disk, so the saved game goes */
  const st=G.st;
  $('post').innerHTML=`<div class="sm">${lbl}</div><h1 class="${win?'win':tie?'':'lose'}" style="font-size:2em;${win?'color:#4ee08a;text-shadow:none':''}">${win?'VICTORY!':tie?'TIE GAME':'DEFEAT'}</h1>
  <div style="font-size:1.4em">${S.name} ${G.me} - ${G.op} ${G.opp.name}</div>
@@ -2016,9 +2779,9 @@ function drawAim(){
  let best=null,bd=8;G.recs.forEach((r,i)=>{const k=dst(r,L);if(k<bd){bd=k;best=i}});
  if(best!==null){const r=G.recs[best],g=predictRec(r,d/airSpd(L.x));cx.strokeStyle=RC[best];cx.lineWidth=2;cx.beginPath();cx.arc(sx(g.x),sy(g.y)-3,5,0,6.283);cx.stroke()}}
 function drawSnapHints(){
- const pu=1+Math.sin(G.t*6)*.15;
+ const pu=1+Math.sin(G.t*6)*.15,ps=hnStr('pre'),d=FLIP?1:-1; /* v1.79: the boxes always pulse; the PASS and RUN words fade with the pre-snap tip and never sit on another player or the ball */
  for(const[e,l]of[[G.qb,'PASS'],[G.recs[3],'RUN']]){const x=Math.round(sx(e.x)),y=Math.round(sy(e.y));
-  cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.globalAlpha=.85;cx.strokeRect(x-10*pu,y-22*pu,20*pu,27*pu);cx.globalAlpha=1;txt(l,x,y+14,6,'#ffd400','center')}}
+  cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.globalAlpha=.85;cx.strokeRect(x-10*pu,y-22*pu,20*pu,27*pu);cx.globalAlpha=1;hnText(l,6,'#ffd400',ps,[[x,y+14,'center'],[x+d*14,y+2,d>0?'left':'right'],[x-d*14,y+2,d>0?'right':'left']],e)}}
 function drawScene(){
  const mc=myC(),oc=G.oc,p=G.play;
  const all=[];
@@ -2044,12 +2807,12 @@ function drawHUD(){
  txt(t,W/2,40,8,'#ffd400','center')}
 function drawOverlay(){
  if(G.mode==='patchoice'){cx.fillStyle='rgba(6,10,20,.85)';cx.fillRect(0,110,W,100);txt('EXTRA POINT OR TWO?',W/2,150,16,'#ffd400','center');txt('KICK = +1 (YOU AIM THE KICK)   -   GO FOR 2 = ONE PLAY FROM THE 2',W/2,180,7,'#b8c4dc','center')}
- const p=G.play;let h='';
- if(G.mode==='presnap')h=G.down===4?'4TH DOWN - PUNT, KICK, OR DRAG QB / TAP RB TO GO FOR IT':'STUDY THE ROUTES - DRAG THE QB BACK TO PASS, TAP THE RB TO RUN';
- else if(G.mode==='live'&&p){if(p.phase==='back')h='PULL BACK ON THE QB TO AIM - TAP THE FIELD FOR A BULLET';else if(p.phase==='run'&&p.runner===G.recs[3]&&p.type==='run'||p.phase==='run')h='SWIPE UP OR DOWN TO STEER - JUKE: SPACE'}
- if(h)txt(h,W/2,G.mode==='presnap'?FB-6:FB+16,7,'#fff','center');
+ const p=G.play;let h='',hs=0,ys=[FB+16,FB-6,FT+22]; /* v1.79: every field tip fades with use (see hp.js) and picks a line that is clear of the QB, the receivers and the ball */
+ if(G.mode==='presnap'){ys=[FB-6,FT+22];if(G.down===4){h='4TH DOWN - PUNT, FIELD GOAL, OR DRAG QB / TAP RB TO GO FOR IT';hs=hnStr('fourth')}else{h='STUDY THE ROUTES - DRAG THE QB BACK TO PASS, TAP THE RB TO RUN';hs=hnStr('pre')}}
+ else if(G.mode==='live'&&p){if(p.phase==='back'){h='PULL BACK ON THE QB TO AIM - TAP THE FIELD FOR A BULLET';hs=HNL.aim!=null?HNL.aim:hnStr('aim')}else if(p.phase==='run'){h='SWIPE UP OR DOWN TO STEER - JUKE: SPACE';hs=p.type==='run'&&HNL.run!=null?HNL.run:hnStr('run')}}
+ if(h)hnText(h,7,'#fff',hs,ys.map(y=>[W/2,y,'center']));
  if(G.rev&&(G.mode==='presnap'||G.mode==='banner'))txt('LAST PLAY: '+G.rev.n+(G.rev.l?'  (SHOWED '+G.rev.l+')':''),8,FT+10,6,G.rev.l?'#ff9f43':'#ffd400');
- if(G.mode==='banner'&&G.bn&&!(G.bn.pre>0)){const b=G.bn;cx.fillStyle='rgba(6,10,20,.82)';cx.fillRect(0,130,W,90);txt(b.t,W/2,170,b.t.length>22?13:18,b.col||'#fff','center');if(b.sub)txt(b.sub,W/2,200,8,'#b8c4dc','center')}
+ if(G.mode==='banner'&&G.bn&&!(G.bn.pre>0)){const b=G.bn;cx.fillStyle='rgba(6,10,20,.82)';cx.fillRect(0,130,W,90);txt(b.t,W/2,170,b.t.length>22?13:18,b.col||'#fff','center');if(b.sub){const ls=String(b.sub).split('\n');if(ls.length>1){txt(ls[0],W/2,196,8,'#b8c4dc','center');txt(ls[1],W/2,211,8,'#ffd400','center')}else txt(b.sub,W/2,200,8,'#b8c4dc','center')}}
  for(const f of fx){txt(f.t,sx(f.x),sy(f.y)-f.life*14,8,f.c,'center')}}
 /* v1.60: the field goal unit as seen from behind the kicker: our line from the back, their rush from the front */
 function kickFig(u,x,yf,s,back){
@@ -2099,7 +2862,7 @@ function render(){
  drawField();drawScene();drawHUD();drawOverlay()}
 
 /* ---------- loop ---------- */
-const GAME_SPEED=.61;
+/* v1.82: the live-play speed is read every frame from the chosen step (hp.js: gameSpeed()); SLOW = .61 is the default and the old constant */
 function camTarget(){
  const p=G.play;let f=G.los+9;
  if(G.mode==='kick')f=G.bp.x+6;
@@ -2109,11 +2872,11 @@ function update(dt){
  if(!G)return;G.t+=dt;
  for(const f of fx)f.life-=dt;fx=fx.filter(f=>f.life>0);
  cam.x+=(camTarget()-cam.x)*Math.min(1,dt*5);
- if(G.mode==='live')updateLive(dt*GAME_SPEED);
+ if(G.mode==='live')updateLive(dt*gameSpeed());
  else if(G.mode==='kick')updateKick(dt);
  else if(G.mode==='banner'&&G.bn){if(G.bn.pre>0)G.bn.pre-=dt;else{G.bn.left-=dt;if(G.bn.left<=0){const f=G.bn.fn;G.bn=null;f&&f()}}}}
 let last=0;
-function frame(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;ANIM_DT=dt;try{update(dt);render()}catch(e){console.error(e)}requestAnimationFrame(frame)}
+function frame(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;ANIM_DT=dt;try{update(dt);render()}catch(e){console.error(e);const l=errLoc(e);errPush(e&&e.message,l[0],l[1],true)}requestAnimationFrame(frame)}
 
 /* ---------- input ---------- */
 /* ---------- rotation (v1.58): on a touch screen held upright the whole game (#wrap) is turned 90 degrees with CSS ----------
@@ -2155,7 +2918,12 @@ const a=ctrl.aim;ctrl.aim=null;
 addEventListener('pointerup',rel);addEventListener('pointercancel',()=>{ctrl.ptr=false;ctrl.down=false;ctrl.sv=0;ctrl.aim=null;ctrl.kaim=null});
 addEventListener('keydown',e=>{
  if(DS.on){dsKey(e);return}
+ if(DC.on){if(e.key==='Escape'){e.preventDefault();dcEsc()}return}
+ if(GL.on){if(e.key==='Escape'){e.preventDefault();glEsc()}return}
+ if(HP.on){if(e.key==='Escape'){e.preventDefault();hpClose()}return}
+ if(XP.on){if(e.key==='Escape'){e.preventDefault();xpEsc()}return}
  if(PC.on){if(e.key==='Escape')closeCalls();return}
+ if(e.key==='Escape'){xpOpen();return} /* v1.81: Escape at a pre-snap opens LEAVE THIS GAME? when nothing else is open */
  const k=e.key.toLowerCase();
  if(k==='arrowup'||k==='w'){ctrl.dir=-1;e.preventDefault()}
  else if(k==='arrowdown'||k==='s'){ctrl.dir=1;e.preventDefault()}
@@ -2199,6 +2967,6 @@ let fsTried=false;
 document.addEventListener('pointerup',()=>{if(!ROT||fsTried)return;fsTried=true;try{const p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(p&&p.then)p.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}},{capture:true});
 fit();openMenu();
 requestAnimationFrame(frame);
-window.__pp={TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
+window.__pp={glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
 })();
 </script></body></html>
