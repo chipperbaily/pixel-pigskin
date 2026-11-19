@@ -174,6 +174,7 @@ html{background:#070a12}
 #bcorner{position:absolute;right:.7em;bottom:.45em;display:flex;gap:.4em}
 #bcorner .btn{padding:.45em .9em;font-size:.8em}
 #bcorner .btn.hide{display:none}
+#olchip{display:none;position:absolute;top:.4em;right:.5em;z-index:60;font-size:.6em;background:#a33;color:#fff;padding:.25em .6em;border-radius:.4em;pointer-events:none}
 #xp{justify-content:flex-start}
 #xp .xpc{background:#0e1830;border:.2em solid #3a4d78;padding:1em 1.4em;display:flex;flex-direction:column;gap:.7em;align-items:center;max-width:26em;width:100%;box-sizing:border-box;margin:auto 0;flex:none}
 #xp .xpc .btn{min-width:14em}
@@ -235,6 +236,8 @@ html{background:#070a12}
 <div class="screen" id="season"></div>
 <div class="screen top" id="pcs"></div>
 <div class="screen top" id="dcs"></div>
+<div class="screen top" id="ol"></div>
+<div id="olchip">OFFLINE - RETRYING</div>
 <div class="screen" id="pd"><div id="pdp"></div></div>
 </div></div>
 <div id="saProbe"></div>
@@ -242,7 +245,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="1.95"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="1.99"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -273,7 +276,7 @@ const FN=['J','M','T','D','K','R','A','C','L','B','Z','N'],LN=['RIVERA','OKAFOR'
 const RK=['rb','ol','def'],RL={qb:'QB ARM',wr:'RECEIVERS',rb:'RUNNING BK',ol:'O-LINE',def:'DEFENSE',k:'KICKER'};
 /* v1.46: individual players. S.ro holds the QB (arm, acc), the three WRs and the TE (spd, cat) and the kicker (acc, rng); built from the old unit ratings the first time it is needed */
 function ensureRo(){const r=S.r;if(!S.ro)S.ro={qb:{arm:r.qb,acc:r.qb},wr:[0,1,2].map(()=>({spd:r.wr,cat:r.wr})),te:{spd:r.wr,cat:r.wr},k:{acc:r.k,rng:r.k}};
- if(!S.names)S.names={};if(!S.names.te)S.names.te=nm();if(!S.names.k)S.names.k=nm();return S.ro}
+ if(!S.names)S.names={};if(!S.names.te)S.names.te=nmMore();if(!S.names.k)S.names.k=nmMore();return S.ro}
 const RO=()=>S.ro||ensureRo();
 /* saves: every league or season is its own slot, with a small index for the home page (v1.40) */
 const IDX='pixelPigskin.idx',SLOT='pixelPigskin.s.',OLDKEY='pixelPigskin.v1';
@@ -339,7 +342,7 @@ function loadSlot(id){
  try{d=migrate(d)}catch(e){return null}
  if(restored){lsSet(key,raw);notice('RESTORED FROM BACKUP')}
  return d}
-function delSlot(id){delete PEND[id];[SLOT+id,SLOT+id+'.bak',SLOT+id+'.next',GSK+id].forEach(lsDel);wrIdx(rdIdx().filter(e=>e.id!==id))}
+function delSlot(id){delete PEND[id];[SLOT+id,SLOT+id+'.bak',SLOT+id+'.next',GSK+id].forEach(lsDel);wrIdx(rdIdx().filter(e=>e.id!==id));try{cgDrop(id)}catch(e){}} /* v1.96: the league's entry in pixelPigskin.cloud goes too (the cloud copy itself is not touched) */
 let PERSISTED=null;
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(r=>{PERSISTED=r;console.log('[pixelPigskin] storage.persist() ->',r)},e=>console.log('[pixelPigskin] storage.persist() failed',e))}catch(e){}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow()});
@@ -350,6 +353,10 @@ function saveInfo(){const ix=rdIdx(),b={},enc=typeof TextEncoder!=='undefined'?n
 queueMicrotask(()=>{try{if(window.__pp)window.__pp.saveInfo=saveInfo}catch(e){}});   /* window.__pp is assigned later in the same script, so attach after it runs */
 function migrateOld(){try{const o=localStorage.getItem(OLDKEY);if(o&&!localStorage.getItem('pixelPigskin.migrated')){const s=JSON.parse(o);s.id=newId();localStorage.setItem(SLOT+s.id,JSON.stringify(s));const ix=rdIdx();ix.push(slotInfo(s));wrIdx(ix);localStorage.setItem('pixelPigskin.migrated','1')}}catch(e){}}
 const nm=()=>pick(FN)+'. '+pick(LN);
+/* v1.97: a NEW roster never gets two players with one name (about 11% of rosters did, and the per-game stats then merged them). nmUniq draws again while the name is taken; when there is no clash it draws exactly what nm() always drew. Players that already exist are never renamed. */
+function nmUniq(taken){let n=nm(),i=0;while(taken.indexOf(n)>=0&&i++<500)n=nm();return n}
+function nmRoster(){const t=[],a=()=>{const n=nmUniq(t);t.push(n);return n};return{qb:a(),rb:a(),wr:[a(),a(),a()]}}
+function nmMore(){const n=S.names||{};return nmUniq([n.qb,n.rb,...(n.wr||[]),n.te,n.k])} /* the TE and the K are named the first time they are needed */
 let AC=null,muted=false;
 function sfx(n){if(muted)return;try{if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;AC=new C()}
  const T={snap:[[200,.05]],throw:[[420,.08]],catch:[[660,.06],[880,.08]],tackle:[[110,.12,'sawtooth']],td:[[523,.1],[659,.1],[784,.25]],bad:[[160,.25,'square']],juke:[[740,.05]]}[n]||[];
@@ -359,7 +366,7 @@ function sfx(n){if(muted)return;try{if(!AC){const C=window.AudioContext||window.
 function mkOpp(name,lvl){const f=()=>clamp(Math.round((lvl+rnd(-1,1.3))*10)/10,2,9.8);let c;do{c=ri(0,7)}while(c===S.ci);return{name,off:f(),def:f(),ci:c}}
 function genSched(season){const n=shuffle(OPPN.slice()),b=3+(season-1)*.5;return Array.from({length:8},(_,i)=>mkOpp(n[i],b+i*.2))}
 function genPO(){const n=shuffle(OPPN.slice()),b=3+(S.season-1)*.5+2.2;return[mkOpp(n[0],b),mkOpp(n[1],b+.8)]}
-function newFranchise(name,c){S={name:name||'PIXEL PIGSKINS',ci:c,season:1,week:0,w:0,l:0,t:0,credits:3,r:{qb:4,wr:4,rb:4,ol:4,def:4,k:4},names:{qb:nm(),rb:nm(),wr:[nm(),nm(),nm()]},phase:'reg',round:0,over:null,champs:0,qLen:90,last:''};S.sched=genSched(1);save()}
+function newFranchise(name,c){S={name:name||'PIXEL PIGSKINS',ci:c,season:1,week:0,w:0,l:0,t:0,credits:3,r:{qb:4,wr:4,rb:4,ol:4,def:4,k:4},names:nmRoster(),phase:'reg',round:0,over:null,champs:0,qLen:90,last:''};S.sched=genSched(1);save()}
 const myC=()=>S.lg?S.lg.teams[S.lg.me].col:(S.col||COLORS[S.ci]);
 const siteTxt=h=>h===true?'HOME':h===false?'AWAY':'NEUTRAL SITE';
 const homeOf=o=>S.lg?o.home:S.phase==='reg'?S.week%2===0:S.round===0?true:null; /* classic: home on even weeks, the semifinal at home, the final neutral */
@@ -367,7 +374,7 @@ const nextOpp=()=>S.lg?lgNextOpp():S.phase==='reg'?S.sched[S.week]:S.po[S.round]
 const nextLabel=()=>S.lg?lgLabel():S.phase==='reg'?'WEEK '+(S.week+1)+' OF 8':(S.round?'CHAMPIONSHIP':'SEMIFINAL');
 const upCost=r=>Math.ceil(r*.7);
 const pips=(v,n)=>'<span class="pips">'+Array.from({length:n||10},(_,i)=>'<s class="'+(i<Math.round(v)?'f':'')+'"></s>').join('')+'</span>';
-function show(id){['menu','hub','post','season','stand','lock','half','roster','exh','pd','pcs','dcs','coach','gset'].forEach(s=>$(s).classList.toggle('on',s===id));if(id==='menu'||id==='hub')nvBar()}
+function show(id){['menu','hub','post','season','stand','lock','half','roster','exh','pd','pcs','dcs','coach','gset','ol'].forEach(s=>$(s).classList.toggle('on',s===id));if(id==='menu'||id==='hub')nvBar()}
 
 function renderHub(){
  if(S.lg)return lgHub();
@@ -549,7 +556,7 @@ function lgThemed(L,key){
 
 function lgNew(L,me,sbx){
  L.me=me;L.ho=1;L.res=[];L.rec=lgBlank(L);L.sched=lgSchedule(L);L.scores=null;L.po=null;L.seed={};L.champ=null;L.hist=[];
- const p0=S;S={name:L.teams[me].name,ci:0,season:1,week:0,w:0,l:0,t:0,credits:3,r:{qb:4,wr:4,rb:4,ol:4,def:4,k:4},names:{qb:nm(),rb:nm(),wr:[nm(),nm(),nm()]},phase:'reg',round:0,over:null,champs:0,qLen:90,last:'',lg:L};if(sbx){const s=S;S=p0;return s} /* v1.92: the exhibition picker wants a throwaway league save: never saved, the current league stays loaded */
+ const p0=S;S={name:L.teams[me].name,ci:0,season:1,week:0,w:0,l:0,t:0,credits:3,r:{qb:4,wr:4,rb:4,ol:4,def:4,k:4},names:nmRoster(),phase:'reg',round:0,over:null,champs:0,qLen:90,last:'',lg:L};if(sbx){const s=S;S=p0;return s} /* v1.92: the exhibition picker wants a throwaway league save: never saved, the current league stays loaded */
  save()}
 const lgBlank=L=>Array.from({length:lgN(lgCfg(L))},()=>({w:0,l:0,t:0,pf:0,pa:0,cw:0,cl:0}));
 
@@ -1145,9 +1152,11 @@ function rpUA(){const u=navigator.userAgent||'';let b='UNKNOWN BROWSER',o='UNKNO
  else if(/CrOS/.test(u))o='CHROMEOS';else if(/Linux/.test(u))o='LINUX';
  return b+' / '+o}
 function rpScreen(){for(const k in RP_SCR){const e=$(k);if(e&&e.classList.contains('on'))return RP_SCR[k]}return'GAME FIELD'}
+/* v1.96: a recovery code typed into the free text (16 characters of the code alphabet, in groups of 4 with dashes, spaces or nothing between) becomes [CODE]; done before the 300 character cut */
+function rpScrub(s){return s.replace(/(^|[^A-Za-z0-9])[A-HJKMNP-Z2-9]{4}(?:[\s-]*[A-HJKMNP-Z2-9]{4}){3}(?![A-Za-z0-9])/gi,'$1[CODE]')}
 function buildReport(text){
  const L=[],add=(k,f)=>{let v;try{v=f()}catch(e){v='(UNAVAILABLE)'}L.push(k+': '+v)},yn=x=>x?'YES':'NO',p2=n=>String(n).padStart(2,'0');
- const t=String(text==null?'':text).replace(/\s+/g,' ').trim().slice(0,300);
+ const t=rpScrub(String(text==null?'':text).replace(/\s+/g,' ').trim()).slice(0,300);
  L.push('PIXEL PIGSKIN PROBLEM REPORT');
  L.push('WHAT HAPPENED: '+(t||'(NOTHING WRITTEN)'));
  add('VERSION',()=>'V'+APP_VERSION);
@@ -1524,8 +1533,22 @@ function upSet(v){if(!upLoaded)upLoad();upCur=v?1:0;
  try{localStorage.setItem(UP_KEY,JSON.stringify({v:1,on:upCur}))}catch(e){}
  upSync();try{fit();mrotUI()}catch(e){}}
 document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-up]');if(b)upSet(b.dataset.up==='1')}catch(x){}});
-const stGroup=()=>`<div class="stg"><div class="sm stt">SETTINGS</div>${spdRow()}${dcRow()}${upRow()}</div>`;
-const stSync=()=>{spdSync();dcSync();upSync()};
+/* ----- PLAY DETAIL, v1.98. A per-device preference in localStorage 'pixelPigskin.detail' = {v:1,on:0|1}. Default ON (the extra PLAY RECAP lines under a result banner).
+   Missing, unreadable or unknown = ON. If storage is blocked or full the choice stays in memory for the session. Never part of a league save, backup code, export, cloud copy, report log or the
+   mid-game snapshot. It only changes what is drawn: G is not touched (G.recap is built either way). ----- */
+const DT_KEY='pixelPigskin.detail';
+let dtCur=1,dtLoaded=false;
+function dtLoad(){dtLoaded=true;try{const o=JSON.parse(localStorage.getItem(DT_KEY)||'null');if(o&&o.v===1&&(o.on===0||o.on===1))dtCur=o.on}catch(e){}}
+function dtIsOn(){if(!dtLoaded)dtLoad();return dtCur===1}
+function dtRow(){const on=dtIsOn();
+ return stRow('dtw','PLAY DETAIL',[[0,'OFF'],[1,'ON']].map(x=>`<button class="btn xs ${(x[0]===1)===on?'':'alt'}" data-dt="${x[0]}" aria-pressed="${(x[0]===1)===on}">${x[1]}</button>`).join(''),'WHEN ON, EACH RESULT BANNER ALSO SHOWS THE PLAY AND DEFENSE, WHO GOT THE BALL, THE YARDS AND WHO MADE THE STOP. OFF SHOWS ONLY THE RESULT.')}
+function dtSync(){try{const on=dtIsOn();document.querySelectorAll('.dtw [data-dt]').forEach(b=>{const v=b.dataset.dt==='1'===on;b.classList.toggle('alt',!v);b.setAttribute('aria-pressed',v?'true':'false')})}catch(e){}}
+function dtSet(v){if(!dtLoaded)dtLoad();dtCur=v?1:0;
+ try{localStorage.setItem(DT_KEY,JSON.stringify({v:1,on:dtCur}))}catch(e){}
+ dtSync()}
+document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-dt]');if(b)dtSet(b.dataset.dt==='1')}catch(x){}});
+const stGroup=()=>`<div class="stg"><div class="sm stt">SETTINGS</div>${spdRow()}${dcRow()}${dtRow()}${upRow()}</div>`;
+const stSync=()=>{spdSync();dcSync();dtSync();upSync()};
 /* ----- the ? overlay ----- */
 const HP={on:false};
 const HP_TEXT=`<div class="hpt"><h1 class="mh">HOW TO PLAY</h1>
@@ -1563,14 +1586,14 @@ function xpPanel(){let e=$('xp');
   e.addEventListener('click',x=>{if(x.target===e){xpEsc();return} /* a tap outside the panel */
    const b=x.target.closest&&x.target.closest('[data-xp]');if(!b)return;const a=b.dataset.xp;
    if(a==='save')xpSave();else if(a==='abandon'){XP.v='ask';xpDraw()}else if(a==='no'){XP.v='main';xpDraw()}
-   else if(a==='yes')xpAbandon();else if(a==='keep')xpClose()})}
+   else if(a==='yes')xpAbandon();else if(a==='keep')xpClose();else if(a==='olleave'){xpClose();olLeave()}})}
  return e}
 function xpDraw(msg){const e=xpPanel();if(!G)return;
  const m=msg?`<div class="sm" style="color:#ffd400" id="xpm">${hmEsc(msg)}</div>`:'<div id="xpm"></div>';
  e.innerHTML=XP.v==='ask'
   ?`<div class="xpc"><h1 class="mh">ABANDON GAME?</h1><div class="sm" style="line-height:1.7">THIS GAME WILL NOT COUNT.${S.sbx?'':' THE SAVED GAME WILL BE DELETED.'}</div><div class="row"><button class="btn" data-xp="no">NO</button><button class="btn alt" data-xp="yes">YES</button></div></div>`
   :`<div class="xpc"><h1 class="mh">LEAVE THIS GAME?</h1><div class="sm">${G.home===false?'AT':'VS'} ${hmEsc(G.opp.name)}</div><div style="font-size:1.3em">${hmEsc(S.name.slice(0,12))} ${G.me} - ${G.op} ${hmEsc(G.opp.name.slice(0,12))}</div><div class="sm">${xpQ(G)}</div>${stGroup()}${m}
-  ${S.sbx?'':'<button class="btn" data-xp="save">SAVE AND EXIT</button>'}<button class="btn alt" data-xp="abandon">ABANDON GAME</button><button class="btn alt" data-xp="keep">KEEP PLAYING</button></div>`}
+  ${S.sbx||G.online?'':'<button class="btn" data-xp="save">SAVE AND EXIT</button>'}${G.online?'<button class="btn alt" data-xp="olleave">LEAVE GAME</button>':'<button class="btn alt" data-xp="abandon">ABANDON GAME</button>'}<button class="btn alt" data-xp="keep">KEEP PLAYING</button></div>`}
 function xpOpen(){if(XP.on||HP.on||PC.on||DS.on||!G||G.mode!=='presnap'||document.querySelector('#app .screen.on'))return;
  try{XP.v='main';XP.on=true;xpDraw();const e=$('xp');e.classList.add('on');e.scrollTop=0}catch(x){XP.on=false}}
 function xpClose(){if(!XP.on)return;XP.on=false;XP.v='main';try{const e=$('xp');if(e){e.classList.remove('on');if(e.contains(document.activeElement))document.activeElement.blur()}}catch(x){}}
@@ -1600,6 +1623,7 @@ const GL_MAX=60,GL_SLOT=['QB','RB','WR1','WR2','WR3','TE','K'],GL_NOLOG='NO GAME
 const GL={on:false,tab:'season',sea:null,confirm:false,msg:'',mt:0};
 const glList=()=>S&&Array.isArray(S.gl)?S.gl:[];
 function glSlotOf(name,pos){const n=S.names||{};
+ const k=/#([0-6])$/.exec(name);if(k)return +k[1]; /* v1.97: a player whose name is shared on the roster is keyed NAME#slot (see plKey in p3.js) */
  if(name===n.qb)return 0;if(name===n.rb)return 1;const w=n.wr||[];for(let i=0;i<3;i++)if(name===w[i])return 2+i;if(name===n.te)return 5;if(name===n.k)return 6;
  return pos==='RB'?1:pos==='TE'?5:pos==='K'?6:pos==='WR'?2:0}
 function glSlotName(s){const n=S.names||{};const v=s===0?n.qb:s===1?n.rb:s>=2&&s<=4?(n.wr||[])[s-2]:s===5?n.te:s===6?n.k:'';return v||GL_SLOT[s]||'?'}
@@ -1785,11 +1809,11 @@ function dcPaint(){const e=$('dcs');if(!e)return;
  const sd=G.dcStyles||[];
  e.innerHTML=`<h1 class="mh">CALL YOUR DEFENSE</h1>
 <div class="sm">${hmEsc(S.name.slice(0,12))} ${G.me} - ${G.op} ${hmEsc(G.opp.name.slice(0,12))} - ${xpQ(G)}</div>
-<div class="sm" style="color:#ffd400">THEIR BALL AT OWN ${Math.round(DC.start)}</div>
-<div class="sm">LAST DRIVES: ${sd.length?sd.join(', '):'NONE YET'}</div>
+<div class="sm" style="color:#ffd400">${OL.on?hmEsc(olDown(OL.room.st)):'THEIR BALL AT OWN '+Math.round(DC.start)}</div>
+<div class="sm">${OL.on?'<span id="olcd">PICK IN '+OL_PICK+'</span> - NO PICK = THE HIGHLIGHTED ONE':'LAST DRIVES: '+(sd.length?sd.join(', '):'NONE YET')}</div>
 <div class="dcl"><div class="dcg"><button class="btn alt dcc${DC.sel==='auto'?' on':''}" data-dc="auto" aria-pressed="${DC.sel==='auto'}"><b>AUTO</b><span>THE GAME PICKS, RANDOMLY, AS BEFORE</span></button></div>${
  DC_GRP.map(g=>{const L=DEFD.filter(d=>g[1].includes(DC_FAM[d.id]||'?'));return L.length?`<h4>${g[0]}</h4><div class="dcg">${L.map(dcCard).join('')}</div>`:''}).join('')}</div>
-<div class="dcbar"><button class="btn dcgo" data-dc="go">CALL IT: ${DC.sel==='auto'?'AUTO':dcName(DC.sel)}</button></div>`}
+<div class="dcbar"><button class="btn dcgo" data-dc="go">CALL IT: ${DC.sel==='auto'?'AUTO':dcName(DC.sel)}</button>${OL.on?olLeaveBtn:''}</div>`}
 function dcAsk(start){
  G.poss='opp';G.mode='dcall';DC.on=true;DC.start=start;DC.sel=G.dcLast&&DEFD.some(d=>d.id===G.dcLast)?G.dcLast:'auto';
  updCtl();dcPaint();show('dcs');const e=$('dcs');e.scrollTop=0;
@@ -1797,7 +1821,8 @@ function dcAsk(start){
 function dcSelect(id){if(!DC.on)return;if(id!=='auto'&&!DEFD.some(d=>d.id===id))return;DC.sel=id;
  const e=$('dcs');e.querySelectorAll('[data-dc]').forEach(b=>{const k=b.dataset.dc;if(k==='go'){b.textContent='CALL IT: '+(id==='auto'?'AUTO':dcName(id));return}const on=k===id;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false')})}
 function dcGo(){
- if(!DC.on)return;DC.on=false;const sel=DC.sel;show(null);
+ if(!DC.on)return;if(OL.on)return olPicked(); /* v1.99: online, the pick goes to the other phone */
+ DC.on=false;const sel=DC.sel;show(null);
  const style=dcPickStyle(),sch=sel==='auto'?null:sel;
  G.dcStyles=(G.dcStyles||[]).concat(style).slice(-3);G.dcLast=sch;
  oppDrive(DC.start,sch?{sch,style}:null)}
@@ -1901,7 +1926,7 @@ function hmExh(){
  <div class="card" ${card}><h3>GAME SETTINGS</h3><div class="row"><span class="sm">DRIVE:</span><button class="btn xs ${x.flip?'alt':''}" data-xh="d0">RIGHT &gt;</button><button class="btn xs ${x.flip?'':'alt'}" data-xh="d1">&lt; LEFT</button><span class="sm">QUARTER:</span>${[60,90,150].map(q=>`<button class="btn xs ${x.q===q?'':'alt'}" data-xh="q${q}">${q}S</button>`).join('')}</div>
  <div class="row" style="margin-top:.5em"><span class="sm">SITE:</span>${[[true,'HOME'],[false,'AWAY'],[null,'NEUTRAL']].map(([v,t])=>`<button class="btn xs ${x.site===v?'':'alt'}" data-xh="s${v}">${t}</button>`).join('')}</div>
  <div class="row" style="margin-top:.5em"><span class="sm">LEVEL:</span><button class="btn xs alt" data-xh="dl-1">-</button><span class="sm">${x.diff} ${DNM[x.diff-1]}</span><button class="btn xs alt" data-xh="dl1">+</button></div></div>
- <div class="row"><button class="btn" data-xh="go">KICK OFF</button></div>`}
+ <div class="row"><button class="btn" data-xh="go">KICK OFF</button></div>${olCard()}`}
 /* build the throwaway league save the game will run on */
 function xhBuild(){
  const sel=xhLeague();xhTeams(sel);let s;
@@ -1909,7 +1934,7 @@ function xhBuild(){
  else s=lgNew(sel.L,XH.me,true);
  const L=s.lg,t=L.teams[XH.me],keep=sel.id&&XH.me===sel.own;
  L.me=XH.me;s.name=t.name;
- if(!keep){s.r={qb:t.off,wr:t.off,rb:t.off,ol:t.off,def:t.def,k:(t.off+t.def)/2};delete s.ro;delete s.uni;s.names={qb:nm(),rb:nm(),wr:[nm(),nm(),nm()]}}
+ if(!keep){s.r={qb:t.off,wr:t.off,rb:t.off,ol:t.off,def:t.def,k:(t.off+t.def)/2};delete s.ro;delete s.uni;s.names=nmRoster()}
  delete s.id;s.sbx=1;s.qLen=XH.q;s.flip=XH.flip;s.diff=XH.diff;
  return s}
 function xhGo(){
@@ -1935,6 +1960,291 @@ $('menu').addEventListener('change',e=>{const el=e.target;
  if(el.id==='xhS'){XH.src=el.value;XH.me=null;XH.opp=null;xhSave();renderHome()}
  else if(el.id==='xhM'){XH.me=+el.value;if(XH.opp===XH.me)XH.opp=null;renderHome()}
  else if(el.id==='xhO'){XH.opp=+el.value;if(XH.me===XH.opp)XH.me=null;renderHome()}});
+/* ---------- v1.99 PLAY A FRIEND (online exhibition, step 1) ----------
+   Two phones, one room (Firestore doc rooms/{code}), turn based: the DEFENSE phone picks a DEFD scheme (the v1.83 pick screen), the OFFENSE phone then plays the snap live with the
+   normal engine, writes the new state + recap in ONE write, and the roles swap whenever the ball changes hands. Nothing here touches leagues, saves, scoring, the game log, backup codes,
+   cloud save or the mid-game snapshot: the game runs on a throwaway league (S.sbx) exactly like the v1.92 exhibition. The firebase SDK is only loaded when a button on the
+   PLAY A FRIEND card is tapped. Every hook in the rest of the game is guarded by OL.on, so solo play is unchanged.
+   Room doc (about 1.3 KB): schema, created, expires, settings{lv,dr,q}, teams{h,g}{n,c,u}, seats{h,g}{u,t}, n (+1 on every state write), phase (lobby|pick|pat|play|half|over),
+   st (game state, s = write counter), pk{s,d} (defense pick), rc (latest recap), lv (who left).
+   phase meaning: pick = the defense (st.po is the OFFENSE) must pick; play = the pick is in, the offense is playing the snap; pat = offense chooses XP or two; half = halftime shown by st.po. ---------- */
+const OL_KEY='pixelPigskin.room',OL_URL='https://chipperbaily.github.io/pixel-pigskin/',OL_TTL=11.8*3600e3,OL_PICK=30,OL_PING=20000,OL_AWAY=60000,OL_NOPICK=45000;
+const OL={on:false,code:'',seat:'',uid:'',exp:0,room:null,n:-1,s:0,snap:0,fp:'h',q:[],pumping:false,unsub:null,seq:0,off:false,rcSeen:0,rcPend:null,rcBusy:false,force:false,go:false,
+ vk:'',vAt:0,pickAt:0,seen:{t:0,at:0},hbAt:0,tm:null,busy:false,pre:'',lc:0,over:false,fin:false,routed:false,wcount:0};
+const olO=()=>OL.seat==='h'?'g':'h';
+const olWaitMs=ms=>new Promise(r=>setTimeout(r,ms));
+/* ----- codes: 6 characters from the same 31-character alphabet as the recovery codes, shown XXX-XXX ----- */
+function olMake(){const ch=[];while(ch.length<6){const b=new Uint8Array(16);crypto.getRandomValues(b);for(const x of b){if(x<248&&ch.length<6)ch.push(CG_ALPHA[x%31])}}return ch.join('')}
+function olNorm(t){const s=String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return s.length===6&&[...s].every(c=>CG_ALPHA.includes(c))?s:null}
+const olFmt=c=>c.slice(0,3)+'-'+c.slice(3);
+/* the one device-wide key. It is NOT part of any save, backup, export, cloud copy or problem report. */
+function olKeyGet(){try{const o=JSON.parse(lsGet(OL_KEY)||'null');if(o&&o.v===1&&olNorm(o.c)&&(o.s==='h'||o.s==='g')&&o.x>Date.now())return o;if(o)lsDel(OL_KEY)}catch(e){}return null}
+const olKeyPut=()=>{lsSet(OL_KEY,JSON.stringify({v:1,c:OL.code,s:OL.seat,x:OL.exp}))};
+const olKeyDrop=()=>lsDel(OL_KEY);
+/* ----- team identity from the room (anything that arrives from the other phone is cleaned before use) ----- */
+const olHex=v=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v);
+const olNm=v=>String(v==null?'':v).replace(/[^\x20-\x7e]/g,'').replace(/[<>&"]/g,'').trim().slice(0,22)||'TEAM';
+const olTxt=(v,n)=>String(v==null?'':v).toUpperCase().replace(/[^A-Z0-9 +\-.'!?:,()\/\n]/g,'').slice(0,n||90);
+const olCol=c=>c&&olHex(c.c)&&olHex(c.d)?{c:c.c,d:c.d}:{c:'#3b6fd8',d:'#1c3877'};
+function olUni(u,col){const d=defaultUni(col),o={};
+ for(const k of['helmet','jersey','pants','socks']){o[k]={};for(const f in d[k])o[k][f]=u&&u[k]&&olHex(u[k][f])?u[k][f]:d[k][f]}
+ for(const k of['shoes','gloves','outline'])o[k]=u&&olHex(u[k])?u[k]:d[k];return o}
+function olMe(){const sel=xhLeague();xhTeams(sel);const t=sel.L.teams[XH.me],c=olCol(t.col);return{n:olNm(t.name),c,u:olUni(lgUni(t),c)}}
+const olTeam=k=>{const t=OL.room&&OL.room.teams&&OL.room.teams[k];return t?{name:olNm(t.n),col:olCol(t.c),uni:olUni(t.u,olCol(t.c))}:{name:'FRIEND',col:olCol(null),uni:olUni(null,olCol(null))}};
+/* ----- the firebase calls (all through the v1.78 loader: lazy SDK, anonymous sign-in, 10 s limits) ----- */
+async function olSdk(){if(!cgHostOK())throw{cgKind:'host'};const s=await cgT(cgLoad());OL.uid=await cgT(cgUid(s));return s}
+function olErr(e){const k=cgKind(e);olMsg(k==='host'?'ONLINE PLAY ONLY WORKS ON THE GAME\'S OWN WEB ADDRESS':e&&e.olText?e.olText:k==='denied'?'THE CLOUD REFUSED THIS. CHECK THE DATE AND TIME ON YOUR DEVICE, THEN TRY AGAIN.':cgNoNet,true)}
+function olMsg(t,bad){const m=$('olmsg');if(m){m.textContent=t||'';m.className='sm '+(bad?'bad':'good')}}
+async function olFetch(code){const s=await olSdk();const sn=await cgT((s.X.getDocFromServer||s.X.getDoc)(s.X.doc(s.db,'rooms',code)));return sn.exists()?sn.data():null}
+async function olTx(fn){const s=await olSdk(),ref=s.X.doc(s.db,'rooms',OL.code);
+ return cgT(s.X.runTransaction(s.db,async tx=>{const sn=await tx.get(ref);if(!sn.exists())return{r:'gone'};
+  const cur=sn.data(),o=fn(cur);if(o.r)return o;const up=Object.assign({},o.up);if(!o.hb)up.n=cur.n+1;tx.update(ref,up);return{r:'ok'}}),12000)}
+/* the write queue: a snap never waits for the network. A result that cannot be written is kept and retried every few seconds (small OFFLINE chip). */
+function olSend(job){OL.q.push(job);olPump()}
+async function olPump(){
+ if(OL.pumping)return;OL.pumping=true;
+ try{while(OL.q.length&&OL.on){
+  try{const r=await olTx(OL.q[0].fn);
+   if(r.r==='gone'){olGone();break}
+   OL.q.shift();OL.wcount++;olChip(false)}
+  catch(e){if(cgKind(e)==='denied'){OL.q.shift();olGone();break}olChip(true);await olWaitMs(3000)}}}
+ finally{OL.pumping=false}}
+async function olFlush(ms){const t=Date.now();while(OL.q.length&&Date.now()-t<ms){olPump();await olWaitMs(100)}}
+function olChip(on){OL.off=!!on;try{const c=$('olchip');if(c)c.style.display=on&&OL.on?'block':'none'}catch(e){}}
+function olGone(){if(OL.fin)return;olKeyDrop();OL.q=[];olFin('THIS GAME IS NO LONGER AVAILABLE (IT MAY HAVE EXPIRED).')}
+async function olSub(){
+ const q=++OL.seq;if(OL.unsub){try{OL.unsub()}catch(e){}OL.unsub=null}
+ const retry=()=>setTimeout(()=>{if(OL.on&&q===OL.seq)olSub()},4000);
+ try{const s=await olSdk();if(q!==OL.seq||!OL.on)return;
+  OL.unsub=s.X.onSnapshot(s.X.doc(s.db,'rooms',OL.code),sn=>{if(q!==OL.seq)return;olChip(false);if(sn.exists())olIn(sn.data());else olGone()},()=>{if(q!==OL.seq)return;OL.unsub=null;olChip(true);retry()})
+ }catch(e){olChip(true);retry()}}
+function olStop(){OL.seq++;if(OL.unsub){try{OL.unsub()}catch(e){}OL.unsub=null}if(OL.tm){clearInterval(OL.tm);OL.tm=null}}
+function olResume(){if(!OL.on||document.hidden||OL.fin)return;
+ olFetch(OL.code).then(d=>{if(d)olIn(d)}).catch(()=>{});olSub();olPump()}
+document.addEventListener('visibilitychange',olResume);window.addEventListener('pageshow',olResume);
+/* ----- create / join / rejoin ----- */
+async function olCreate(){
+ if(OL.busy||OL.on)return;OL.busy=true;olMsg('CONNECTING...');
+ try{const me=olMe(),s=await olSdk(),now=Date.now(),exp=now+OL_TTL;
+  for(let i=0;i<5;i++){
+   const code=olMake(),ref=s.X.doc(s.db,'rooms',code);
+   const doc={schema:1,created:now,expires:s.X.Timestamp.fromMillis(exp),settings:{lv:XH.diff,dr:!!XH.flip,q:XH.q},teams:{h:me},seats:{h:{u:OL.uid,t:now},g:{u:'',t:0}},n:0,phase:'lobby'};
+   const ok=await cgT(s.X.runTransaction(s.db,async tx=>{const sn=await tx.get(ref);if(sn.exists())return false;tx.set(ref,doc);return true}));
+   if(ok){olEnter(code,'h',exp,doc);return}}
+  throw{cgKind:'net'}
+ }catch(e){olErr(e)}finally{OL.busy=false}}
+function olEnter(code,seat,exp,doc){
+ Object.assign(OL,{on:true,code,seat,exp,room:doc,n:-1,s:0,snap:0,fp:'h',q:[],rcSeen:0,rcPend:null,rcBusy:false,vk:'',over:false,fin:false,routed:false,wcount:0,hbAt:0,seen:{t:0,at:Date.now()},lc:0});
+ olKeyPut();olSub();if(!OL.tm)OL.tm=setInterval(olTick,1000);olIn(doc)}
+async function olPreview(){ /* JOIN GAME: look at the room, show the host's team, let the guest pick their own */
+ if(OL.busy||OL.on)return;const inp=$('olin'),code=olNorm(inp&&inp.value);
+ if(!code){olMsg('THAT CODE LOOKS WRONG. IT HAS 6 LETTERS AND NUMBERS.',true);return}
+ OL.busy=true;olMsg('CONNECTING...');
+ try{const d=await olFetch(code);
+  if(!d||!d.teams||!d.seats||(d.expires&&d.expires.toMillis&&d.expires.toMillis()<Date.now()))throw{olText:'NO GAME WITH THAT CODE, OR IT HAS EXPIRED.'};
+  if(d.seats.h.u===OL.uid||d.seats.g.u===OL.uid){olEnter(code,d.seats.h.u===OL.uid?'h':'g',d.expires.toMillis(),d);return} /* your own room: that is a rejoin */
+  if(d.phase!=='lobby'||d.seats.g.u)throw{olText:d.seats.g.u?'THAT GAME ALREADY HAS TWO PLAYERS.':'THAT GAME HAS ALREADY STARTED.'};
+  OL.pv={code,d};olJoinView()
+ }catch(e){olErr(e)}finally{OL.busy=false}}
+async function olJoin(){
+ const pv=OL.pv;if(!pv||OL.busy||OL.on)return;OL.busy=true;olMsg('JOINING...');
+ try{const me=olMe();OL.code=pv.code;const now=Date.now();
+  const r=await olTx(cur=>{if(cur.phase!=='lobby'||cur.seats.g.u)return{r:'taken'};return{up:{'teams.g':me,'seats.g':{u:OL.uid,t:now}}}});
+  if(r.r==='gone')throw{olText:'NO GAME WITH THAT CODE, OR IT HAS EXPIRED.'};
+  if(r.r!=='ok')throw{olText:'THAT GAME ALREADY HAS TWO PLAYERS.'};
+  const d=await olFetch(pv.code);OL.pv=null;olEnter(pv.code,'g',d.expires.toMillis(),d)
+ }catch(e){OL.code='';olErr(e)}finally{OL.busy=false}}
+async function olRejoin(){
+ const k=olKeyGet();if(OL.busy||OL.on)return;if(!k){olMsg('NO GAME TO REJOIN.',true);renderHome();return}
+ OL.busy=true;olMsg('CONNECTING...');
+ try{OL.code=k.c;const d=await olFetch(k.c);
+  if(!d||!d.seats||!d.seats[k.s]||d.seats[k.s].u!==OL.uid||(d.expires&&d.expires.toMillis()<Date.now())){olKeyDrop();OL.code='';renderHome();olMsg('THAT GAME IS GONE.',true);return}
+  olEnter(k.c,k.s,k.x,d)
+ }catch(e){OL.code='';olErr(e)}finally{OL.busy=false}}
+/* ----- a new snapshot of the room */
+function olIn(d){
+ if(!OL.on||!d||typeof d.n!=='number')return;
+ const o=d.seats&&d.seats[olO()];if(o&&o.t!==OL.seen.t)OL.seen={t:o.t,at:Date.now()};
+ if(d.n<OL.n)return;
+ const same=d.n===OL.n;OL.room=d;OL.n=d.n;if(same&&OL.routed)return;
+ OL.routed=true;olRoute()}
+/* ----- the game state <-> the engine ----- */
+function olApply(st){
+ const me=OL.seat,mh=me==='h';
+ G.me=mh?st.h:st.g;G.op=mh?st.g:st.h;G.qs.me=(mh?st.qh:st.qg).slice(0,5);G.qs.op=(mh?st.qg:st.qh).slice(0,5);
+ G.clock=st.q;G.los=st.l;G.down=st.d;G.fd=st.f;G.half=!!st.hf;G.ot=!!st.ot;G.pat=!!st.pt;G.first=st.fp===me?'me':'opp';G.poss=st.po===me?'me':'opp';OL.fp=st.fp}
+function olSt(po){const me=OL.seat,mh=me==='h',a=G.qs.me.slice(0,5),b=G.qs.op.slice(0,5);
+ return{s:++OL.s,po,h:mh?G.me:G.op,g:mh?G.op:G.me,qh:mh?a:b,qg:mh?b:a,q:Math.round(G.clock*10)/10,l:Math.round(G.los),d:G.down,f:Math.round(G.fd),hf:G.half?1:0,ot:G.ot?1:0,pt:G.pat?1:0,fp:OL.fp}}
+/* the recap that rides in the room doc: the engine's tiny recap object plus the banner text. Firestore refuses undefined, so only real values go in. */
+function olRcPack(c,t,sub,col){const o={};for(const k in c){const v=c[k];if(typeof v==='number'?isFinite(v):typeof v==='string')o[k]=v}o.bt=String(t||'').slice(0,40);o.bs=String(sub||'').slice(0,90);if(olHex(col))o.bc=col;return o}
+function olRcOut(s){const p=OL.rcPend;OL.rcPend=null;return p?Object.assign({s},p):null}
+function olJob(phase,st){
+ const up={phase,st},rc=olRcOut(st.s);if(rc)up.rc=rc;up['seats.'+OL.seat+'.t']=Date.now();OL.rcSeen=Math.max(OL.rcSeen,st.s);OL.hbAt=Date.now();
+ return{fn:cur=>cur.phase==='over'||(cur.st&&cur.st.s>=st.s)?{r:'done'}:{up}}}
+function olBuildS(d){
+ const s=lgNew(lgMake('EXHIBITION','NFL'),0,true),t=s.lg.teams[0],me=olTeam(OL.seat),st=d.settings||{};
+ t.name=me.name;t.col=me.col;delete t.wd;t.uni=me.uni;
+ s.name=me.name;s.r={qb:4,wr:4,rb:4,ol:4,def:4,k:4};delete s.ro;delete s.uni;s.names=nmRoster(); /* the same standard ratings for both teams: every position 4 (the league average team is about 3.7) */
+ delete s.id;s.sbx=1;s.qLen=[60,90,150].includes(st.q)?st.q:90;s.flip=st.dr!==false;s.diff=clamp(Math.round(+st.lv)||5,1,10);return s}
+function olStart(d){ /* build the throwaway league and the game, with no banner chain: the room decides who has the ball */
+ const me=OL.seat,ot=olO(),o=olTeam(ot),s=olBuildS(d);
+ if(!XH.prev)XH.prev=S;S=s;resetSprites();
+ EXH={o:{name:o.name,off:4,def:4,col:o.col,uni:o.uni,id:null},home:null};
+ startGame();G.bn=null;G.online=true;G.label='PLAY A FRIEND';G.mode='olwait';DC.on=false;OL.s=0;OL.snap=0;OL.over=false;OL.fin=false;OL.fp=d.st.fp;
+ OL.rcSeen=d.st.s>1&&d.rc?d.rc.s:0;updCtl();olChip(OL.off)}
+function olSnapGo(d){ /* I have the ball and the pick is in: apply the state and play it as a normal pre-snap */
+ const st=d.st;OL.snap=st.s;if(st.s>OL.s){olApply(st);OL.s=st.s}
+ DEFFORCE=d.pk&&d.pk.s===st.s&&typeof d.pk.d==='string'&&d.pk.d?d.pk.d:null;
+ OL.vk='';show(null);OL.go=true;try{setPresnap()}finally{OL.go=false;DEFFORCE=null}}
+/* ----- routing ----- */
+function olRoute(){
+ if(OL.rcBusy)return;
+ const d=OL.room;if(!d)return;
+ if(d.phase==='lobby'){olLobby();return}
+ if(d.phase==='over'&&!d.st){olFin(d.lv&&d.lv!==OL.seat?'YOUR FRIEND LEFT.':'');return}
+ const st=d.st;if(!st)return;
+ if(!G||!G.online){if(d.phase==='over'){olFin();return}olStart(d)}
+ if(d.phase==='over'&&OL.over)return;
+ const me=OL.seat,mine=st.po===me,rd=st.s>OL.s;
+ if(rd){olApply(st);OL.s=st.s}
+ const rc=d.rc;
+ if(rd&&rc&&rc.s===st.s&&rc.s>OL.rcSeen){OL.rcSeen=rc.s;olRecap(rc,d);return}
+ olView(d,rd)}
+function olView(d,rd){
+ const st=d.st,me=OL.seat,mine=st.po===me,key=d.phase+':'+st.s+(mine?'o':'d');
+ if(d.phase==='over'){olFin();return}
+ if(d.phase==='pick'){mine?olWaitView(key):olPickView(key)}
+ else if(d.phase==='pat'){if(mine){if(rd&&G.mode==='olwait'){G.pat=false;OL.vk='';show(null);G.mode='patchoice';updCtl()}}else olWatchView(key,'IS CHOOSING AN EXTRA POINT OR TWO')}
+ else if(d.phase==='play'){if(mine){if(OL.snap!==st.s)olSnapGo(d)}else{OL.snap=st.s;olWatchView(key,'IS RUNNING THE PLAY')}}
+ else if(d.phase==='half'){if(mine){if(rd&&G.mode!=='half'){OL.vk='';show(null);OL.quiet=true;try{showHalf(secondHalf)}finally{OL.quiet=false}}}else olWatchView(key,'HALFTIME',true)}}
+/* the recap of the play the OTHER phone just ran: the same banner renderer, always with the detail lines */
+function olRecap(rc,d){
+ const st=d.st;let t='',sb='';
+ try{
+  if(rc.k==='toss'){t='COIN TOSS';sb=(st.fp===OL.seat?'YOU':G.opp.name)+' RECEIVE'+(st.fp===OL.seat?'':'S')+' THE OPENING KICK'}
+  else{const c=Object.assign({},rc);t=olTxt(c.bt,40);sb=olTxt(c.bs,90).replace(/OPPONENT BALL/g,'YOUR BALL').replace(/OPPONENT \+2/g,'YOUR TEAM +2');
+   if(c.kind!=='pick6'&&!/YOUR/.test(sb)&&sb.indexOf('\n')<0)sb=G.opp.name.slice(0,16)+(sb?' - '+sb:'');
+   for(const k of['s','bt','bs','bc','k'])delete c[k];G.recap=c;RC_SHOW=true;OL.force=true}
+ }catch(e){}
+ OL.rcBusy=true;OL.vk='';show(null);try{formation();cam.x=camTarget()}catch(e){}
+ showBanner(t||'NEXT PLAY',sb,1.4,()=>{OL.rcBusy=false;OL.force=false;G.recap=null;olRoute()},olHex(rc.bc)?rc.bc:'#ffd400')}
+/* ----- boundaries written by the phone that has the ball ----- */
+function olSnap(){ /* a pre-snap is due on my side: write the state, then wait for the pick */
+ const st=olSt(OL.seat);G.mode='olwait';G.poss='me';updCtl();olSend(olJob('pick',st));olWaitView('pick:'+st.s+'o')}
+function olHand(start){ /* the engine says the other team gets the ball (oppPossession): the roles swap and I become the defense */
+ if(G.clock<=0){timeUp();return}
+ if(halfDue())return showHalf(secondHalf);
+ const st=olSt(olO());st.l=Math.round(start);st.d=1;st.f=Math.min(100,st.l+10);st.pt=0;
+ G.los=st.l;G.down=1;G.fd=st.f;G.pat=false;G.mode='olwait';G.poss='opp';updCtl();olSend(olJob('pick',st));olPickView('pick:'+st.s+'d')}
+function olPat(){olSend(olJob('pat',olSt(OL.seat)))}
+function olHalfW(){olSend(olJob('half',olSt(OL.seat)))}
+function olEnd(){if(OL.over)return;OL.over=true;G.mode='over';updCtl();const st=olSt(OL.seat);OL.room=Object.assign({},OL.room,{phase:'over',st}); /* the final screen shows the state I am writing, not the last one I received */
+ olSend(olJob('over',st));olFin()}
+function olOT(){ /* overtime: the engine gives the ball to me; online a coin flip decides */
+ if(Math.random()<.5)return false;
+ G.ot=true;G.clock=60;showBanner('OVERTIME!','SUDDEN DEATH - '+G.opp.name+' GET THE BALL',2.4,()=>oppPossession(25),'#ffd400');return true}
+/* the defense phone's pick (the v1.83 pick screen; AUTO = the game picks) */
+function olPicked(){
+ if(!DC.on)return;DC.on=false;const sel=DC.sel,s=OL.room.st.s,d=sel==='auto'?'':String(sel).slice(0,8);
+ G.dcLast=sel==='auto'?null:sel;show(null);G.mode='olwait';
+ olSend({fn:cur=>{if(!cur.st||cur.phase==='over'||cur.st.s>s||cur.phase==='play')return{r:'done'};if(cur.st.s<s||cur.phase!=='pick')return{r:'stale'};
+  const up={phase:'play',pk:{s,d}};up['seats.'+OL.seat+'.t']=Date.now();return{up}}});
+ OL.snap=s;OL.hbAt=Date.now();olWatchView('play:'+s+'d','IS RUNNING THE PLAY')}
+function olPickFor(){ /* offense side, after 45 s of no pick: play it with AUTO, nothing is written for the other phone */
+ const d=OL.room;if(!d||d.phase!=='pick'||d.st.po!==OL.seat)return;
+ OL.snap=d.st.s;DEFFORCE=null;OL.vk='';show(null);OL.go=true;try{setPresnap()}finally{OL.go=false}}
+/* ----- views ----- */
+function olFrame(h){const e=$('ol');if(!e)return;e.innerHTML=h;show('ol')}
+const olLeaveBtn='<button class="btn xs alt" data-ol="leave">LEAVE GAME</button>';
+function olScore(st){const me=OL.seat,mh=me==='h',a=mh?st.h:st.g,b=mh?st.g:st.h,mn=olTeam(me).name,on=olTeam(olO()).name;
+ return`<div style="font-size:1.4em">${hmEsc(mn.slice(0,14))} ${a} - ${b} ${hmEsc(on.slice(0,14))}</div><div class="sm">${xpQ({ot:!!st.ot,qLen:G.qLen,clock:st.q})}</div>`}
+function olDown(st){if(st.pt)return'TWO-POINT TRY';const tg=st.f>=100?'GOAL':Math.max(1,Math.round(st.f-st.l));return ORD[st.d-1]+' & '+tg+' - '+(st.po===OL.seat?'YOUR':'THEIR')+' BALL AT '+spotTxt(st.l)}
+function olNew(key){if(OL.vk===key)return false;OL.vk=key;OL.vAt=Date.now();OL.lc=0;OL.lastSt=null;OL.lastBt=null;return true}
+function olWaitView(key){
+ const st=OL.room.st;if(!olNew(key))return;G.mode='olwait';updCtl();
+ olFrame(`<h1 class="mh">YOUR BALL</h1>${olScore(st)}<div class="sm" style="color:#ffd400">${hmEsc(olDown(st))}</div>
+ <div class="sm" style="font-size:1.1em">WAITING FOR ${hmEsc(olTeam(olO()).name.toUpperCase())} TO PICK</div><div class="sm" id="olst"></div><div class="row" id="olbt"></div>${olLeaveBtn}`)}
+function olWatchView(key,what,half){
+ const st=OL.room.st;if(!olNew(key))return;G.mode='olwait';updCtl();
+ olFrame(`<h1 class="mh">${half?'HALFTIME':'YOUR DEFENSE'}</h1>${olScore(st)}<div class="sm" style="color:#ffd400">${hmEsc(olDown(st))}</div>
+ <div class="sm" style="font-size:1.1em">${half?'':hmEsc(olTeam(olO()).name.toUpperCase())+' '}${half?'WAITING FOR '+hmEsc(olTeam(olO()).name.toUpperCase())+' TO START THE 2ND HALF':what}</div><div class="sm" id="olst"></div><div class="row" id="olbt"></div>${olLeaveBtn}`)}
+function olPickView(key){
+ const st=OL.room.st;if(!olNew(key))return;OL.pickAt=Date.now();
+ G.dcStyles=null;dcAsk(st.l)}
+function olLobby(){
+ const d=OL.room,host=OL.seat==='h',h=olTeam('h'),g=d.teams&&d.teams.g?olTeam('g'):null,link=OL_URL+'?room='+OL.code;
+ const sw=t=>`<span style="display:inline-block;width:.9em;height:.9em;background:${t.col.c};border:.12em solid ${t.col.d};vertical-align:-.1em"></span> ${hmEsc(t.name)}`;
+ olFrame(`<h1 class="mh">PLAY A FRIEND</h1><div class="sm">GAME CODE</div><div style="font-size:2.6em;letter-spacing:.12em;color:#ffd400">${olFmt(OL.code)}</div>
+ ${host?`<div class="row"><button class="btn" data-ol="share">SHARE</button></div><div class="sm" style="word-break:break-all">${hmEsc(link)}</div>`:''}
+ <div class="sm">${sw(h)}${host?' (YOU)':' (HOST)'}</div><div class="sm">${g?sw(g)+(host?'':' (YOU)'):'WAITING FOR YOUR FRIEND TO JOIN...'}</div>
+ <div class="sm">${hmEsc('EQUAL TEAMS - LEVEL '+((d.settings&&d.settings.lv)||5)+' - '+((d.settings&&d.settings.q)||90)+'S QUARTERS')}</div>
+ <div class="row">${host?`<button class="btn" data-ol="start" ${g?'':'disabled'}>START GAME</button>`:'<div class="sm">WAITING FOR THE HOST TO START...</div>'}</div><div class="sm" id="olmsg"></div>${olLeaveBtn}`)}
+function olJoinView(){
+ const pv=OL.pv,h=pv.d.teams.h,hc=olCol(h.c),sel=xhLeague();xhTeams(sel);
+ olFrame(`<h1 class="mh">JOIN GAME ${olFmt(pv.code)}</h1><div class="sm">HOST: <span style="display:inline-block;width:.9em;height:.9em;background:${hc.c};border:.12em solid ${hc.d};vertical-align:-.1em"></span> ${hmEsc(olNm(h.n))}</div>
+ <div class="sm">PICK YOUR TEAM (FROM THE LEAGUE ON THE EXHIBITION TAB)</div><div class="row"><select id="olT" style="min-width:20em;max-width:100%">${xhOpts(sel,XH.me,-1)}</select></div>
+ <div class="row"><button class="btn" data-ol="joingo">JOIN THIS GAME</button><button class="btn xs alt" data-ol="back">BACK</button></div><div class="sm" id="olmsg"></div>`)}
+function olFin(why){
+ if(OL.fin&&!why)return;OL.fin=true;olKeyDrop();OL.vk='fin';if(G){G.mode='over';try{updCtl()}catch(e){}}
+ const d=OL.room,st=d&&d.st;let h='';
+ if(st){const me=OL.seat,mh=me==='h',a=mh?st.h:st.g,b=mh?st.g:st.h,win=a>b,tie=a===b,lv=d.lv,left=lv&&lv!==me;
+  const qa=mh?st.qh:st.qg,qb=mh?st.qg:st.qh,nq=st.ot?5:4,qn=['Q1','Q2','Q3','Q4','OT'].slice(0,nq);
+  h=`<div class="sm">PLAY A FRIEND - DOES NOT COUNT</div><h1 class="${win?'win':tie?'':'lose'}" style="font-size:2em;${win?'color:#4ee08a;text-shadow:none':''}">${left?'YOUR FRIEND LEFT':win?'VICTORY!':tie?'TIE GAME':'DEFEAT'}</h1>
+  <div style="font-size:1.4em">${hmEsc(olTeam(me).name)} ${a} - ${b} ${hmEsc(olTeam(olO()).name)}</div>
+  <div class="dv" style="width:100%;max-width:34em"><table><tr><td></td>${qn.map(q=>`<td>${q}</td>`).join('')}<td>T</td></tr><tr class="me"><td>${hmEsc(olTeam(me).name.slice(0,10))}</td>${qn.map((q,i)=>`<td>${(qa||[])[i]||0}</td>`).join('')}<td><b>${a}</b></td></tr><tr><td>${hmEsc(olTeam(olO()).name.slice(0,10))}</td>${qn.map((q,i)=>`<td>${(qb||[])[i]||0}</td>`).join('')}<td><b>${b}</b></td></tr></table></div>`}
+ else h=`<div class="sm">PLAY A FRIEND</div><h1 class="mh">GAME OVER</h1>`;
+ if(why)h+=`<div class="sm" style="color:#ffd400">${hmEsc(why)}</div>`;
+ olFrame(h+'<div class="row"><button class="btn" data-ol="exit">LEAVE</button></div>')}
+/* leaving: tells the other phone, forgets the room, goes back to the EXHIBITION tab. No snapshot, log, credits or league change. */
+async function olLeave(){
+ if(!OL.on)return;
+ if(!OL.fin&&OL.room&&OL.room.phase!=='over'){const me=OL.seat;OL.q.push({fn:cur=>cur.phase==='over'?{r:'done'}:{up:{phase:'over',lv:me}}});olPump();await olFlush(2500)}
+ olExit()}
+function olExit(){
+ olStop();olKeyDrop();const was=OL.on;OL.on=false;OL.fin=true;OL.q=[];OL.room=null;OL.pv=null;olChip(false);
+ try{xpClose()}catch(e){}
+ try{xhLeave()}catch(e){HOME.tab='ex';renderHome();show('menu')}}
+/* ----- one tick a second: the pick countdown, the other phone's last-seen, the heartbeat ----- */
+function olTick(){
+ if(!OL.on||OL.fin)return;const now=Date.now(),d=OL.room;if(!d)return;
+ if(OL.vk.indexOf('pick:')===0&&DC.on){const left=Math.max(0,OL_PICK-Math.floor((now-OL.pickAt)/1000)),e=$('olcd');if(e)e.textContent='PICK IN '+left;if(left<=0)dcGo()}
+ const st=d.st,me=OL.seat,hid=document.hidden;
+ const expectMe=d.phase==='pick'?st.po!==me:d.phase==='play'?st.po===me:(d.phase==='pat'||d.phase==='half')?st.po===me:false;
+ if(!hid&&expectMe&&!OL.q.length&&now-OL.hbAt>=OL_PING){OL.hbAt=now;const t=now;OL.q.push({fn:cur=>cur.phase==='over'?{r:'done'}:{hb:true,up:{['seats.'+me+'.t']:t}}});olPump()}
+ const e=$('olst');
+ if(e&&!hid){const waiting=d.phase!=='lobby'&&!expectMe,quiet=now-OL.seen.at;let h='';
+  if(waiting&&quiet>=OL_AWAY)h+=`<div style="color:#ff9f43">${hmEsc(olTeam(olO()).name.toUpperCase())} MAY BE OFFLINE</div>`;
+  if(h!==OL.lastSt){OL.lastSt=h;e.innerHTML=h}
+  const b=$('olbt');if(b){let bh='';if(waiting&&quiet>=OL_AWAY)bh+='<button class="btn xs alt" data-ol="wait">WAIT</button>';if(d.phase==='pick'&&st.po===me&&now-OL.vAt>=OL_NOPICK)bh+='<button class="btn xs" data-ol="pickfor">PICK FOR THEM (AUTO)</button>';if(bh!==OL.lastBt){OL.lastBt=bh;b.innerHTML=bh}}}}
+/* ----- the card on the EXHIBITION tab, and the clicks ----- */
+function olCard(){
+ const k=olKeyGet(),pre=OL.pre||'',card='style="flex:none;width:100%;max-width:40em"';
+ return`<div class="card" ${card}><h3>PLAY A FRIEND (ONLINE)</h3><div class="sm">ONE GAME OVER THE INTERNET, NO ACCOUNT NEEDED. EQUAL TEAMS: ONLY YOUR TEAM'S NAME AND COLORS TRAVEL. NOTHING IS SAVED OR COUNTED.</div>
+ <div class="row"><button class="btn" data-ol="create">CREATE GAME</button>${k?`<button class="btn alt" data-ol="rejoin">REJOIN ${olFmt(k.c)}</button>`:''}</div>
+ <div class="row"><input id="olin" maxlength="8" placeholder="ABC-DEF" value="${pre?olFmt(pre):''}" autocapitalize="characters" autocomplete="off" spellcheck="false" style="width:9em;text-transform:uppercase;letter-spacing:.1em"><button class="btn alt" data-ol="join">JOIN GAME</button></div><div class="sm" id="olmsg"></div></div>`}
+async function olShare(){
+ const link=OL_URL+'?room='+OL.code,text='Play Pixel Pigskin Football with me. Game code '+olFmt(OL.code)+' - ';
+ try{if(navigator.share){await navigator.share({title:'Pixel Pigskin Football',text,url:link});return}}catch(e){if(e&&e.name==='AbortError')return}
+ try{await navigator.clipboard.writeText(text+link);olMsg('LINK COPIED',false)}catch(e){olMsg('COULD NOT COPY. THE LINK IS SHOWN ABOVE.',true)}}
+function olStartGame(){
+ const d=OL.room;if(!d||d.phase!=='lobby'||!d.teams.g||OL.seat!=='h')return;
+ const fp=Math.random()<.5?'h':'g',q=[60,90,150].includes(d.settings.q)?d.settings.q:90;
+ const st={s:1,po:fp,h:0,g:0,qh:[0,0,0,0,0],qg:[0,0,0,0,0],q:q*4,l:25,d:1,f:35,hf:0,ot:0,pt:0,fp};
+ olSend({fn:cur=>cur.phase!=='lobby'?{r:'done'}:{up:{phase:'pick',st,rc:{s:1,k:'toss',bt:'COIN TOSS'},'seats.h.t':Date.now()}}});olMsg('STARTING...')}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-ol]');if(!b)return;const a=b.dataset.ol;
+ if(a==='create')olCreate();else if(a==='join')olPreview();else if(a==='rejoin')olRejoin();
+ else if(a==='joingo'){const s=$('olT');if(s)XH.me=+s.value;olJoin()}
+ else if(a==='back'){OL.pv=null;OL.code='';renderHome();show('menu')}
+ else if(a==='share')olShare();else if(a==='start')olStartGame();else if(a==='exit')olExit();
+ else if(a==='wait'){OL.seen.at=Date.now();OL.lastSt=null}
+ else if(a==='pickfor')olPickFor();
+ else if(a==='leave'){if(!OL.lc||Date.now()-OL.lc>4000){OL.lc=Date.now();b.textContent='TAP AGAIN TO LEAVE'}else olLeave()}});
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='olT')XH.me=+e.target.value});
+/* ?room=CODE opens JOIN with the code filled in (never joins by itself); the query is then removed from the address */
+function olBoot(){
+ try{const q=new URLSearchParams(location.search),c=olNorm(q.get('room'));
+  if(q.has('room')){q.delete('room');const s=q.toString();history.replaceState(null,'',location.pathname+(s?'?'+s:'')+location.hash)}
+  if(c){OL.pre=c;HOME.tab='ex';renderHome()}}catch(e){}}
 
 /* ---------- game setup ---------- */
 const cam={x:0},ctrl={dir:0,ptr:false,ty:20};
@@ -1953,7 +2263,7 @@ function formation(){
  const l=G.los,cl=x=>Math.min(x,109);G.hold=false;
  G.ol=[14,17,20,23,26].map(y=>mk('OL',l-1,y));
  G.qb=mk('QB',l-5,20);
- G.recs=[mk('WR',l-1,5,{n:1,nm:S.names.wr[0]}),mk('WR',l-1,35,{n:2,nm:S.names.wr[1]}),mk('WR',l-1.2,28,{n:3,nm:S.names.wr[2]}),mk('RB',l-5,15.5,{n:4,nm:S.names.rb}),mk('TE',l-1,11,{n:5,nm:S.names.te||(S.names.te=nm())})];
+ G.recs=[mk('WR',l-1,5,{n:1,nm:S.names.wr[0]}),mk('WR',l-1,35,{n:2,nm:S.names.wr[1]}),mk('WR',l-1.2,28,{n:3,nm:S.names.wr[2]}),mk('RB',l-5,15.5,{n:4,nm:S.names.rb}),mk('TE',l-1,11,{n:5,nm:S.names.te||(S.names.te=nmMore())})];
  setRoutes();
  G.dl=[12,18,22,28].map(y=>mk('DL',cl(l+1.3),y));
  G.lb=[11,20,26].map(y=>mk('LB',cl(l+4.5),y));
@@ -1962,7 +2272,7 @@ function formation(){
  G.defs=[...G.dl,...G.lb,...G.db];G.play=null;G.bp={x:l,y:20,z:0};G.def=pickDef();G.look=pickLook(G.def);alignDef()}
 const fgDist=()=>117-G.los;
 const fgPct=()=>clamp(.97-Math.max(0,fgDist()-28)*.022+((RO().k.acc+RO().k.rng)/2-5)*.02,.03,.98);
-function setPresnap(){if(halfDue())return showHalf(secondHalf);formation();G.mode='presnap';G.poss='me';updCtl();gsWrite()}
+function setPresnap(){if(halfDue())return showHalf(secondHalf);if(OL.on&&!OL.go)return olSnap();formation();G.mode='presnap';G.poss='me';updCtl();gsWrite()}
 /* v1.50: with 30 seconds or less left in a half, or in the game, you can kick a field goal on any down. The kick is the last play of the half or game */
 function lateKick(){if(!G||G.ot)return null;const h=G.qLen*2;if(!G.half&&G.clock>h&&G.clock-h<=30)return'half';if(G.half&&G.clock>0&&G.clock<=30)return'end';return null}
 function updCtl(){
@@ -1977,7 +2287,9 @@ function updCtl(){
  $('bXP').classList.toggle('hide',G.mode!=='patchoice');$('b2PT').classList.toggle('hide',G.mode!=='patchoice')}
 const hideCtl=()=>updCtl();
 let BN_PRE=0; /* v1.60: seconds to wait before a banner is shown, so a tackle or sack can be seen first */
-function showBanner(t,sub,secs,fn,col){G.mode='banner';G.bn={t,sub,left:secs,fn,col,pre:BN_PRE};BN_PRE=0;updCtl()}
+function showBanner(t,sub,secs,fn,col){G.mode='banner';
+ let dl=null;if(RC_SHOW){RC_SHOW=false;if(G.recap&&OL.on&&!OL.force)OL.rcPend=olRcPack(G.recap,t,sub,col);if(G.recap&&(dtIsOn()||OL.force)){OL.force=false;dl=rcLines(G.recap);if(dl.length)secs+=Math.min(1.5,.5*dl.length);else dl=null}} /* v1.98 PLAY RECAP: detail lines under the usual banner, only with PLAY DETAIL ON; up to 1.5 s more */
+ G.bn={t,sub,left:secs,fn,col,pre:BN_PRE,dl};BN_PRE=0;updCtl()}
 
 /* ---------- snap ---------- */
 function mkRoute(r,i){
@@ -2000,7 +2312,7 @@ function snap(type){
  const ro=RO(),wrB=i=>7.6+.34*ro.wr[i].spd,teB=7.6+.34*ro.te.spd,wrS=(wrB(0)+wrB(1)+wrB(2)+teB)/4,pm=G.pat?.9:1,dsp=(8+o.def*.34)*DEF_BOOST*dSpd();G.wrS=wrS; /* v1.46: wrS is the average speed of the four receivers */
  G.recs.forEach((r,i)=>{r.cat=i===3?R.rb:i===4?ro.te.cat:ro.wr[i].cat;r.sr=i===3?R.rb:i===4?ro.te.spd:ro.wr[i].spd}); /* v1.45: defenders are 10% slower on the two-point try */
  for(const d of G.defs){d.skill=rnd(.95,1.04);d.delay=rnd(.12,.38)*dReact();d.spdFull=dsp*d.skill*pm;d.spd=d.spdFull}
- const p=G.play={type,t:0,phase:'back',thrown:false,tgt:null,ball:null,runner:null,T:0};G.rev=null;G.bullet=false;
+ const p=G.play={type,t:0,phase:'back',thrown:false,tgt:null,ball:null,runner:null,T:0};G.rev=null;G.recap=null;RC_SHOW=false;OL.rcPend=null;G.bullet=false;
  if(type==='pass'){
   G.recs.forEach((r,i)=>{r.spd=(i===3?8+R.rb*.3:i===4?teB*.93:wrB(i))+rnd(-.35,.35)});
   for(const d of G.defs)d.spd=wrS*PRE_DEF; /* v1.90: slightly slower than the offense (PRE_DEF) until the catch; v1.74: on a pass play every defender runs at exactly the receivers' speed until the catch (no skill roll, difficulty or two-point slowdown; a man defender uses his own receiver's speed below) */
@@ -2044,7 +2356,7 @@ function tackled(r){
   if(dd>=reach)continue;
   let pt=clamp(.77+(G.opp.def-5)*.045-(r.rating-5)*.03+(near-1)*.1,.3,.99); /* v1.62: base .66 to .77 (the bot measured 60% of attempts made at .66, about 75% now) */
   if(dd>=.95)pt*=.88;
-  TK.a++;if(Math.random()<pt){TK.s++;tackleAnim(r,d);return true}
+  TK.a++;if(Math.random()<pt){TK.s++;if(G.play)G.play.tk=d;tackleAnim(r,d);return true}
   d.cool=1;d.stun=dd>=.95?.7:.45;r.stumble=dd>=.95?0:.4;d.miss=0;d.mdir=Math.sign(r.x-d.x)||1;if(dd<.95)pop('BROKEN!',r.x,r.y-2,'#4ee08a')}
  return false}
 /* v1.60: tackle poses. The runner falls away from the tackler, the tackler and anyone within 1.8 yards dive toward him; the poses run on the draw clock (drawP) */
@@ -2086,7 +2398,7 @@ function rushStep(p,q,dt){
  for(const r of p.rs){const d=r.d,b=r.b;
   if(!d.free&&t>=r.tb){d.free=true;d.lock=0;b.miss=0;b.mdir=Math.sign(q.y-b.y+.01)||1;b.lock=0}
   if(d.free){ /* he beat his man: straight at the QB */
-   steer(d,q.x+.9,q.y+(r.off||0)*.4,Math.max(d.spd,G.wrS||8)*1.1,45,dt);mv(d,dt);k=1;if(dst(d,q)<1&&p.phase==='back')hit=true;continue}
+   steer(d,q.x+.9,q.y+(r.off||0)*.4,Math.max(d.spd,G.wrS||8)*1.1,45,dt);mv(d,dt);k=1;if(dst(d,q)<1&&p.phase==='back'){hit=true;p.sk=d}continue}
   if(t<r.ta){ /* closing on the lineman */
    const u=clamp(t/r.ta,0,1),e=u*u*(3-2*u),ex=b.bx+RSH.lead,ey=b.by+r.off;d.x=d.x0+(ex-d.x0)*e;d.y=d.y0+(ey-d.y0)*e;d.vx=-4*(1-u);d.vy=0;continue}
   const prog=clamp((t-r.ta)/Math.max(.1,r.tb-r.ta),0,1),pg=prog*prog; /* share of the block already lost: the longer it lasts the closer he is */
@@ -2225,14 +2537,14 @@ const throwSpd=()=>(20+RO().qb.arm*2.2)*(G&&G.bullet?BUL.spd:1.15)*ballK()*THROW
 const floatF=x=>G&&!G.bullet?clamp((x-G.los-10)/15,0,1):0,airSpd=x=>throwSpd()*(1-.18*floatF(x)); /* v1.49/1.50: normal passes are 15% faster (the bullet is unchanged) */
 function toggleBullet(){if(!G||G.mode!=='live'||!G.play||G.play.phase!=='back'||G.play.type!=='pass')return;G.bullet=!G.bullet;updCtl()}
 function leadPoint(r){const q=G.qb;let t=dst(q,r)/airSpd(r.x),p={x:r.x,y:r.y};for(let i=0;i<4;i++){p=predictRec(r,t);t=Math.max(.3,dst(q,p)/airSpd(p.x))}return p}
-function throwTo(r){if(!G||G.mode!=='live'||!G.play||G.play.phase!=='back'||!r)return;const p=leadPoint(r);throwAt(p.x,p.y)}
+function throwTo(r){if(!G||G.mode!=='live'||!G.play||G.play.phase!=='back'||!r)return;const p=leadPoint(r);G.play.it=r;throwAt(p.x,p.y)}
 function throwAt(lx,ly){
  const p=G&&G.play;if(!p||G.mode!=='live'||p.phase!=='back')return;
  {const t=limitThrow(lx,ly);lx=t.x;ly=t.y}
  const q=G.qb,d0=Math.max(1,Math.hypot(lx-q.x,ly-q.y)),sg=(.2+(10-RO().qb.acc)*.06)*(.5+d0/30);
  const L={x:Math.max(q.x-3,lx+(Math.random()-.5)*2*sg),y:clamp(ly+(Math.random()-.5)*2*sg,.3,39.7)};
  const d=Math.max(1,Math.hypot(L.x-q.x,L.y-q.y));
- p.phase='air';updCtl();p.land=L;p.ball={x:q.x,y:q.y,z:0,sx:q.x,sy:q.y,d0:d,t:0,fl:floatF(L.x),dur:Math.max(.3,d/airSpd(L.x))};sfx('throw')}
+ p.phase='air';p.tt=p.t;updCtl();p.land=L;p.ball={x:q.x,y:q.y,z:0,sx:q.x,sy:q.y,d0:d,t:0,fl:floatF(L.x),dur:Math.max(.3,d/airSpd(L.x))};sfx('throw')}
 function updateBall(dt){
  const p=G.play,b=p.ball,L=p.land;b.t+=dt;const u=clamp(b.t/b.dur,0,1);
  b.x=b.sx+(L.x-b.sx)*u;b.y=b.sy+(L.y-b.sy)*u;b.z=Math.sin(Math.PI*u)*(.1*b.d0+1)*(1+.9*(b.fl||0));
@@ -2242,19 +2554,19 @@ function resolveCatch(){
  let r=null,rd=catchR();for(const x of G.recs){const d=dst(x,L);if(d<rd){rd=d;r=x}}
  let dd2=99;for(const d of G.defs)dd2=Math.min(dd2,dst(d,L));
  const oob=L.y<=.8||L.y>=39.2;
- const inc=()=>{pop('INCOMPLETE',L.x,L.y-2,'#ff6b6b');endPlay('incomplete',L.x)};
- if(!r){if(!oob&&dd2<1.8&&Math.random()<INT_OPEN+(o.def-5)*.03){intercept(L.x,L.y);return}inc();return}
- if(oob||r.y<=.8||r.y>=39.2){inc();return}
- let dd=99;for(const d of G.defs)dd=Math.min(dd,dst(d,r));
+ const inc=(w,by)=>{p.why=w||null;p.wby=by||null;pop('INCOMPLETE',L.x,L.y-2,'#ff6b6b');endPlay('incomplete',L.x)}; /* v1.98: w = why it fell incomplete (only when the engine knows), by = the defender */
+ if(!r){if(!oob&&dd2<1.8&&Math.random()<INT_OPEN+(o.def-5)*.03){intercept(L.x,L.y);return}inc(oob?'OUT OF BOUNDS':null);return}
+ if(oob||r.y<=.8||r.y>=39.2){inc('OUT OF BOUNDS');return}
+ let dd=99,nd=null;for(const d of G.defs){const x=dst(d,r);if(x<dd){dd=x;nd=d}}
  if(dd2<rd-.5&&dd2<1.7&&Math.random()<.32+(o.def-5)*.03+(5-acc)*.01){intercept(L.x,L.y);return}
  const pc=clamp(CATCH_BASE+(G.pat?.08:0)+.076*Math.min(dd,5)+.04*((r.cat!=null?r.cat:R.wr)-5)+.025*(acc-5)-Math.max(0,b.d0-22)*.01-(o.def-5)*.015-Math.max(0,rd-1.5)*.05-Math.max(0,2.2-dd)*.04-(G.bullet?BUL.pc:0),.1,.98);
  const open=dd>=4.5; /* v1.61: a wide open receiver (no defender within 4.5 yards) with the ball in his ring catches it about every time (a bullet still costs .12) */ /* v1.60: a defender within 2.2 yards makes it a contested catch: up to -.09 */
  if(Math.random()<(open?Math.max(pc,.995-(G.bullet?BUL.pc:0)):pc)){
-  sfx('catch');G.st.comp++;for(const d of G.defs){d.spd=d.spdFull;d.lock=0}G.ol.forEach(o=>o.lock=0);p.ball=null;p.phase='run';p.runner=r;r.rating=r.sr!=null?r.sr:R.wr;r.inv=.25;
+  sfx('catch');G.st.comp++;p.ct={x:r.x,y:r.y};for(const d of G.defs){d.spd=d.spdFull;d.lock=0}G.ol.forEach(o=>o.lock=0);p.ball=null;p.phase='run';p.runner=r;r.rating=r.sr!=null?r.sr:R.wr;r.inv=.25;
   for(const d of G.defs)d.wait=0;
   G.recs.forEach(x=>{if(x!==r)x.cont=false});updCtl();return}
  if(dd<1.9&&Math.random()<INT_FAIL+(o.def-5)*.03+(5-acc)*.01){intercept(L.x,L.y);return}
- inc()}
+ if(dd<2.2)inc('BROKEN UP',nd);else inc('DROPPED')}
 
 /* ---------- play results & drives ---------- */
 const ORD=['1ST','2ND','3RD','4TH'];
@@ -2263,16 +2575,87 @@ const spotTxt=x=>x<=50?'OWN '+Math.round(x):'OPP '+Math.round(100-x);
 const qNow=()=>G.ot?5:clamp(Math.ceil((G.qLen*4-G.clock)/G.qLen+.0001),1,4);
 function addSc(s,n){G[s]+=n;const q=qNow()-1;G.qs[s][q]=(G.qs[s][q]||0)+n}
 const PLR=n=>G.pl[n]||(G.pl[n]={rec:0,recy:0,att:0,ruy:0,td:0,pos:''});
+/* v1.97: G.pl is keyed by the player's name, EXCEPT when two players on the roster share that name: those are keyed NAME#slot so they can never merge (slots as in the game log: 0 QB 1 RB 2-4 WR1-3 5 TE 6 K). All-different names: the key is the plain name, exactly as before. */
+function plSlot(r){return r.k==='RB'?1:r.k==='TE'?5:r.k==='K'?6:r.k==='WR'?1+r.n:0}
+function plKey(r){const n=S.names||{};let c=0;for(const x of[n.qb,n.rb,...(n.wr||[]),n.te,n.k])if(x===r.nm)c++;return c>1?r.nm+'#'+plSlot(r):r.nm}
+function plShow(k){const m=/^(.*)#([0-6])$/.exec(k);return m?m[1]+' ('+GL_SLOT[+m[2]]+')':k}
+/* ---------- v1.98 PLAY RECAP ----------
+   G.recap: one tiny JSON-safe object (about 150-300 bytes) describing the play that just ended. Built in endPlay (kicks: updateKick), reset at every snap, and NEVER part of a save,
+   snapshot, backup, cloud copy, report or game log (GS_PLAIN does not list it). Fields are left out when the engine does not know them (never guessed):
+   kind complete|incomplete|sack|int|pick6|td|run|fumble|fg|xp|punt, play (pass call name), def (scheme that ran), look (what it showed, only if different), gain, tgt (WR1..TE/RB),
+   side L|M|R (thirds of the width, offense's point of view), route, air, yac (air+yac=gain), by (DL|LB|CB|S), why (BROKEN UP|OVERTHROWN|DROPPED|OUT OF BOUNDS), ttt (seconds, 1 decimal),
+   dir LEFT|MIDDLE|RIGHT (runs), ret (interception return), dist (kicks). RC_SHOW tells the next showBanner to attach the detail lines (only drawn with PLAY DETAIL ON, see hp.js). */
+let RC_SHOW=false;
+const RC_GRP=d=>!d||!G?null:G.dl.includes(d)?'DL':G.lb.includes(d)?'LB':G.db.indexOf(d)===3?'S':G.db.includes(d)?'CB':null;
+const rcSide=y=>{const t=y<40/3?0:y>80/3?2:1;return t===1?'M':(t===0)===!!FLIP?'R':'L'}; /* y grows downward on screen; drive left (FLIP, the default): the offense's right hand is the top of the screen */
+const RC_WD={L:'LEFT',M:'MIDDLE',R:'RIGHT'};
+function rcNearDef(pt){let b=null,bd=99;for(const d of G.defs){const q=Math.hypot(d.x-pt.x,d.y-pt.y);if(q<bd){bd=q;b=d}}return b}
+function rcBuild(kind,x){
+ G.recap=null;RC_SHOW=false;
+ try{
+  const p=G.play,l=G.los;if(!p||!G.def)return;
+  const pass=p.type==='pass',rn=p.runner,o={};
+  o.kind=kind==='tackle'||kind==='oob'?(pass?'complete':'run'):kind==='td'?'td':kind==='pick6'?'pick6':kind;
+  if(pass){const pl=callPlay(),nm=pl?pl.name:G.cpt?G.cpt.name:null;if(nm)o.play=String(nm).toUpperCase()}
+  o.def=G.def.name;if(G.look&&G.look!==G.def)o.look=G.look.name;
+  const gain=kind==='td'?Math.round(100-l):Math.round(x-l);
+  if(kind==='tackle'||kind==='oob'||kind==='td'||kind==='sack'||kind==='fumble')o.gain=gain;
+  if(pass){
+   let t=null;
+   if(rn&&(kind==='tackle'||kind==='oob'||kind==='td'||kind==='fumble'))t=rn;
+   else if(p.land&&(kind==='incomplete'||kind==='int'||kind==='pick6')){t=p.it||null;if(!t){let bd=catchR()+3;for(const r of G.recs){const q=dst(r,p.land);if(q<bd){bd=q;t=r}}}}
+   if(t){o.tgt=GL_SLOT[plSlot(t)];const rt=RTD[t.route];if(rt&&rt.t!=='block')o.route=rt.l}
+   if(p.land)o.side=rcSide(p.ct?p.ct.y:t&&kind==='incomplete'?t.y:p.land.y);
+   if(p.ct&&rn&&(kind==='tackle'||kind==='oob'||kind==='td')){const a=Math.min(Math.round(p.ct.x-l),gain);o.air=a;o.yac=gain-a}
+   if(p.tt!=null)o.ttt=Math.round(p.tt*10)/10;
+   if(kind==='sack'){o.ttt=Math.round(p.t*10)/10;const g=RC_GRP(p.sk||G.rush.reduce((b,d)=>!b||dst(d,G.qb)<dst(b,G.qb)?d:b,null));if(g)o.by=g;delete o.side}
+   if(kind==='incomplete'){
+    if(p.why==='OUT OF BOUNDS'||p.why==='DROPPED')o.why=p.why;
+    else if(p.why==='BROKEN UP'){o.why=p.why;const g=RC_GRP(p.wby);if(g)o.by=g}
+    else if(t&&p.land&&p.land.x>t.x+1.5)o.why='OVERTHROWN'}
+   if(kind==='int'||kind==='pick6'){const g=RC_GRP(p.ret?p.ret.car:p.land&&rcNearDef(p.land));if(g)o.by=g;if(kind==='int'&&p.ret)o.ret=Math.max(0,Math.round(p.ret.x0-x));if(kind==='pick6'&&p.ret)o.ret=Math.round(p.ret.x0)}
+   if(o.by===undefined&&(kind==='tackle'||kind==='oob'||kind==='fumble')){const g=RC_GRP(p.tk);if(g)o.by=g}
+  }else{
+   if(rn)o.dir=RC_WD[rcSide(rn.y)];
+   if(kind==='tackle'||kind==='oob'||kind==='fumble'){const g=RC_GRP(p.tk);if(g)o.by=g}}
+  G.recap=o;RC_SHOW=true
+ }catch(e){G.recap=null;RC_SHOW=false}}
+function rcKick(k,l){
+ try{G.recap={kind:k.type==='punt'?'punt':k.type,dist:Math.round(k.type==='punt'?k.land-l:k.dist)};if(k.type!=='punt')G.recap.ok=k.ok?1:0;RC_SHOW=true}catch(e){G.recap=null;RC_SHOW=false}}
+/* the detail lines (at most three), all caps; never undefined, NaN or null */
+function rcLines(c){
+ const L=[],has=v=>v!==undefined&&v!==null&&v!==''&&!(typeof v==='number'&&!isFinite(v)),yd=n=>n+(n===1?' YARD':' YARDS');
+ if(!c)return L;
+ const sd=c.side?RC_WD[c.side]:null,tg=c.tgt?'TO '+c.tgt+(sd?' ('+sd+')':''):sd?'BALL TO THE '+sd:'';
+ if(c.kind==='fg'||c.kind==='xp'){if(has(c.dist))L.push(yd(c.dist)+(c.ok?' - GOOD':' - NO GOOD'))}
+ else if(c.kind==='punt'){if(has(c.dist))L.push(yd(c.dist))}
+ else{
+  if(has(c.def))L.push('PLAY: '+(c.dir||c.kind==='run'?'RUN':c.play||'PASS')+' VS '+c.def+(c.look?' (SHOWED '+c.look+')':''));
+  const gn=has(c.gain)?(c.gain>0?yd(c.gain):c.gain===0?'NO GAIN':'LOSS OF '+(-c.gain)):'';
+  if(c.kind==='run'||c.kind==='fumble'&&!c.tgt){const dr=c.dir==='MIDDLE'?'UP THE MIDDLE':c.dir?'TO THE '+c.dir:'';L.push([dr,gn,c.by?(c.kind==='fumble'?'FORCED BY ':'TACKLED BY ')+c.by:c.kind==='td'?'TOUCHDOWN':'',c.kind==='fumble'?'FUMBLED':''].filter(Boolean).join(' - '))}
+  else if(c.kind==='td'&&!c.tgt){L.push([c.dir==='MIDDLE'?'UP THE MIDDLE':c.dir?'TO THE '+c.dir:'',gn,'TOUCHDOWN'].filter(Boolean).join(' - '))}
+  else if(c.kind==='sack'){L.push(['SACK'+(c.by?' BY '+c.by:''),has(c.ttt)?c.ttt.toFixed(1)+' SEC TO THROW':'',has(c.gain)?(c.gain<0?'LOSS OF '+(-c.gain):'NO LOSS'):''].filter(Boolean).join(' - '))}
+  else if(c.kind==='int'||c.kind==='pick6'){L.push([c.by?'PICKED OFF BY '+c.by:'PICKED OFF',c.tgt?'TARGET '+c.tgt+(sd?' ('+sd+')':''):'',c.route,has(c.ret)&&c.ret>0?'RETURNED '+yd(c.ret):''].filter(Boolean).join(' - '))}
+  else if(c.kind==='incomplete'){
+   L.push([tg,c.route,c.why==='BROKEN UP'?'BROKEN UP'+(c.by?' BY '+c.by:''):c.why].filter(Boolean).join(' - '));
+   if(has(c.ttt))L.push(c.ttt.toFixed(1)+' SEC TO THROW')}
+  else{ /* complete, td pass, fumble after a catch */
+   L.push([tg,c.route].filter(Boolean).join(' - '));
+   if(has(c.air)&&has(c.yac)){const a=c.air<0?(-c.air)+' BEHIND THE LINE':c.air+' IN THE AIR',y=c.yac<0?', '+(-c.yac)+' LOST AFTER CATCH':' + '+c.yac+' AFTER CATCH';
+    L.push((c.kind==='td'?yd(c.gain)+': ':'')+a+y+(c.by?(c.kind==='fumble'?' - FORCED BY ':' - TACKLED BY ')+c.by:'')+(c.kind==='fumble'?' - FUMBLED':''))}
+   else if(has(c.gain)){L.push(gn+(c.by?(c.kind==='fumble'?' - FORCED BY ':' - TACKLED BY ')+c.by:'')+(c.kind==='td'?' - TOUCHDOWN':'')+(c.kind==='fumble'?' - FUMBLED':''))}}}
+ return L.filter(s=>s&&!/UNDEFINED|NAN|NULL/i.test(s)).slice(0,3)}
 function endPlay(kind,x){
  const p=G.play;if(!p||p.phase==='done')return;
  BN_PRE=(kind==='tackle'||kind==='sack'||kind==='fumble'||(kind==='int'&&p.ret))?.8:kind==='pick6'?.5:0;
  if(kind==='int'||kind==='pick6')G.st.ints++;if(kind==='sack')G.st.sacks++;
  if(G.def&&p.type)G.rev={n:G.def.name,l:G.look&&G.look!==G.def?G.look.name:null};
+ rcBuild(kind,x);
  const wasPass=p.type==='pass'&&kind!=='sack'&&kind!=='incomplete'&&kind!=='int'&&kind!=='pick6';
  const rn=p.runner;p.phase='done';for(const d of G.defs)d.lock=0;for(const o of G.ol)o.lock=0;G.bp=p.ret?{x:p.ret.car.x,y:p.ret.car.y,z:0}:{x:rn?rn.x:G.qb.x,y:rn?rn.y:20,z:0};
  if(G.pat){patResult(kind==='td');return}
  const l=G.los;
- if(kind==='td'){const y=Math.round(100-l);G.st[p.type==='run'?'ryd':'pyd']+=y;G.st[p.type==='run'?'rtd':'ptd']++;if(rn){const q=PLR(rn.nm);q.pos=rn.k;if(p.type==='run'){q.rtd=(q.rtd||0)+1;q.att++;q.ruy+=y}else{q.td++;q.rec++;q.recy+=y}}scoreTD();return}
+ if(kind==='td'){const y=Math.round(100-l);G.st[p.type==='run'?'ryd':'pyd']+=y;G.st[p.type==='run'?'rtd':'ptd']++;if(rn){const q=PLR(plKey(rn));q.pos=rn.k;if(p.type==='run'){q.rtd=(q.rtd||0)+1;q.att++;q.ruy+=y}else{q.td++;q.rec++;q.recy+=y}}scoreTD();return}
  if(kind==='pick6'){G.st.to++;G.ost.td++;pickSix(Math.round(p.ret.x0));return}
  if(kind==='int'||kind==='fumble'){G.st.to++;sfx('bad');
   turnover(x,kind==='int'?'INTERCEPTED!':'FUMBLE!',kind==='int'&&p.ret?Math.max(0,Math.round(p.ret.x0-x)):0);return}
@@ -2283,7 +2666,7 @@ function endPlay(kind,x){
  if(nl<=0&&kind!=='incomplete'){safety();return}
  if(kind!=='incomplete'){
   if(wasPass)G.st.pyd+=gain;else if(p.type==='run')G.st.ryd+=gain;
-  if(rn&&kind!=='sack'){const q=PLR(rn.nm);q.pos=rn.k;if(wasPass){q.rec++;q.recy+=gain}else if(p.type==='run'){q.att++;q.ruy+=gain}}
+  if(rn&&kind!=='sack'){const q=PLR(plKey(rn));q.pos=rn.k;if(wasPass){q.rec++;q.recy+=gain}else if(p.type==='run'){q.att++;q.ruy+=gain}}
   const who=kind==='sack'?'SACKED!':(rn?rn.nm:'');
   title=kind==='sack'?'SACKED! '+gain+' YDS':(gain>0?who+' +'+gain:gain===0?who+' NO GAIN':who+' '+gain)}
  let sub;
@@ -2298,7 +2681,7 @@ function scoreTD(){
  addSc('me',6);sfx('td');
  if(G.ot){showBanner('TOUCHDOWN!','',2,afterScore,myC().c);return}
  showBanner('TOUCHDOWN!','EXTRA POINT OR TWO?',1.6,showPatChoice,myC().c)}
-function showPatChoice(){G.mode='patchoice';updCtl()}
+function showPatChoice(){G.mode='patchoice';updCtl();if(OL.on)olPat()}
 function goForTwo(){G.st.tp[1]++;G.pat=true;G.los=98;G.down=1;G.fd=100;formation();showBanner('TWO-POINT TRY','ONE PLAY FROM THE 2',1.3,setPresnap,'#ffd400')}
 function patResult(ok){
  G.pat=false;
@@ -2335,6 +2718,7 @@ function simOpp(start,call){
   out={pts:0,next,kind:'pt',yd,text:plays+' PLAYS - PUNT TO YOUR '+next+'. YOUR D HELD'}}
  out.time=time;out.plays=plays;out.p=[pTD,pFG,pTO];return out}
 function oppPossession(start){
+ if(OL.on)return olHand(start); /* v1.99 PLAY A FRIEND: the other phone gets the ball */
  if(G.clock<=0){timeUp();return}
  if(halfDue())return showHalf(secondHalf);
  if(dcIsOn()){dcAsk(start);return} /* v1.83: CALL YOUR DEFENSE (setting ON) asks first, then oppDrive rolls the drive */
@@ -2350,7 +2734,7 @@ function startMyDrive(x){
  G.los=x;G.down=1;G.fd=Math.min(100,x+10);formation();G.poss='me';
  showBanner('YOUR BALL','OWN '+x,.9,setPresnap)}
 function timeUp(){if(G.me===G.op&&!G.ot)startOT();else endGame()}
-function startOT(){G.ot=true;G.clock=60;G.los=25;G.down=1;G.fd=35;formation();showBanner('OVERTIME!','SUDDEN DEATH - YOU GET THE BALL',2.4,setPresnap,'#ffd400')}
+function startOT(){if(OL.on&&olOT())return;G.ot=true;G.clock=60;G.los=25;G.down=1;G.fd=35;formation();showBanner('OVERTIME!','SUDDEN DEATH - YOU GET THE BALL',2.4,setPresnap,'#ffd400')}
 
 /* ---------- kicks ---------- */
 /* v1.60: field goal / extra point formation: nine blockers on the line (five linemen, a tight end on each side), a holder and the kicker behind them; the defense stacks the line with two gunners and two deep men */
@@ -2378,7 +2762,7 @@ function kickFire(dx,dy){
  const short=reach<a.dist,ok=!short&&Math.abs(off)<=3.5;
  const sxk=a.type==='xp'?110-a.dist:G.los-7;
  G.st[a.type==='xp'?'xp':'fg'][1]++;if(ok)G.st[a.type==='xp'?'xp':'fg'][0]++;
- G.kick={type:a.type,t:0,dur:1.5,ok,sx:sxk,fx:short?sxk+reach:110,fy:20+(short?off*reach/a.dist:off)};
+ G.kick={type:a.type,dist:a.dist,t:0,dur:1.5,ok,sx:sxk,fx:short?sxk+reach:110,fy:20+(short?off*reach/a.dist:off)};
  G.ka=null;ctrl.kaim=null;G.mode='kick';if(a.type==='fg')G.clock=Math.max(0,G.clock-4);sfx('throw')}
 function doKick(type){
  if(!G||G.mode!=='presnap')return;
@@ -2391,7 +2775,7 @@ function updateKick(dt){
  const k=G.kick;k.t+=dt;const u=clamp(k.t/k.dur,0,1);
  G.bp={x:k.sx+(k.fx-k.sx)*u,y:20+(k.fy-20)*u,z:Math.sin(Math.PI*u)*(k.type==='punt'?14:7)};
  if(k.t<k.dur)return;
- G.mode='banner';G.kick=null;const l=G.los;
+ G.mode='banner';G.kick=null;const l=G.los;rcKick(k,l);
  if(k.type==='xp'){
   if(k.ok){addSc('me',1);sfx('td');showBanner('EXTRA POINT IS GOOD!','+1',1.6,afterScore,myC().c)}
   else{sfx('bad');showBanner('EXTRA POINT NO GOOD','',1.5,afterScore,'#ff6b6b')}
@@ -2404,6 +2788,7 @@ function updateKick(dt){
 
 /* ---------- game over ---------- */
 function endGame(){
+ if(OL.on)return olEnd(); /* v1.99: an online game ends on both phones with the same score, no log, no credits */
  G.mode='over';updCtl();
  const win=G.me>G.op,tie=G.me===G.op;
  if(G.exh){gsClear();const st=G.st,o=G.opp;
@@ -2443,14 +2828,14 @@ function boxHTML(fin){
  const R=pls.filter(([,v])=>v.att>0).sort((a,b)=>b[1].ruy-a[1].ruy),C=pls.filter(([,v])=>v.rec>0).sort((a,b)=>b[1].recy-a[1].recy);
  const tb=(h,rows)=>`<h4 style="margin-top:.6em">${h}</h4><table>${rows||'<tr><td>-</td></tr>'}</table>`;
  const play=`<div class="dv">${tb('PASSING',`<tr><td>${hmEsc(S.names.qb||'QB')}</td><td>${st.comp}/${st.att}</td><td>${st.pyd} YDS</td><td>${st.ptd} TD</td><td>${st.ints} INT</td></tr>`)}
-  ${tb('RUSHING',R.map(([n,v])=>`<tr><td>${hmEsc(n)}</td><td>${v.att} CAR</td><td>${v.ruy} YDS</td><td>${v.rtd?v.rtd+' TD':''}</td></tr>`).join(''))}
-  ${tb('RECEIVING',C.map(([n,v])=>`<tr><td>${hmEsc(n)}</td><td>${v.rec} REC</td><td>${v.recy} YDS</td><td>${v.td?v.td+' TD':''}</td></tr>`).join(''))}</div>`;
- return`<h1 class="mh">${fin?'FINAL BOX SCORE':'HALFTIME'}</h1><div class="sm">${hmEsc(S.name)} ${G.me} - ${G.op} ${hmEsc(G.opp.name)}</div>${score}<div class="dvg">${team}${play}</div><div class="sm">THE OPPONENT'S DRIVES ARE SIMULATED, SO ONLY ITS SCORING, YARDS AND TURNOVERS ARE TRACKED.</div>`}
+  ${tb('RUSHING',R.map(([n,v])=>`<tr><td>${hmEsc(plShow(n))}</td><td>${v.att} CAR</td><td>${v.ruy} YDS</td><td>${v.rtd?v.rtd+' TD':''}</td></tr>`).join(''))}
+  ${tb('RECEIVING',C.map(([n,v])=>`<tr><td>${hmEsc(plShow(n))}</td><td>${v.rec} REC</td><td>${v.recy} YDS</td><td>${v.td?v.td+' TD':''}</td></tr>`).join(''))}</div>`;
+ return`<h1 class="mh">${fin?'FINAL BOX SCORE':'HALFTIME'}</h1><div class="sm">${hmEsc(S.name)} ${G.me} - ${G.op} ${hmEsc(G.opp.name)}</div>${score}<div class="dvg">${team}${play}</div><div class="sm">${G.online?'ONLY YOUR OWN OFFENSE IS TRACKED IN THIS BOX SCORE.':"THE OPPONENT'S DRIVES ARE SIMULATED, SO ONLY ITS SCORING, YARDS AND TURNOVERS ARE TRACKED."}</div>`}
 function showHalf(cont){
  G.half=true;for(const s of['me','op']){G.qs[s][1]+=G.qs[s][2];G.qs[s][2]=0}
  G.mode='half';updCtl();
  $('half').innerHTML=boxHTML(false)+'<div class="sm">'+(G.first==='me'?hmEsc(G.opp.name):'YOU')+' GET THE BALL TO START THE 2ND HALF</div><div class="row"><button class="btn" id="bHalf">START 2ND HALF</button></div>';
- show('half');$('bHalf').onclick=()=>{show('');cont()}}
+ show('half');$('bHalf').onclick=()=>{show('');cont()};if(OL.on&&!OL.quiet)olHalfW()}
 
 /* ---------- sprites: layered and uniform-driven ----------
    Every player is built from parts (helmet, jersey, pants, socks, shoes, gloves, number)
@@ -3082,9 +3467,25 @@ function drawOverlay(){
  if(G.mode==='presnap'){ys=[FB-6,FT+22];if(G.down===4){h='4TH DOWN - PUNT, FIELD GOAL, OR DRAG QB / TAP RB TO GO FOR IT';hs=hnStr('fourth')}else{h='STUDY THE ROUTES - DRAG THE QB BACK TO PASS, TAP THE RB TO RUN';hs=hnStr('pre')}}
  else if(G.mode==='live'&&p){if(p.phase==='back'){h='PULL BACK ON THE QB TO AIM - TAP THE FIELD FOR A BULLET';hs=HNL.aim!=null?HNL.aim:hnStr('aim')}else if(p.phase==='run'){h='SWIPE UP OR DOWN TO STEER - JUKE: SPACE';hs=p.type==='run'&&HNL.run!=null?HNL.run:hnStr('run')}}
  if(h)hnText(h,7,'#fff',hs,ys.map(y=>[W/2,y,'center']));
- if(G.rev&&(G.mode==='presnap'||G.mode==='banner'))txt('LAST PLAY: '+G.rev.n+(G.rev.l?'  (SHOWED '+G.rev.l+')':''),8,FT+10,6,G.rev.l?'#ff9f43':'#ffd400');
- if(G.mode==='banner'&&G.bn&&!(G.bn.pre>0)){const b=G.bn;cx.fillStyle='rgba(6,10,20,.82)';cx.fillRect(0,130,W,90);txt(b.t,W/2,170,b.t.length>22?13:18,b.col||'#fff','center');if(b.sub){const ls=String(b.sub).split('\n');if(ls.length>1){txt(ls[0],W/2,196,8,'#b8c4dc','center');txt(ls[1],W/2,211,8,'#ffd400','center')}else txt(b.sub,W/2,200,8,'#b8c4dc','center')}}
+ if(G.rev&&(G.mode==='presnap'||G.mode==='banner'&&!(G.bn&&G.bn.dl)))txt('LAST PLAY: '+G.rev.n+(G.rev.l?'  (SHOWED '+G.rev.l+')':''),8,FT+10,6,G.rev.l?'#ff9f43':'#ffd400');
+ if(G.mode==='banner'&&G.bn&&G.bn.dl&&!(G.bn.pre>0))bnRecap(G.bn);
+ else if(G.mode==='banner'&&G.bn&&!(G.bn.pre>0)){const b=G.bn;cx.fillStyle='rgba(6,10,20,.82)';cx.fillRect(0,130,W,90);txt(b.t,W/2,170,b.t.length>22?13:18,b.col||'#fff','center');if(b.sub){const ls=String(b.sub).split('\n');if(ls.length>1){txt(ls[0],W/2,196,8,'#b8c4dc','center');txt(ls[1],W/2,211,8,'#ffd400','center')}else txt(b.sub,W/2,200,8,'#b8c4dc','center')}}
  for(const f of fx){txt(f.t,sx(f.x),sy(f.y)-f.life*14,8,f.c,'center')}}
+/* v1.98 PLAY RECAP: a banner with detail lines. Title and usual sub line(s) as before, then up to three detail lines in the same pixel font. The font is exactly 1 em wide, so a line is
+   s.length*size px: if a line is wider than the screen, words are shortened first (BN_AB), then the font drops to 7 and 6. Nothing is drawn over the field's top bar. */
+const BN_AB=[[' IN THE AIR',' AIR'],[' AFTER CATCH',' YAC'],['TACKLED BY','TKL BY'],['SHOWED','SHOW'],[' - ',' ']];
+function bnFit(s){let z=8;const mw=W-14;if(s.length*z>mw){for(const a of BN_AB){s=s.split(a[0]).join(a[1]);if(s.length*z<=mw)break}}
+ while(s.length*z>mw&&z>5)z--;return[s,z]}
+function bnRecap(b){
+ const ls=b.sub?String(b.sub).split('\n'):[],d=b.dl;
+ const items=[];let y=40;
+ for(let i=0;i<ls.length;i++){y+=i?14:24;items.push([ls[i],y,i?'#ffd400':'#b8c4dc'])}
+ y+=ls.length?8:0;
+ for(let i=0;i<d.length;i++){y+=i?13:14;items.push([d[i],y,i===0?(/\(SHOW/.test(d[i])?'#ff9f43':'#ffd400'):'#e8eefc'])}
+ const hh=y+12,top=Math.round(184-hh/2);
+ cx.fillStyle='rgba(6,10,20,.88)';cx.fillRect(0,top,W,hh);
+ txt(b.t,W/2,top+(b.t.length>22?32:36),b.t.length>22?13:18,b.col||'#fff','center');
+ for(const it of items){const f=bnFit(it[0]);txt(f[0],W/2,top+it[1],f[1],it[2],'center')}}
 /* v1.60: the field goal unit as seen from behind the kicker: our line from the back, their rush from the front */
 function kickFig(u,x,yf,s,back){
  const R=(a,b,w,h,c)=>{cx.fillStyle=c;cx.fillRect(Math.round(x+(a-4.5)*s),Math.round(yf-(13-b)*s),Math.ceil(w*s),Math.ceil(h*s))};
@@ -3163,6 +3564,7 @@ function pt(e){const r=cv.getBoundingClientRect();
  return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
 cv.addEventListener('pointerdown',e=>{
  if(DS.on){dsDown(e);return}
+ if(G&&G.mode==='banner'&&G.bn&&G.bn.dl&&!(G.bn.pre>0)){G.bn.left=0;return} /* v1.98: a tap skips a banner that carries recap lines */
  if(ctrl.aim&&G&&G.mode==='live'&&G.play&&G.play.phase==='back'&&G.play.type==='pass'&&e.pointerId!==ctrl.aim.id){if(!G.bullet)toggleBullet();return} /* v1.48: a second finger while aiming makes it a bullet */
  ctrl.down=true;
  if(G&&G.mode==='presnap'){const q0=pt(e),dq=Math.hypot(sx(G.qb.x)-q0.x,sy(G.qb.y)-6-q0.y),rb=G.recs[3],dr=Math.hypot(sx(rb.x)-q0.x,sy(rb.y)-6-q0.y);
@@ -3251,8 +3653,8 @@ let fsTried=false;
 function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return;if(isIOS()&&!upOn())return;
  fsTried=true;try{const p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(p&&p.then)p.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
 document.addEventListener('pointerup',fsTry,{capture:true});
-fit();openMenu();
+fit();openMenu();olBoot();
 requestAnimationFrame(frame);
-window.__pp={HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
+window.__pp={OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
 })();
 </script></body></html>
