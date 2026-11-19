@@ -242,7 +242,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="1.94"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="1.95"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -2219,7 +2219,8 @@ function predictRec(r,t){
   if(d<=left){x=pt.x;y=pt.y;left-=d;i++}else{x+=(pt.x-x)/d*left;y+=(pt.y-y)/d*left;left=0}}
  return{x,y:clamp(y,.5,39.5)}}
 const ballK=()=>1+(gameSpeed()-.61)*.6; /* v1.90: the faster the game speed step, the faster the ball flies (SLOWER .93, SLOW 1.0, MEDIUM 1.08, FAST 1.14, FASTER 1.23) */
-const throwSpd=()=>(20+RO().qb.arm*2.2)*(G&&G.bullet?BUL.spd:1.15)*ballK();
+const THROW_K=.95; /* v1.95: every thrown ball is about 5% slower (normal and bullet, all game speeds) */
+const throwSpd=()=>(20+RO().qb.arm*2.2)*(G&&G.bullet?BUL.spd:1.15)*ballK()*THROW_K;
 /* v1.61: a pass to a spot more than 10 yards past the line floats: the ball slows up to 18% and the arc gets up to 90% higher (full effect at 25 yards; never on a bullet) */
 const floatF=x=>G&&!G.bullet?clamp((x-G.los-10)/15,0,1):0,airSpd=x=>throwSpd()*(1-.18*floatF(x)); /* v1.49/1.50: normal passes are 15% faster (the bullet is unchanged) */
 function toggleBullet(){if(!G||G.mode!=='live'||!G.play||G.play.phase!=='back'||G.play.type!=='pass')return;G.bullet=!G.bullet;updCtl()}
@@ -2315,13 +2316,16 @@ function pickSix(from){
   startMyDrive(25)},'#ff6b6b')}
 
 function simOpp(start,call){
- const o=G.opp,edge=o.off-S.r.def,fb=(start-25)*.0075,fbF=(start-25)*.0025; /* v1.59: where the drive starts matters about twice as much for scoring */
+ const o=G.opp,edge=o.off-S.r.def,fb=(start-25)*(start>25?.0100:.0075),fbF=(start-25)*(start>25?.0033:.0025); /* v1.59: where the drive starts matters about twice as much for scoring; v1.95: a good start (past their own 25) is worth about a third more (.0100 TD and .0033 FG per yard); a bad start is unchanged */
  const k=DK(); /* v1.53: difficulty also moves the opponent's scoring drives (5 = unchanged) */
  /* v1.55: a better opponent offense: higher base chances, a steeper rating edge, a two-minute drill when it trails late and clock-killing when it leads */
  const late=G.clock<=G.qLen*1.2,trail=G.op<G.me,lead=G.op>G.me;
  const ha=G.home===false?.025:G.home===true?-.025:0; /* v1.56: the opponent scores a little less on your field */
  let pTD=clamp(.32+edge*.052+fb+.03*k+ha+(late&&trail?.06:0),.08,.75),pFG=clamp(.15+edge*.008+.006*k+fbF,.07,.3),pTO=clamp(.095-edge*.012-.008*k,.03,.2);
  if(call){const f=dcFactors(call.sch,call.style,late&&trail);pTD=clamp(pTD*f[0],.08,.75);pFG=clamp(pFG*f[1],.07,.3);pTO=clamp(pTO*f[2],.03,.2)} /* v1.83: CALL YOUR DEFENSE, only with a called scheme; the same clamps as above */
+ /* v1.95: the clock. A scoring drive needs time: with less than TMIN seconds left in the half (or the game) the odds of a touchdown or field goal fall off fast (6 s left is about 1.2% of normal; 0 s is zero). Overtime has its own clock and is not limited. Applied after the clamps above on purpose so the .08 floor cannot bring the odds back. */
+ {const left=G.ot?1e9:G.half||G.clock<=G.qLen*2?G.clock:G.clock-G.qLen*2,TMIN=Math.max(18,G.qLen*.176);
+  if(left<TMIN){const f=Math.pow(Math.max(0,left)/TMIN,4);pTD*=f;pFG*=f}}
  const r=Math.random(),time=G.qLen*rnd(.22,.45)*(late&&lead?1.3:late&&trail?.8:1),plays=ri(3,9);let out;
  if(r<pTD){const pts=Math.random()<.93?7:6;out={pts,next:25,kind:'td',yd:Math.round(100-start),text:plays+' PLAYS, '+Math.round(100-start)+' YDS - TOUCHDOWN! (+'+pts+')'}}
  else if(r<pTD+pFG){if(Math.random()<.85)out={pts:3,next:25,kind:'fg',yd:ri(30,62),text:plays+' PLAYS - FIELD GOAL IS GOOD (+3)'};else{const yd=ri(20,50),spot=Math.min(start+yd,85);out={pts:0,next:clamp(100-spot+7,20,70),kind:'pt',yd,text:plays+' PLAYS - FIELD GOAL MISSED!'}}}
