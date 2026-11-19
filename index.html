@@ -179,6 +179,27 @@ html{background:#070a12}
 #xp .xpc .btn{min-width:14em}
 #xp .xpc .row .btn{min-width:6em}
 #cg .bad{color:#ffd400}#cg .good{color:#7dff9a}
+#turn{position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483000;background:#070a12;color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6vmin;gap:5vmin;touch-action:none}
+#turn.on{display:flex}
+#turn svg{width:30vmin;height:30vmin;max-width:220px;max-height:220px;shape-rendering:crispEdges}
+#turn .tph{transform-origin:50% 50%;animation:turnph 2.8s steps(7,end) infinite}
+@keyframes turnph{0%,18%{transform:rotate(0)}48%,76%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+@media (prefers-reduced-motion:reduce){#turn .tph{animation:none;transform:rotate(-90deg)}}
+#turn h1{font-size:clamp(11px,4.2vmin,26px);line-height:1.6;color:#ffd400}
+#turn p{font-size:clamp(7px,2.5vmin,14px);line-height:1.9;max-width:34em;color:#c9d4f0}
+.hbh{display:flex;align-items:center;justify-content:space-between;gap:1em;width:100%;max-width:40em;border-left:.5em solid #ffd400;background:#16213a;padding:.6em .9em}
+.hbt{font-size:1.1em;color:#ffd400;line-height:1.4}.hbc{text-align:right}.hbc b{display:block;font-weight:normal;font-size:1.4em;color:#ffd400}
+.hbr{font-size:.75em}
+.card.hbn,.card.hbw{max-width:40em;width:100%;flex:none}
+.hbm{display:flex;gap:.8em;align-items:center;margin-top:.5em}.hbm1{flex:1}.hbm1 h4{font-size:.75em;margin-bottom:.2em}.hbm .vs{font-size:.7em;color:#8fa0c8}
+.hbm .up{margin:.3em 0;font-size:.7em}.hbm .up b{width:5.6em}
+.hbp{gap:.8em}.hbp .btn{min-width:9em}
+.hbg{display:grid;grid-template-columns:repeat(4,1fr);gap:.6em;width:100%;max-width:40em}
+.btn.tile{position:relative;display:flex;flex-direction:column;gap:.45em;align-items:flex-start;text-align:left;padding:.7em .7em;font-size:.7em;line-height:1.4;min-width:0}
+.btn.tile b{font-weight:normal;font-size:1em}.btn.tile span{font-size:.65em;color:#c9d4f0;line-height:1.5}
+.btn.tile .bdg{position:absolute;right:.4em;top:.4em;font-style:normal;background:#ff4040;color:#fff;padding:.1em .4em;font-size:.8em}
+.hbu{margin:.7em 0}.hbl{display:flex;flex-direction:column;gap:.2em;margin-bottom:.15em}.hbl b{font-weight:normal;color:#ffd400;font-size:.8em}.hbu .up{font-size:.8em}
+@media (max-width:540px){.hbg{grid-template-columns:repeat(2,1fr)}}
 </style></head><body>
 <div id="wrap"><div id="app">
 <canvas id="c" width="640" height="360"></canvas>
@@ -208,6 +229,8 @@ html{background:#070a12}
 <div class="screen top" id="roster"></div>
 <div class="screen top" id="exh"></div>
 <div class="screen" id="hub"></div>
+<div class="screen top" id="coach"></div>
+<div class="screen top" id="gset"></div>
 <div class="screen" id="post"></div>
 <div class="screen" id="season"></div>
 <div class="screen top" id="pcs"></div>
@@ -215,10 +238,11 @@ html{background:#070a12}
 <div class="screen" id="pd"><div id="pdp"></div></div>
 </div></div>
 <div id="saProbe"></div>
+<div id="turn" role="alert" aria-live="assertive" aria-hidden="true"><svg viewBox="0 0 40 40" aria-hidden="true"><g class="tph"><rect x="11" y="3" width="18" height="34" fill="#ffd400"/><rect x="13" y="6" width="14" height="25" fill="#16264d"/><rect x="13" y="6" width="14" height="3" fill="#2a4a9a"/><rect x="17" y="33" width="6" height="2" fill="#16264d"/><rect x="18" y="4" width="4" height="1" fill="#16264d"/></g><g fill="#4ee08a"><rect x="3" y="18" width="2" height="2"/><rect x="5" y="16" width="2" height="2"/><rect x="5" y="20" width="2" height="2"/><rect x="7" y="14" width="2" height="2"/><rect x="7" y="22" width="2" height="2"/></g></svg><h1>TURN YOUR PHONE SIDEWAYS</h1><p>IF IT WILL NOT TURN, OPEN CONTROL CENTER AND SWITCH OFF THE ROTATION LOCK.</p></div>
 <script>
 (function(){
 'use strict';
-const APP_VERSION="1.84"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="1.94"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -302,11 +326,11 @@ function flushSlot(id){const o=PEND[id];if(!o)return true;delete PEND[id];LASTW[
 function saveTick(){saveTimer=0;const now=Date.now();let next=0;
  for(const id of Object.keys(PEND)){const w=(LASTW[id]||0)+SAVE_GAP-now;if(w<=0)flushSlot(id);else next=next?Math.min(next,w):w}
  if(next)saveTimer=setTimeout(saveTick,next)}
-function save(){if(!S)return;if(!S.id)S.id=newId();const id=S.id;PEND[id]=S;
+function save(){if(!S||S.sbx)return;if(!S.id)S.id=newId();const id=S.id;PEND[id]=S;
  const w=(LASTW[id]||0)+SAVE_GAP-Date.now();
  if(w<=0)flushSlot(id);else if(!saveTimer)saveTimer=setTimeout(saveTick,w)}
 /* write everything pending right now (page hiding: no time to wait) and the active game too */
-function saveNow(){if(S){if(!S.id)S.id=newId();PEND[S.id]=S}clearTimeout(saveTimer);saveTimer=0;Object.keys(PEND).forEach(flushSlot)}
+function saveNow(){if(S&&!S.sbx){if(!S.id)S.id=newId();PEND[S.id]=S}clearTimeout(saveTimer);saveTimer=0;Object.keys(PEND).forEach(flushSlot)}
 function loadSlot(id){
  if(PEND[id])flushSlot(id);                              /* a read must see the latest edit even if its write was merged */
  const key=SLOT+id;let raw=lsGet(key),d=parseSave(raw),restored=false;
@@ -343,18 +367,11 @@ const nextOpp=()=>S.lg?lgNextOpp():S.phase==='reg'?S.sched[S.week]:S.po[S.round]
 const nextLabel=()=>S.lg?lgLabel():S.phase==='reg'?'WEEK '+(S.week+1)+' OF 8':(S.round?'CHAMPIONSHIP':'SEMIFINAL');
 const upCost=r=>Math.ceil(r*.7);
 const pips=(v,n)=>'<span class="pips">'+Array.from({length:n||10},(_,i)=>'<s class="'+(i<Math.round(v)?'f':'')+'"></s>').join('')+'</span>';
-function show(id){['menu','hub','post','season','stand','lock','half','roster','exh','pd','pcs','dcs'].forEach(s=>$(s).classList.toggle('on',s===id));if(id==='menu'||id==='hub')nvBar()}
+function show(id){['menu','hub','post','season','stand','lock','half','roster','exh','pd','pcs','dcs','coach','gset'].forEach(s=>$(s).classList.toggle('on',s===id));if(id==='menu'||id==='hub')nvBar()}
 
 function renderHub(){
  if(S.lg)return lgHub();
- const o=nextOpp(),oc=COLORS[o.ci];
- $('hub').innerHTML=`<div class="sm">${S.name} - SEASON ${S.season} - RECORD ${S.w}-${S.l}${S.t?'-'+S.t:''}${S.champs?' - TITLES '+S.champs:''}</div>
- <div class="cols"><div class="card"><h3>${nextLabel()} - ${siteTxt(homeOf(o))}</h3><div class="big" style="color:${oc.c}">${o.name}</div>
- <div class="up"><b>OFFENSE</b>${pips(o.off)}</div><div class="up"><b>DEFENSE</b>${pips(o.def)}</div>
- <p style="margin-top:.8em">${S.last?'LAST: '+S.last:'FIRST GAME OF THE SEASON'}</p></div>
- <div class="card"><h3>COACH ROOM - CREDITS ${S.credits}</h3>${RK.map(k=>{const r=S.r[k],mx=r>=10;return`<div class="up"><b>${RL[k]}</b>${pips(r)}<button class="btn xs" data-up="${k}" ${mx||S.credits<upCost(r)?'disabled':''}>${mx?'MAX':'+'+upCost(r)}</button></div>`}).join('')}</div></div>
- ${gsRow()}<div class="row"><span class="sm">DRIVE:</span><button class="btn xs ${S.flip!==false?'alt':''}" data-dir="0">RIGHT &gt;</button><button class="btn xs ${S.flip!==false?'':'alt'}" data-dir="1">&lt; LEFT</button><span class="sm">LEVEL:</span><button class="btn xs alt" data-dl="-1">-</button><span class="sm">${DIFF()} ${dName()}</span><button class="btn xs alt" data-dl="1">+</button><span class="sm">QUARTER:</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'':'alt'}" data-q="${q}">${q}S</button>`).join('')}<button class="btn" data-act="play">PLAY GAME</button><button class="btn xs alt" data-act="exh">EXHIBITION</button><button class="btn xs alt" data-act="roster">ROSTER</button><button class="btn xs alt" data-act="designer">PLAYBOOK</button><button class="btn xs alt" data-act="stats">STATS</button><button class="btn xs alt" data-act="menu">MENU</button></div>`;
- show('hub');bkNag()}
+ $('hub').innerHTML=hbHub();show('hub');bkNag()}
 /* ---------- exhibition game (v1.52): one game against any opponent, nothing counts ---------- */
 let EXH=null;const EXS={team:null,name:null,lvl:5,site:true};
 function openExh(){
@@ -403,11 +420,9 @@ $('roster').onclick=e=>{const b=e.target.closest('button');if(!b)return;
  if(b.dataset.ru){const p=b.dataset.ru.split('.'),k=p.pop(),t=p.reduce((a,x)=>a[x],ensureRo()),c=upCost(t[k]);if(S.credits>=c&&t[k]<10){S.credits-=c;t[k]++;save();openRoster()}}
  else if(b.dataset.ra==='back')renderHub()};
 $('hub').onclick=e=>{const b=e.target.closest('button');if(!b)return;
- if(b.dataset.dl){S.diff=clamp(DIFF()+ +b.dataset.dl,1,10);save();renderHub()}
- else if(b.dataset.up){const k=b.dataset.up,c=upCost(S.r[k]);if(S.credits>=c&&S.r[k]<10){S.credits-=c;S.r[k]++;save();renderHub()}}
- else if(b.dataset.dir!=null){S.flip=b.dataset.dir==='1';save();renderHub()}
- else if(b.dataset.q){S.qLen=+b.dataset.q;save();renderHub()}
- else if(b.dataset.act==='play')gsAsk(()=>S.lg?openLocker():startGame());
+ if(b.dataset.act==='play')gsAsk(()=>S.lg?openLocker():startGame());
+ else if(b.dataset.act==='coach')openCoach();
+ else if(b.dataset.act==='settings')openSet();
  else if(b.dataset.act==='designer')openDesigner();
  else if(b.dataset.act==='roster')openRoster();
  else if(b.dataset.act==='stats')glOpen();
@@ -532,9 +547,10 @@ function lgThemed(L,key){
   const k=r.cols&&r.cols[i];t.col=k?(Array.isArray(k)?{c:k[0],d:k[1]}:{c:k,d:lgDark(k)}):lgCol((i*137.508)%360);t.two=Array.isArray(k);t.uni=null;t.wd=null});
  return true}
 
-function lgNew(L,me){
+function lgNew(L,me,sbx){
  L.me=me;L.ho=1;L.res=[];L.rec=lgBlank(L);L.sched=lgSchedule(L);L.scores=null;L.po=null;L.seed={};L.champ=null;L.hist=[];
- S={name:L.teams[me].name,ci:0,season:1,week:0,w:0,l:0,t:0,credits:3,r:{qb:4,wr:4,rb:4,ol:4,def:4,k:4},names:{qb:nm(),rb:nm(),wr:[nm(),nm(),nm()]},phase:'reg',round:0,over:null,champs:0,qLen:90,last:'',lg:L};save()}
+ const p0=S;S={name:L.teams[me].name,ci:0,season:1,week:0,w:0,l:0,t:0,credits:3,r:{qb:4,wr:4,rb:4,ol:4,def:4,k:4},names:{qb:nm(),rb:nm(),wr:[nm(),nm(),nm()]},phase:'reg',round:0,over:null,champs:0,qLen:90,last:'',lg:L};if(sbx){const s=S;S=p0;return s} /* v1.92: the exhibition picker wants a throwaway league save: never saved, the current league stays loaded */
+ save()}
 const lgBlank=L=>Array.from({length:lgN(lgCfg(L))},()=>({w:0,l:0,t:0,pf:0,pa:0,cw:0,cl:0}));
 
 /* ----- the schedule: 17 rounds, in each of them all 32 teams play ----- */
@@ -688,18 +704,7 @@ function lgSeasonEnd(){
  $('bNext').onclick=newSeason;$('bSeaSt').onclick=lgOpenStand;show('season')}
 
 /* ----- the league hub ----- */
-function lgHub(){
- const L=LG(),cf=lgCfg(L),o=lgNextOpp(),t=L.teams[o.id],r=L.rec[L.me],po=S.phase==='playoff';
- const rec=x=>x.w+'-'+x.l+(x.t?'-'+x.t:'');
- $('hub').innerHTML=`<div class="sm">${S.name} - ${L.name} - SEASON ${S.season} - ${rec(r)}${po||!S.week?'':' - '+lgRank(L.me)+' IN '+lgGrp(L,L.teams[L.me])}${S.champs?' - TITLES '+S.champs:''}</div>
- <div class="cols"><div class="card"><h3>${lgLabel()} - ${siteTxt(o.home)}</h3><div class="big" style="color:${o.col.c}">${o.name}</div>
- <div class="sm">${po?'SEED '+L.seed[o.id]+' - ':''}${rec(L.rec[o.id])} - ${po?(cf.id==='COL'?'PLAYOFF':L.teams[o.id].conf===L.teams[L.me].conf?'CONFERENCE':'INTERCONFERENCE'):lgKind(L.me,o.id)}</div>
- <div class="up"><b>OFFENSE</b>${pips(o.off)}</div><div class="up"><b>DEFENSE</b>${pips(o.def)}</div>
- <p style="margin-top:.8em">${S.last?'LAST: '+S.last:'FIRST GAME OF THE SEASON'}</p></div>
- <div class="card"><h3>COACH ROOM - CREDITS ${S.credits}</h3>${RK.map(k=>{const v=S.r[k],mx=v>=10;return`<div class="up"><b>${RL[k]}</b>${pips(v)}<button class="btn xs" data-up="${k}" ${mx||S.credits<upCost(v)?'disabled':''}>${mx?'MAX':'+'+upCost(v)}</button></div>`}).join('')}</div></div>
- <div class="row"><span class="sm">DRIVE:</span><button class="btn xs ${S.flip!==false?'alt':''}" data-dir="0">RIGHT &gt;</button><button class="btn xs ${S.flip!==false?'':'alt'}" data-dir="1">&lt; LEFT</button><span class="sm">LEVEL:</span><button class="btn xs alt" data-dl="-1">-</button><span class="sm">${DIFF()} ${dName()}</span><button class="btn xs alt" data-dl="1">+</button><span class="sm">QUARTER:</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'':'alt'}" data-q="${q}">${q}S</button>`).join('')}</div>
- ${gsRow()}<div class="row"><button class="btn" data-act="play">PLAY GAME</button><button class="btn alt" data-act="sim">SIM GAME</button><button class="btn xs alt" data-act="stand">STANDINGS</button><button class="btn xs alt" data-act="exh">EXHIBITION</button><button class="btn xs alt" data-act="roster">ROSTER</button><button class="btn xs alt" data-act="designer">PLAYBOOK</button><button class="btn xs alt" data-act="stats">STATS</button><button class="btn xs alt" data-act="menu">HOME</button></div>`;
- show('hub');bkNag()}
+function lgHub(){$('hub').innerHTML=hbHub();show('hub');bkNag()} /* v1.91: the layout lives in hb.js */
 
 /* ----- standings, schedule, playoffs, scores ----- */
 const ST={tab:'c0'};
@@ -740,16 +745,17 @@ $('stand').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b
 
 /* ---------- home page (v1.40): saved leagues, new league, customize, how to play ---------- */
 const HOME={tab:'lg',fmt:'NFL',drafts:{},pick:0,cz:{src:'draft',team:0},del:null};
-const hmTabs=[['lg','MY LEAGUES'],['new','NEW LEAGUE'],['cz','CUSTOMIZE'],['help','HOW TO PLAY']];
+const hmTabs=[['lg','MY LEAGUES'],['new','NEW LEAGUE'],['ex','EXHIBITION'],['cz','CUSTOMIZE'],['help','HOW TO PLAY']];
 const hmEsc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const hmDraft=()=>HOME.drafts[HOME.fmt]||(HOME.drafts[HOME.fmt]=lgMake('PIXEL LEAGUE',HOME.fmt));
 function openMenu(){if(S)save();HOME.ret=null;HOME.tab=rdIdx().length?'lg':'new';HOME.del=null;renderHome();show('menu')}
 function renderHome(){
  $('mtabs').innerHTML=hmTabs.map(([k,l])=>`<button class="btn xs ${HOME.tab===k?'':'alt'}" data-tab="${k}">${l}</button>`).join('');
- const f={lg:hmLeagues,new:hmNew,cz:hmCustom,help:hmHelp}[HOME.tab];$('mbody').innerHTML=f();
+ const f={lg:hmLeagues,new:hmNew,ex:hmExh,cz:hmCustom,help:hmHelp}[HOME.tab];$('mbody').innerHTML=f();
  if(HOME.tab==='cz')czDraw()
- $('mrot').innerHTML=coarse()?`<span class="sm">ROTATION:</span><button class="btn xs ${rotPref()===1?'':'alt'}" data-rot="1">AUTO</button><button class="btn xs ${rotPref()===-1?'':'alt'}" data-rot="-1">FLIP</button>`:''
- pwaUI();cgFoot()}
+ mrotUI();pwaUI();cgFoot()}
+/* v1.89: the AUTO / FLIP direction only matters while UPRIGHT PLAY is ON */
+function mrotUI(){const e=$('mrot');if(e)e.innerHTML=coarse()&&upOn()?`<span class="sm">ROTATION:</span><button class="btn xs ${rotPref()===1?'':'alt'}" data-rot="1">AUTO</button><button class="btn xs ${rotPref()===-1?'':'alt'}" data-rot="-1">FLIP</button>`:''}
 
 /* ----- tab 1: saved leagues ----- */
 function hmLeagues(){
@@ -837,8 +843,10 @@ function hmHelp(){return`<div class="hpt"><h1 class="mh" style="font-size:1.3em"
 <p>IN A GAME, TAP ? FOR THE CONTROLS.</p>
 <div class="row" style="justify-content:flex-start"><button class="btn xs alt" data-hp="open">CONTROLS</button></div>
 ${stGroup()}
+<h4>ON A PHONE</h4><p>HOLD YOUR PHONE SIDEWAYS. IF THE GAME ASKS YOU TO TURN IT AND NOTHING HAPPENS, TURN OFF THE ROTATION LOCK IN CONTROL CENTER.</p>
 <h4>STARTING OUT</h4><p>NEW LEAGUE: NAME IT, PICK THE FORMAT AND YOUR TEAM, THEN START LEAGUE. YOUR LEAGUES LIVE ON MY LEAGUES.</p>
 <h4>EACH WEEK</h4><p>PLAY GAME: PLAY IT YOURSELF. THE LOCKER ROOM LETS YOU PICK UNIFORMS FIRST. SIM GAME: THE COMPUTER PLAYS IT.<br>PLAYBOOK: DESIGN YOUR OWN PLAYS.<br>LEFT A GAME HALFWAY? TAP RESUME GAME ON YOUR LEAGUE SCREEN.<br>EARN COACH CREDITS AFTER EVERY LEAGUE GAME AND UPGRADE YOUR TEAM IN THE COACH ROOM ON YOUR LEAGUE SCREEN.</p>
+<h4>EXHIBITION</h4><p>THE EXHIBITION TAB LETS YOU PICK A LEAGUE (ONE OF YOURS, OR A NEW NFL OR COLLEGE ONE), YOUR TEAM AND THE OPPONENT. IT IS ONE GAME THAT DOES NOT COUNT AND IS NOT SAVED.</p>
 <h4>LEAGUE FORMATS</h4><p>NFL LEAGUE: ${LGF.NFL.help}<br>COLLEGE LEAGUE: ${LGF.COL.help}</p>
 <h4>INSTALL</h4><p>ON IPHONE: SAFARI, SHARE, ADD TO HOME SCREEN. ON ANDROID OR DESKTOP CHROME: TAP INSTALL BELOW WHEN IT SHOWS.</p>
 <p>PROBLEMS? TAP REPORT A PROBLEM.</p></div>
@@ -1122,7 +1130,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 {const mv=$('mver');if(mv)mv.textContent='V'+APP_VERSION}
 if(NV_ON){setTimeout(nvCheck,10000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')nvCheck()})}
 /* ----- REPORT A PROBLEM (v1.76). Builds a plain-text report on the device; nothing is sent anywhere. No team, league or player names, no saves. ----- */
-const RP_SCR={menu:'HOME',hub:'HUB',post:'POST-GAME',season:'SEASON END',stand:'STANDINGS',lock:'LOCKER ROOM',half:'HALFTIME',roster:'ROSTER',exh:'EXHIBITION',pd:'PLAY DESIGNER',pcs:'CALL SHEET'};
+const RP_SCR={menu:'HOME',hub:'HUB',coach:'COACH ROOM',gset:'SETTINGS',post:'POST-GAME',season:'SEASON END',stand:'STANDINGS',lock:'LOCKER ROOM',half:'HALFTIME',roster:'ROSTER',exh:'EXHIBITION',pd:'PLAY DESIGNER',pcs:'CALL SHEET'};
 function rpUA(){const u=navigator.userAgent||'';let b='UNKNOWN BROWSER',o='UNKNOWN OS',m;
  if(m=/(?:Edg|EdgA|EdgiOS)\/(\d+)/.exec(u))b='EDGE '+m[1];
  else if(m=/OPR\/(\d+)/.exec(u))b='OPERA '+m[1];
@@ -1155,7 +1163,7 @@ function buildReport(text){
  add('PIXEL RATIO',()=>devicePixelRatio);
  add('POINTER',()=>coarse()?'COARSE (TOUCH)':'FINE (MOUSE)');
  add('ORIENTATION',()=>(screen.orientation&&screen.orientation.type)||(innerHeight>innerWidth?'portrait':'landscape'));
- add('ROTATION',()=>'ROT '+ROT+', SETTING '+(rotPref()===-1?'FLIP':'AUTO'));
+ add('ROTATION',()=>'ROT '+ROT+', SETTING '+(rotPref()===-1?'FLIP':'AUTO')+', UPRIGHT PLAY '+(upOn()?'ON':'OFF')+', TURN PROMPT '+(TURN.on?'SHOWING':'NO'));
  add('SAFE-AREA INSETS (T R B L)',()=>{const i=insets();return[i.t,i.r,i.b,i.l].map(v=>Math.round(v)).join(' ')});
  add('NETWORK',()=>navigator.onLine===false?'OFFLINE':'ONLINE');
  add('STORAGE',()=>{const s=saveInfo(),b=Object.keys(s.bytesPerSlot).map(k=>s.bytesPerSlot[k]);return s.slotCount+' SLOT'+(s.slotCount===1?'':'S')+', BYTES PER SLOT '+(b.length?b.join(', '):'NONE')+', PERSISTED '+(s.persisted===true?'YES':s.persisted===false?'NO':'UNKNOWN')+', SAVE VERSION '+s.version});
@@ -1470,10 +1478,10 @@ function hnText(s,size,col,str,cs,skip){
  if(!(str>0))return false;const w=s.length*size;
  for(const[x,y,al]of cs){const x0=al==='center'?x-w/2:al==='right'?x-w:x;if(hnFree([x0,y-size,x0+w,y+2],skip)){cx.globalAlpha=str;txt(s,x,y,size,col,al);cx.globalAlpha=1;return true}}
  return false}
-/* ----- GAME SPEED (v1.82). A per-device preference in localStorage 'pixelPigskin.speed' = {v:1,s:"slower"|"slow"|"medium"|"fast"}.
+/* ----- GAME SPEED (v1.82). A per-device preference in localStorage 'pixelPigskin.speed' = {v:1,s:"slower"|"slow"|"medium"|"fast"|"faster"} (v1.85: FAST is now .85 and the new FASTER is the original 1.0).
    Never part of a league save, backup code, export, cloud copy, report log or the mid-game snapshot. Missing, unreadable or unknown = SLOW.
    If storage is blocked or full the choice stays in memory for the session. gameSpeed() is read every frame by update() in p4.js. ----- */
-const SPD_KEY='pixelPigskin.speed',SPD=[['slower','SLOWER',.5],['slow','SLOW',.61],['medium','MEDIUM',.75],['fast','FAST',1]];
+const SPD_KEY='pixelPigskin.speed',SPD=[['slower','SLOWER',.5],['slow','SLOW',.61],['medium','MEDIUM',.75],['fast','FAST',.85],['faster','FASTER',1]];
 let spdCur='slow',spdLoaded=false;
 function spdLoad(){spdLoaded=true;try{const o=JSON.parse(localStorage.getItem(SPD_KEY)||'null');if(o&&o.v===1&&SPD.some(x=>x[0]===o.s))spdCur=o.s}catch(e){}}
 function gameSpeed(){if(!spdLoaded)spdLoad();for(const x of SPD)if(x[0]===spdCur)return x[2];return .61}
@@ -1481,7 +1489,7 @@ function spdName(){if(!spdLoaded)spdLoad();for(const x of SPD)if(x[0]===spdCur)r
 /* one builder for every settings row (v1.83: GAME SPEED and CALL YOUR DEFENSE share it) and one SETTINGS group for every place they show */
 function stRow(cls,label,btns,note){return`<div class="stw ${cls}"><div class="row"><span class="sm">${label}</span>${btns}</div><div class="sm spdn">${note}</div></div>`}
 function spdRow(){if(!spdLoaded)spdLoad();
- return stRow('spdw','GAME SPEED',SPD.map(x=>`<button class="btn xs ${x[0]===spdCur?'':'alt'}" data-spd="${x[0]}" aria-pressed="${x[0]===spdCur}">${x[1]}</button>`).join(''),'SLOWER GIVES YOU MORE TIME. FAST IS THE ORIGINAL SPEED. THE GAME CLOCK FOLLOWS THE SPEED.')}
+ return stRow('spdw','GAME SPEED',SPD.map(x=>`<button class="btn xs ${x[0]===spdCur?'':'alt'}" data-spd="${x[0]}" aria-pressed="${x[0]===spdCur}">${x[1]}</button>`).join(''),'SLOWER GIVES YOU MORE TIME. FASTER IS THE ORIGINAL SPEED. THE GAME CLOCK FOLLOWS THE SPEED.')}
 /* every row on the page follows the current choice, in place (keyboard focus stays on the button) */
 function spdSync(){try{document.querySelectorAll('.spdw [data-spd]').forEach(b=>{const on=b.dataset.spd===spdCur;b.classList.toggle('alt',!on);b.setAttribute('aria-pressed',on?'true':'false')})}catch(e){}}
 function spdSet(id){if(!SPD.some(x=>x[0]===id))return;if(!spdLoaded)spdLoad();spdCur=id;
@@ -1502,8 +1510,22 @@ function dcSet(v){if(!dcLoaded)dcLoad();dcOn=v?1:0;
  try{localStorage.setItem(DC_KEY,JSON.stringify({v:1,on:dcOn}))}catch(e){}
  dcSync()}
 document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-dcs]');if(b)dcSet(b.dataset.dcs==='1')}catch(x){}});
-const stGroup=()=>`<div class="stg"><div class="sm stt">SETTINGS</div>${spdRow()}${dcRow()}</div>`;
-const stSync=()=>{spdSync();dcSync()};
+/* ----- UPRIGHT PLAY (ROTATED SCREEN), v1.89. A per-device preference in localStorage 'pixelPigskin.upright' = {v:1,on:0|1}. Default OFF.
+   OFF: a touch phone held upright shows TURN YOUR PHONE SIDEWAYS and the game waits (p4.js, TURN). ON: the old CSS rotation (v1.58) plays the game sideways while the phone is upright.
+   Missing, unreadable or unknown = OFF. If storage is blocked or full the choice stays in memory for the session. Never part of a league save, backup code, export, cloud copy or report log. ----- */
+const UP_KEY='pixelPigskin.upright';
+let upCur=0,upLoaded=false;
+function upLoad(){upLoaded=true;try{const o=JSON.parse(localStorage.getItem(UP_KEY)||'null');if(o&&o.v===1&&(o.on===0||o.on===1))upCur=o.on}catch(e){}}
+function upOn(){if(!upLoaded)upLoad();return upCur===1}
+function upRow(){const on=upOn();
+ return stRow('upw','UPRIGHT PLAY (ROTATED SCREEN)',[[0,'OFF'],[1,'ON']].map(x=>`<button class="btn xs ${(x[0]===1)===on?'':'alt'}" data-up="${x[0]}" aria-pressed="${(x[0]===1)===on}">${x[1]}</button>`).join(''),"PLAYS SIDEWAYS WHILE THE PHONE IS UPRIGHT. THE PHONE'S OWN BUTTONS STAY UPRIGHT.")}
+function upSync(){try{const on=upOn();document.querySelectorAll('.upw [data-up]').forEach(b=>{const v=b.dataset.up==='1'===on;b.classList.toggle('alt',!v);b.setAttribute('aria-pressed',v?'true':'false')})}catch(e){}}
+function upSet(v){if(!upLoaded)upLoad();upCur=v?1:0;
+ try{localStorage.setItem(UP_KEY,JSON.stringify({v:1,on:upCur}))}catch(e){}
+ upSync();try{fit();mrotUI()}catch(e){}}
+document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-up]');if(b)upSet(b.dataset.up==='1')}catch(x){}});
+const stGroup=()=>`<div class="stg"><div class="sm stt">SETTINGS</div>${spdRow()}${dcRow()}${upRow()}</div>`;
+const stSync=()=>{spdSync();dcSync();upSync()};
 /* ----- the ? overlay ----- */
 const HP={on:false};
 const HP_TEXT=`<div class="hpt"><h1 class="mh">HOW TO PLAY</h1>
@@ -1512,6 +1534,7 @@ const HP_TEXT=`<div class="hpt"><h1 class="mh">HOW TO PLAY</h1>
 <p>QUICK THROW: TAP A RECEIVER OR PRESS 1-5 (THE NUMBER OVER HIS HEAD).</p>
 <p>BULLET PASS: TAP EMPTY FIELD (OR PRESS B) WHILE YOU AIM. TAP AGAIN TO SWITCH BACK.</p>
 <p>RING COLOR WHILE YOU AIM AND WHEN THE BALL IS IN THE AIR: GREEN = OPEN, YELLOW = TIGHT, RED = COVERED.</p>
+<h4>ON A PHONE</h4><p>HOLD YOUR PHONE SIDEWAYS. IF THE GAME ASKS YOU TO TURN IT AND NOTHING HAPPENS, TURN OFF THE ROTATION LOCK IN CONTROL CENTER.</p>
 <h4>RUN</h4><p>TAP THE RB. SWIPE UP OR DOWN TO STEER, KEEP YOUR FINGER DOWN. JUKE BUTTON OR SPACE.</p>
 <h4>PLAY CALL</h4><p>TAP THE PLAY BUTTON (OR PRESS C) TO PICK A PLAY. YOUR CALL STAYS UNTIL YOU CHANGE IT. RANDOM PICKS A NEW ONE EACH DOWN.</p>
 <h4>4TH DOWN</h4><p>PUNT [K] OR FIELD GOAL [F] WITH THE BUTTONS (FIELD GOAL ONLY WHEN IN RANGE), OR DRAG THE QB / TAP THE RB TO GO FOR IT. IN THE LAST 30 SECONDS OF A HALF YOU CAN KICK A FIELD GOAL ON ANY DOWN.</p>
@@ -1545,16 +1568,16 @@ function xpPanel(){let e=$('xp');
 function xpDraw(msg){const e=xpPanel();if(!G)return;
  const m=msg?`<div class="sm" style="color:#ffd400" id="xpm">${hmEsc(msg)}</div>`:'<div id="xpm"></div>';
  e.innerHTML=XP.v==='ask'
-  ?`<div class="xpc"><h1 class="mh">ABANDON GAME?</h1><div class="sm" style="line-height:1.7">THIS GAME WILL NOT COUNT. THE SAVED GAME WILL BE DELETED.</div><div class="row"><button class="btn" data-xp="no">NO</button><button class="btn alt" data-xp="yes">YES</button></div></div>`
+  ?`<div class="xpc"><h1 class="mh">ABANDON GAME?</h1><div class="sm" style="line-height:1.7">THIS GAME WILL NOT COUNT.${S.sbx?'':' THE SAVED GAME WILL BE DELETED.'}</div><div class="row"><button class="btn" data-xp="no">NO</button><button class="btn alt" data-xp="yes">YES</button></div></div>`
   :`<div class="xpc"><h1 class="mh">LEAVE THIS GAME?</h1><div class="sm">${G.home===false?'AT':'VS'} ${hmEsc(G.opp.name)}</div><div style="font-size:1.3em">${hmEsc(S.name.slice(0,12))} ${G.me} - ${G.op} ${hmEsc(G.opp.name.slice(0,12))}</div><div class="sm">${xpQ(G)}</div>${stGroup()}${m}
-  <button class="btn" data-xp="save">SAVE AND EXIT</button><button class="btn alt" data-xp="abandon">ABANDON GAME</button><button class="btn alt" data-xp="keep">KEEP PLAYING</button></div>`}
+  ${S.sbx?'':'<button class="btn" data-xp="save">SAVE AND EXIT</button>'}<button class="btn alt" data-xp="abandon">ABANDON GAME</button><button class="btn alt" data-xp="keep">KEEP PLAYING</button></div>`}
 function xpOpen(){if(XP.on||HP.on||PC.on||DS.on||!G||G.mode!=='presnap'||document.querySelector('#app .screen.on'))return;
  try{XP.v='main';XP.on=true;xpDraw();const e=$('xp');e.classList.add('on');e.scrollTop=0}catch(x){XP.on=false}}
 function xpClose(){if(!XP.on)return;XP.on=false;XP.v='main';try{const e=$('xp');if(e){e.classList.remove('on');if(e.contains(document.activeElement))document.activeElement.blur()}}catch(x){}}
 function xpEsc(){if(XP.v==='ask'){XP.v='main';xpDraw()}else xpClose()}
 /* back to where the game was started from: the exhibition entry, or the league / classic hub. G is dropped, so nothing keeps running. */
 function xpLeave(){const exh=!!(G&&G.exh);xpClose();ctrl.down=false;ctrl.aim=null;ctrl.kaim=null;ctrl.ptr=false;ctrl.dir=0;ctrl.sv=0;fx=[];EXH=null;G=null;
- if(exh)openExh();else renderHub()}
+ if(exh){if(S&&S.sbx)xhLeave();else openExh()}else renderHub()}
 function xpSave(){if(!G||G.mode!=='presnap'||!S||!S.id)return;
  gsWrite(); /* the same function v1.77 calls at every pre-snap, so the snapshot is exactly current */
  let ok=false;try{const o=gsPeek();ok=!!o&&gsMatch(o)}catch(e){}
@@ -1567,7 +1590,7 @@ $('bExit').onclick=()=>{$('bExit').blur();xpOpen()};
    Not logged: SIM GAME (lgSimMine never reaches endGame), exhibitions, abandoned games (no endGame), a game left with SAVE AND EXIT (logged when finished after RESUME).
    Record fields (indexes):
     0 season  1 week (1.. regular season, -1.. playoff round 1..)  2 opponent (league: team id, classic: name)  3 home (1 home, 0 away, 2 neutral)
-    4 my points  5 their points  6 overtime (0/1)  7 difficulty level  8 game speed step (0..3)  9 CALL YOUR DEFENSE on (0/1)
+    4 my points  5 their points  6 overtime (0/1)  7 difficulty level  8 game speed step (0..4: SLOWER, SLOW, MEDIUM, FAST, FASTER)  9 CALL YOUR DEFENSE on (0/1)
     10 first downs  11 turnovers  12 sacks taken  13 completions  14 attempts  15 pass yards  16 pass TDs  17 interceptions (13..17 = the passer's line)
     18 rush attempts  19 rush yards  20 rush TDs  21 FG made  22 FG tried
     23..26 top rusher: slot, attempts, yards, TDs   27..30 top receiver: slot, catches, yards, TDs
@@ -1783,6 +1806,135 @@ const dcLine=c=>'YOU CALLED '+dcName(c.sch)+' - THEY '+(c.style==='RUN'?'RAN':'P
 document.addEventListener('click',e=>{try{if(!DC.on)return;const b=e.target.closest&&e.target.closest('#dcs [data-dc]');if(!b)return;
  if(b.dataset.dc==='go')dcGo();else dcSelect(b.dataset.dc)}catch(x){}});
 (function(){const e=document.getElementById('dcs');if(e)for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Escape'){x.preventDefault();dcEsc()}})})(); /* keys typed here never reach the game; Escape means AUTO */
+/* ---------- v1.91: the screens between games. The HUB is the main screen: team header with credits, the next game with a you-vs-them matchup, PLAY / SIM, and a menu of tiles.
+   COACH ROOM (team upgrades) and SETTINGS now have a screen of their own; ROSTER, STATS, STANDINGS, PLAYBOOK and EXHIBITION already did. Same data and same saves as before:
+   only the layout moved (the upgrade buttons keep data-up, the actions keep data-act). Used by both the league hub (lgHub) and the classic franchise hub (renderHub). ---------- */
+const HB_BL={rb:['RUN GAME','MORE YARDS AND BREAKAWAYS ON RUNS'],ol:['PASS PROTECTION','MORE TIME BEFORE THE RUSH GETS TO YOUR QB'],def:['DEFENSE','THE OPPONENT SCORES LESS WHEN THEY HAVE THE BALL']};
+const hbOff=()=>{const r=S.r;return(r.qb+r.wr+r.rb+r.ol)/4};
+const hbBuy=()=>RK.filter(k=>S.r[k]<10&&S.credits>=upCost(S.r[k])).length;
+const hbRec=x=>x.w+'-'+x.l+(x.t?'-'+x.t:'');
+function hbNext(){
+ if(S.lg){const o=lgNextOpp();return{name:o.name,col:o.col.c,off:o.off,def:o.def,home:o.home,id:o.id}}
+ const o=nextOpp();return{name:o.name,col:COLORS[o.ci].c,off:o.off,def:o.def,home:homeOf(o)}}
+const hbMatch=(who,col,off,def)=>`<div class="hbm1"><h4 style="color:${col}">${who}</h4><div class="up"><b>OFFENSE</b>${pips(off)}</div><div class="up"><b>DEFENSE</b>${pips(def)}</div></div>`;
+function hbHub(){
+ const L=S.lg?LG():null,cf=L?lgCfg(L):null,po=S.phase==='playoff',o=hbNext(),r=L?L.rec[L.me]:S,mc=myC().c,n=hbBuy();
+ const sub=L?`${L.name} - SEASON ${S.season}${S.champs?' - TITLES '+S.champs:''}`:`SEASON ${S.season}${S.champs?' - TITLES '+S.champs:''}`;
+ const rank=L&&!po&&S.week?' - '+lgRank(L.me)+' IN '+lgGrp(L,L.teams[L.me]):'';
+ const label=L?lgLabel():nextLabel();
+ const note=L?`${po?'SEED '+L.seed[o.id]+' - ':''}${hbRec(L.rec[o.id])} - ${po?(cf.id==='COL'?'PLAYOFF':L.teams[o.id].conf===L.teams[L.me].conf?'CONFERENCE':'INTERCONFERENCE'):lgKind(L.me,o.id)}`:'';
+ const tile=(act,name,txt,bdg)=>`<button class="btn alt tile" data-act="${act}"><b>${name}</b><span>${txt}</span>${bdg?`<i class="bdg">${bdg}</i>`:''}</button>`;
+ const tiles=[tile('coach','COACH ROOM',n?n+' UPGRADE'+(n>1?'S':'')+' READY':'TEAM UPGRADES',n?'!':''),
+  tile('roster','ROSTER','PLAYER UPGRADES'),tile('stats','STATS','GAME LOG AND SEASONS')];
+ if(L)tiles.push(tile('stand','STANDINGS',rank?rank.slice(3):'SCHEDULE AND PLAYOFFS'));
+ tiles.push(tile('designer','PLAYBOOK','DESIGN YOUR PLAYS'),tile('exh','EXHIBITION','NO EFFECT ON YOUR RECORD'),tile('settings','SETTINGS','LEVEL '+DIFF()+' - '+(S.flip!==false?'LEFT':'RIGHT')+' - '+S.qLen+'S'),tile('menu',L?'HOME':'MENU','MY LEAGUES'));
+ return`<div class="hbh" style="border-color:${mc}"><div style="text-align:left"><div class="hbt" style="color:${mc}">${hmEsc(S.name)}</div><div class="sm">${hmEsc(sub)}</div></div><div class="hbc"><span class="sm">CREDITS</span><b>${S.credits}</b></div></div>
+ <div class="hbr">RECORD ${hbRec(r)}${rank}</div>
+ <div class="card hbn"><h3>${label} - ${siteTxt(o.home)}</h3><div class="big" style="color:${o.col}">${o.name}</div>${note?`<div class="sm">${note}</div>`:''}
+ <div class="hbm">${hbMatch('YOU',mc,hbOff(),S.r.def)}<div class="vs">VS</div>${hbMatch('THEM',o.col,o.off,o.def)}</div>
+ <p style="margin-top:.6em">${S.last?'LAST: '+S.last:'FIRST GAME OF THE SEASON'}</p></div>
+ ${gsRow()}<div class="row hbp"><button class="btn" data-act="play">PLAY GAME</button>${L?'<button class="btn alt" data-act="sim">SIM GAME</button>':''}</div>
+ <div class="hbg">${tiles.join('')}</div>`}
+/* ----- COACH ROOM: team upgrades on their own screen ----- */
+function openCoach(){
+ const n=hbBuy();
+ $('coach').innerHTML=`<div class="hbh" style="border-color:${myC().c}"><div style="text-align:left"><div class="hbt">COACH ROOM</div><div class="sm">${hmEsc(S.name)} - SPEND CREDITS ON YOUR TEAM</div></div><div class="hbc"><span class="sm">CREDITS</span><b>${S.credits}</b></div></div>
+ <div class="card hbw"><h3>TEAM RATINGS</h3>${RK.map(k=>{const v=S.r[k],mx=v>=10,c=upCost(v);return`<div class="hbu"><div class="hbl"><b>${HB_BL[k][0]}</b><span class="sm">${HB_BL[k][1]}</span></div><div class="up"><b>${RL[k]}</b>${pips(v)}<span class="sm" style="width:3em;text-align:right">${v}/10</span><button class="btn xs" data-up="${k}" ${mx||S.credits<c?'disabled':''}>${mx?'MAX':'+'+c}</button></div></div>`}).join('')}</div>
+ <div class="sm">${n?n+' UPGRADE'+(n>1?'S':'')+' YOU CAN AFFORD.':S.credits?'NOT ENOUGH CREDITS FOR ANOTHER TEAM UPGRADE.':'NO CREDITS LEFT.'} EARN MORE AFTER EVERY GAME.<br>COST IS YOUR RATING x 0.7, ROUNDED UP.</div>
+ <div class="row"><button class="btn" data-hb="roster">ROSTER - PLAYER UPGRADES</button><button class="btn alt" data-hb="back">BACK</button></div>`;
+ show('coach')}
+$('coach').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.up){const k=b.dataset.up,c=upCost(S.r[k]);if(S.credits>=c&&S.r[k]<10){S.credits-=c;S.r[k]++;save();openCoach()}}
+ else if(b.dataset.hb==='roster')openRoster();
+ else if(b.dataset.hb==='back')renderHub()};
+/* ----- SETTINGS: the game options that used to sit on the hub, with the device settings under them ----- */
+function openSet(){
+ $('gset').innerHTML=`<div class="hbh" style="border-color:${myC().c}"><div style="text-align:left"><div class="hbt">SETTINGS</div><div class="sm">${hmEsc(S.name)}</div></div></div>
+ <div class="card hbw"><h3>THIS LEAGUE</h3>
+ <div class="stw"><div class="row"><span class="sm">DRIVE</span><button class="btn xs ${S.flip!==false?'alt':''}" data-dir="0">RIGHT &gt;</button><button class="btn xs ${S.flip!==false?'':'alt'}" data-dir="1">&lt; LEFT</button></div><div class="sm spdn">WHICH WAY YOUR OFFENSE DRIVES ON SCREEN.</div></div>
+ <div class="stw"><div class="row"><span class="sm">LEVEL</span><button class="btn xs alt" data-dl="-1">-</button><span class="sm">${DIFF()} ${dName()}</span><button class="btn xs alt" data-dl="1">+</button></div><div class="sm spdn">HOW HARD THE OPPONENT PLAYS. IT COUNTS FOR THE RECORD.</div></div>
+ <div class="stw"><div class="row"><span class="sm">QUARTER</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'':'alt'}" data-q="${q}">${q}S</button>`).join('')}</div><div class="sm spdn">HOW LONG EACH QUARTER RUNS.</div></div></div>
+ <div class="card hbw"><h3>THIS DEVICE</h3>${stGroup()}</div>
+ <div class="row"><button class="btn" data-hb="back">BACK</button></div>`;
+ show('gset')}
+$('gset').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+ if(d.dl){S.diff=clamp(DIFF()+ +d.dl,1,10);save();openSet()}
+ else if(d.dir!=null){S.flip=d.dir==='1';save();openSet()}
+ else if(d.q){S.qLen=+d.q;save();openSet()}
+ else if(d.hb==='back')renderHub()};
+/* ---------- v1.92: EXHIBITION tab on the home screen. Pick a league (one of your saved leagues, or a brand new NFL / COLLEGE one), then your team and the opponent from it, and play one game.
+   The game runs on a throwaway copy of the league (S.sbx=1): nothing is saved, no record, no credits, no game log, no saved-game snapshot, and your real leagues are not touched.
+   Only the picker's own settings are remembered, under pixelPigskin.exh. The exhibition inside a league (EXHIBITION on the hub) is unchanged. ---------- */
+const XH_KEY='pixelPigskin.exh',DNM=['ROOKIE','ROOKIE','EASY','EASY','PRO','HARD','HARD','ALL-PRO','ALL-PRO','LEGEND'];
+const XH={src:null,me:null,opp:null,site:true,q:90,flip:true,diff:5,drafts:{},cache:{},prev:null};
+try{const o=JSON.parse(lsGet(XH_KEY)||'null');if(o&&o.v===1){if(typeof o.src==='string')XH.src=o.src;if(o.site===true||o.site===false||o.site===null)XH.site=o.site;if([60,90,150].includes(o.q))XH.q=o.q;XH.flip=o.flip!==false;if(o.diff>=1&&o.diff<=10)XH.diff=Math.round(o.diff)}}catch(e){}
+const xhSave=()=>lsSet(XH_KEY,JSON.stringify({v:1,src:XH.src,site:XH.site,q:XH.q,flip:XH.flip,diff:XH.diff}));
+/* the leagues you can pick from: saved leagues (not the old classic ones) and the two formats */
+const xhSaved=()=>rdIdx().filter(e=>/FORMAT/.test(e.fmt||''));
+function xhLeague(){
+ const sv=xhSaved();
+ if(XH.src==null)XH.src=sv.length?sv[0].id:'NFL'; /* nothing picked yet: your most recent league, or a new NFL one */
+ if(XH.src!=='NFL'&&XH.src!=='COL'&&!sv.some(e=>e.id===XH.src))XH.src='NFL';
+ if(LGF[XH.src]){const L=XH.drafts[XH.src]||(XH.drafts[XH.src]=lgMake('EXHIBITION',XH.src));return{L,id:null,own:null,cf:lgCfg(L)}}
+ let d=XH.cache[XH.src];if(d===undefined){d=XH.cache[XH.src]=(()=>{try{const s=loadSlot(XH.src);return s&&s.lg?s:null}catch(e){return null}})()}
+ if(!d){XH.src='NFL';return xhLeague()}
+ return{L:d.lg,id:XH.src,own:d.lg.me,cf:lgCfg(d.lg)}}
+function xhTeams(sel){const n=sel.L.teams.length;
+ const okT=v=>Number.isInteger(v)&&v>=0&&v<n;
+ if(!okT(XH.me))XH.me=sel.own!=null&&sel.own<n?sel.own:0;
+ if(!okT(XH.opp)||XH.opp===XH.me){let o;do{o=ri(0,n-1)}while(o===XH.me);XH.opp=o}}
+function xhOpts(sel,cur,skip){const L=sel.L,cf=sel.cf;let h='';
+ for(let c=0;c<cf.nc;c++)for(let d=0;d<cf.dv;d++){
+  const ids=lgDivIds(c,d,cf).filter(i=>i!==skip&&L.teams[i]);if(!ids.length)continue;
+  h+=`<optgroup label="${hmEsc(cf.dv>1?L.conf[c]+' '+L.div[d]:L.conf[c])}">`+ids.map(i=>{const t=L.teams[i];return`<option value="${i}" ${i===cur?'selected':''}>${hmEsc(t.name)} (OFF ${t.off.toFixed(1)} DEF ${t.def.toFixed(1)})</option>`}).join('')+'</optgroup>'}
+ return h}
+function hmExh(){
+ const sel=xhLeague();xhTeams(sel);const L=sel.L,x=XH,sv=xhSaved();
+ const leagueOpts=sv.map(e=>`<option value="${e.id}" ${x.src===e.id?'selected':''}>${hmEsc(e.name)} - ${/COLLEGE/.test(e.fmt)?'COLLEGE':'NFL'} (YOUR LEAGUE)</option>`).join('')
+  +Object.values(LGF).map(f=>`<option value="${f.id}" ${x.src===f.id?'selected':''}>NEW ${f.id==='COL'?'COLLEGE':'NFL'} LEAGUE - ${lgN(f)} TEAMS</option>`).join('');
+ const card='style="flex:none;width:100%;max-width:40em"';
+ return`<div class="sm">PLAY ONE GAME BETWEEN ANY TWO TEAMS. NOTHING IS SAVED AND NOTHING COUNTS.</div>
+ <div class="card" ${card}><h3>LEAGUE</h3><div class="row"><select id="xhS" style="min-width:28em;max-width:100%">${leagueOpts}</select>${sel.id?'':'<button class="btn xs alt" data-xh="reroll">NEW TEAMS</button>'}</div><div class="sm">${hmEsc(sel.cf.info)}</div></div>
+ <div class="card" ${card}><h3>TEAMS</h3>
+ <div class="row"><span class="sm" style="width:6em">YOUR TEAM</span><select id="xhM" style="min-width:28em;max-width:100%">${xhOpts(sel,x.me,x.opp)}</select></div>
+ <div class="row"><span class="sm" style="width:6em">OPPONENT</span><select id="xhO" style="min-width:28em;max-width:100%">${xhOpts(sel,x.opp,x.me)}</select><button class="btn xs alt" data-xh="rnd">RANDOM</button></div></div>
+ <div class="card" ${card}><h3>GAME SETTINGS</h3><div class="row"><span class="sm">DRIVE:</span><button class="btn xs ${x.flip?'alt':''}" data-xh="d0">RIGHT &gt;</button><button class="btn xs ${x.flip?'':'alt'}" data-xh="d1">&lt; LEFT</button><span class="sm">QUARTER:</span>${[60,90,150].map(q=>`<button class="btn xs ${x.q===q?'':'alt'}" data-xh="q${q}">${q}S</button>`).join('')}</div>
+ <div class="row" style="margin-top:.5em"><span class="sm">SITE:</span>${[[true,'HOME'],[false,'AWAY'],[null,'NEUTRAL']].map(([v,t])=>`<button class="btn xs ${x.site===v?'':'alt'}" data-xh="s${v}">${t}</button>`).join('')}</div>
+ <div class="row" style="margin-top:.5em"><span class="sm">LEVEL:</span><button class="btn xs alt" data-xh="dl-1">-</button><span class="sm">${x.diff} ${DNM[x.diff-1]}</span><button class="btn xs alt" data-xh="dl1">+</button></div></div>
+ <div class="row"><button class="btn" data-xh="go">KICK OFF</button></div>`}
+/* build the throwaway league save the game will run on */
+function xhBuild(){
+ const sel=xhLeague();xhTeams(sel);let s;
+ if(sel.id){const d=loadSlot(sel.id);if(!d||!d.lg)return null;const p0=S;S=d;try{if(!S.lg.ho){lgOrient(S.lg.sched);S.lg.ho=1}lgSync()}catch(e){}finally{S=p0}s=d}
+ else s=lgNew(sel.L,XH.me,true);
+ const L=s.lg,t=L.teams[XH.me],keep=sel.id&&XH.me===sel.own;
+ L.me=XH.me;s.name=t.name;
+ if(!keep){s.r={qb:t.off,wr:t.off,rb:t.off,ol:t.off,def:t.def,k:(t.off+t.def)/2};delete s.ro;delete s.uni;s.names={qb:nm(),rb:nm(),wr:[nm(),nm(),nm()]}}
+ delete s.id;s.sbx=1;s.qLen=XH.q;s.flip=XH.flip;s.diff=XH.diff;
+ return s}
+function xhGo(){
+ let s;try{s=xhBuild()}catch(e){s=null}
+ if(!s)return;
+ const L=s.lg,o=L.teams[XH.opp];
+ XH.prev=S;S=s;resetSprites();
+ EXH={o:{name:o.name,off:o.off,def:o.def,col:o.col,uni:lgUni(o),id:o.id},home:XH.site};
+ startGame()}
+/* back to the home screen's EXHIBITION tab with the real league (if any) loaded again */
+function xhLeave(){if(S&&S.sbx){S=XH.prev;XH.prev=null}ctrl.down=false;fx=[];G=null;EXH=null;HOME.tab='ex';HOME.del=null;XH.cache={};resetSprites();renderHome();show('menu')}
+$('menu').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-xh]');if(!b)return;const v=b.dataset.xh;
+ if(v==='go'){xhGo();return}
+ if(v==='reroll')XH.drafts[XH.src]=null;
+ else if(v==='rnd')XH.opp=null;
+ else if(v==='d0'||v==='d1'){XH.flip=v==='d1';xhSave()}
+ else if(v[0]==='q'){XH.q=+v.slice(1);xhSave()}
+ else if(v[0]==='s'&&v.length>1){XH.site=v==='strue'?true:v==='sfalse'?false:null;xhSave()}
+ else if(v[0]==='d'&&v[1]==='l'){XH.diff=clamp(XH.diff+ +v.slice(2),1,10);xhSave()}
+ if(v==='reroll'){XH.me=null;XH.opp=null}
+ renderHome()});
+$('menu').addEventListener('change',e=>{const el=e.target;
+ if(el.id==='xhS'){XH.src=el.value;XH.me=null;XH.opp=null;xhSave();renderHome()}
+ else if(el.id==='xhM'){XH.me=+el.value;if(XH.opp===XH.me)XH.opp=null;renderHome()}
+ else if(el.id==='xhO'){XH.opp=+el.value;if(XH.me===XH.opp)XH.me=null;renderHome()}});
 
 /* ---------- game setup ---------- */
 const cam={x:0},ctrl={dir:0,ptr:false,ty:20};
@@ -1851,9 +2003,10 @@ function snap(type){
  const p=G.play={type,t:0,phase:'back',thrown:false,tgt:null,ball:null,runner:null,T:0};G.rev=null;G.bullet=false;
  if(type==='pass'){
   G.recs.forEach((r,i)=>{r.spd=(i===3?8+R.rb*.3:i===4?teB*.93:wrB(i))+rnd(-.35,.35)});
-  for(const d of G.defs)d.spd=wrS; /* v1.74: on a pass play every defender runs at exactly the receivers' speed until the catch (no skill roll, difficulty or two-point slowdown; a man defender uses his own receiver's speed below) */
+  for(const d of G.defs)d.spd=wrS*PRE_DEF; /* v1.90: slightly slower than the offense (PRE_DEF) until the catch; v1.74: on a pass play every defender runs at exactly the receivers' speed until the catch (no skill roll, difficulty or two-point slowdown; a man defender uses his own receiver's speed below) */
   p.T=clamp(3+(R.ol-o.def)*.35+rnd(-.5,.5),2,6.5);
   assignDef();p.T*=RUSHT[G.rush.length]*RUSH_SPEED*dSack()*(G.home===true?1.05:G.home===false?.93:1); /* v1.56: the crowd: a little more time at home, less on the road */
+  rushInit(p); /* v1.87: every rusher is paired with a lineman; the first one to win his block gets to the QB about p.T seconds in, on average */
   G.st.att++;
  }else{
   const rb=G.recs[3];rb.spd=8+R.rb*.3;rb.rating=R.rb;p.runner=rb;p.phase='run';
@@ -1909,6 +2062,100 @@ function juke(){
  r.inv=.4;if(near)r.y=clamp(r.y+(r.y>=near.y?1.5:-1.5),.5,39.5);pop('JUKE!',r.x,r.y-2,'#ffd400')}
 
 /* ---------- live play ---------- */
+/* ---------- v1.87 pass rush against the line. Each rusher is paired with a lineman and the two lock up (drawn leaning into each other, the lineman pushed back a little as the rusher wins).
+   The longer the play lasts the better each rusher's chance to win: the chance of winning per second grows in step with the time (a Rayleigh clock), and the numbers are set so that the FIRST
+   rusher to get through reaches the QB at the sack timer p.T on average (p.T already holds the O-line rating, defense rating, rusher count, difficulty and home or away).
+   A rusher's win time is drawn once at the snap from that clock; the pressure bar shows the closest rusher's progress. ---------- */
+const RSH={eng:.25,floor:.38,trav:.93,push:1.5,cal:1,cap:2.2,lead:1.1}; /* eng = seconds to get to the lineman, floor = no block is lost sooner than this after the lock-up, trav = about how long the winner needs to reach the QB, cap = latest win as a multiple of p.T */
+function rushInit(p){
+ const n=G.rush.length;G.ol.forEach(o=>{o.bx=o.x;o.by=o.y;o.lock=0;o.pb=0});
+ if(!n){p.rs=null;return}
+ const ol=G.ol.slice().sort((a,b)=>a.y-b.y),used=new Set(),rs=G.rush.slice().sort((a,b)=>a.y-b.y),cnt=new Map(),f=RSH.floor;
+ const L=rs.map(d=>{let b=null,bd=99;for(const o of ol){const q=Math.abs(o.by-d.y0)+(used.has(o)?6:0);if(q<bd){bd=q;b=o}}used.add(b);cnt.set(b,(cnt.get(b)||0)+1);
+  const dist=Math.hypot(d.x0-(b.bx+RSH.lead),d.y0-b.by);return{d,b,ta:Math.max(RSH.eng,dist/Math.max(6,d.spd||8))}}); /* ta: when he gets to the lineman */
+ /* the pace: each rusher's win time is ta + s * sqrt(-2 ln U) (never sooner than the floor), and s is solved so that the FIRST win comes (p.T - trav) seconds in on average */
+ const target=Math.max(RSH.eng+f+.05,(p.T-RSH.trav)*RSH.cal),K=240,U=Array.from({length:K},()=>L.map(()=>Math.sqrt(-2*Math.log(Math.max(1e-4,Math.random())))));
+ const avg=s=>{let m=0;for(const u of U){let b=99;for(let i=0;i<L.length;i++){const w=L[i].ta+Math.max(f,s*u[i]);if(w<b)b=w}m+=Math.max(b,RSH.eng+f)}return m/K};
+ let lo=.05,hi=12;for(let i=0;i<26;i++){const s=(lo+hi)/2;if(avg(s)>target)hi=s;else lo=s}const sc=(lo+hi)/2;
+ p.rs=L.map((r,i)=>{const u=Math.sqrt(-2*Math.log(Math.max(1e-4,Math.random()))),w=Math.min(Math.max(sc*u,f),Math.max(f+.2,p.T*RSH.cap-r.ta)),c=cnt.get(r.b);
+  r.d.lock=0;r.d.rsi=i;r.d.free=false;
+  return Object.assign(r,{tb:r.ta+w,w,off:(c>1?(i%2?.55:-.55):0)+(Math.random()-.5)*.3,ph:Math.random()*6.3})})}
+/* one frame of the rush; returns true when a free rusher has reached the QB */
+function rushStep(p,q,dt){
+ let hit=false,k=0;const t=p.t;
+ for(const r of p.rs){const d=r.d,b=r.b;
+  if(!d.free&&t>=r.tb){d.free=true;d.lock=0;b.miss=0;b.mdir=Math.sign(q.y-b.y+.01)||1;b.lock=0}
+  if(d.free){ /* he beat his man: straight at the QB */
+   steer(d,q.x+.9,q.y+(r.off||0)*.4,Math.max(d.spd,G.wrS||8)*1.1,45,dt);mv(d,dt);k=1;if(dst(d,q)<1&&p.phase==='back')hit=true;continue}
+  if(t<r.ta){ /* closing on the lineman */
+   const u=clamp(t/r.ta,0,1),e=u*u*(3-2*u),ex=b.bx+RSH.lead,ey=b.by+r.off;d.x=d.x0+(ex-d.x0)*e;d.y=d.y0+(ey-d.y0)*e;d.vx=-4*(1-u);d.vy=0;continue}
+  const prog=clamp((t-r.ta)/Math.max(.1,r.tb-r.ta),0,1),pg=prog*prog; /* share of the block already lost: the longer it lasts the closer he is */
+  k=Math.max(k,pg);d.lock=1;d.vx=d.vy=0;d.ldir=-1;b.lock=1;b.ldir=1;b.pb=Math.max(b.pb||0,pg);
+  const sh=Math.sin(G.t*11+r.ph)*(.07+.12*pg);
+  d.x=b.bx+RSH.lead-RSH.push*pg+Math.sin(G.t*7+r.ph)*.05;d.y=b.by+r.off+sh;
+  b.x=b.bx-RSH.push*b.pb*.85;b.y=b.by+r.off*.4-sh*.6}
+ p.k=Math.min(1,k);return hit}
+/* ---------- v1.88: interception return ---------- */
+/* the defender who gets to the ball keeps it and runs it back toward your end zone on his own; your whole offense turns into defenders (the same boost, the same
+   reaction delay) and chases him down. car: his speed as a share of his defender speed; tk: base chance a chaser wraps him up; blk: chance a teammate of his knocks a chaser
+   off his path when they touch; pk: seconds of the pick animation before he is off and running */
+const RET={car:1,tk:.62,blk:.3,pk:.5,w:[.3,.6],ch:{rec:1,qb:.8,ol:.72}};
+const retChasers=()=>[...G.recs,G.qb,...G.ol];
+function intercept(x,y){
+ const p=G.play;
+ if(G.pat||x>=100||!p||p.type!=='pass'){endPlay('int',x);return} /* a two-point try or a ball in the end zone is dead at once, as before */
+ let car=null,bd=99;for(const d of G.defs){const q=Math.hypot(d.x-x,d.y-y);if(q<bd){bd=q;car=d}}
+ if(!car){endPlay('int',x);return}
+ p.phase='ret';p.ball=null;p.runner=null;
+ for(const d of G.defs){d.lock=0;d.free=false;d.stun=0;d.cool=0;d.wait=0;d.inv=0;d.spd=d.spdFull||d.spd}
+ for(const o of G.ol)o.lock=0;
+ const wr=G.wrS||8;
+ for(const e of retChasers()){e.lock=0;e.stun=0;e.cool=0;e.inv=0;e.blk=0;e.wait=rnd(RET.w[0],RET.w[1]);
+  e.cspd=((e.k==='QB'?wr*RET.ch.qb:e.k==='OL'?wr*RET.ch.ol:(e.spd||wr))*RET.ch.rec)*DEF_BOOST} /* "offense acts as defenders so they get the speed boost" */
+ car.pick=0;car.stumble=0;car.fall=null;car.dive=null;
+ p.ret={car,x0:x,y0:clamp(y,.8,39.2),sx:car.x,sy:car.y,t:0,pk:RET.pk};
+ pop('INTERCEPTED!',x,y-2,'#ff6b6b');sfx('bad')}
+function retStep(dt){
+ const p=G.play,R=p.ret,car=R.car;R.t+=dt;
+ if(car.stumble>0)car.stumble-=dt;if(car.inv>0)car.inv-=dt;
+ const picking=R.t<R.pk;
+ if(picking){ /* he goes up for the ball and comes down with it */
+  const u=clamp(R.t/R.pk,0,1),e=u*u*(3-2*u);car.x=R.sx+(R.x0-R.sx)*e;car.y=R.sy+(R.y0-R.sy)*e;car.vx=-2;car.vy=0}
+ else{ /* he runs for the end zone, steering around the chasers and away from the sideline */
+  let ax=0,ay=0;
+  for(const e of retChasers()){const d=Math.hypot(e.x-car.x,e.y-car.y);if(d>9||d<.01)continue;
+   const ahead=e.x<car.x+1.5?1:.35,w=Math.pow(1-d/9,2)*ahead;ay+=(car.y-(e.y+e.vy*.4))/d*w*2.4;ax+=(car.x-(e.x+e.vx*.4))/d*w*.6}
+  if(car.y<5)ay+=(5-car.y)*.5;else if(car.y>35)ay-=(car.y-35)*.5;
+  let dx=-1+ax*.4,dy=ay;const L=Math.hypot(dx,dy)||1;dx/=L;dy/=L;if(dx>-.35){dx=-.35;const m=Math.hypot(dx,dy)||1;dx/=m;dy=dy/m}
+  const sp=(car.spdFull||8)*RET.car*(car.stumble>0?.5:1)*(1-.2*Math.abs(dy));
+  steer(car,car.x+dx*10,car.y+dy*10,sp,28,dt);mv(car,dt)}
+ /* everyone else on his team runs interference ahead of him */
+ let k=0;for(const d of G.defs){if(d===car)continue;k++;d.stun=0;
+  steer(d,car.x-3-(k%3)*1.1,car.y+((k%5)-2)*2.3,(d.spdFull||8)*.9,30,dt);mv(d,dt)}
+ /* your offense: a reaction delay, then straight after him at defender speed */
+ const esc=G.defs.filter(d=>d!==car);
+ for(const e of retChasers()){
+  if(e.cool>0)e.cool-=dt;if(e.blk>0)e.blk-=dt;
+  if(e.stun>0){e.stun-=dt;e.vx*=.9;e.vy*=.9;mv(e,dt);continue}
+  if(e.wait>0){e.wait-=dt;steer(e,e.x-.5,e.y+clamp(car.y-e.y,-1,1)*2,2.2,15,dt);mv(e,dt);continue}
+  if(e.blk<=0)for(const d of esc)if(Math.abs(d.x-e.x)<1&&Math.abs(d.y-e.y)<1){e.blk=.8;if(Math.random()<RET.blk){e.stun=.45;e.vx*=.3;e.vy*=.3}break}
+  const dd=dst(e,car),lead=Math.min(dd/e.cspd,.7)*.85;
+  steer(e,car.x+car.vx*lead,car.y+car.vy*lead,e.cspd,32,dt);mv(e,dt)}
+ p.ret.yd=R.x0-car.x;
+ if(car.x<=0){endPlay('pick6',car.x);return}
+ if(car.y<=.4||car.y>=39.6){endPlay('int',car.x);return}
+ if(picking)return;
+ if(retTackled(car)){sfx('tackle');endPlay('int',car.x)}}
+function retTackled(car){
+ if(car.inv>0)return false;
+ const cs=retChasers(),near=cs.filter(e=>e.stun<=0&&dst(e,car)<1.4).length;
+ for(const e of cs)if(e.stun<=0&&e.cool<=0&&e.wait<=0){
+  const dd=dst(e,car),behind=e.x>car.x+.15,reach=behind?2.0:1.0;
+  if(dd>=reach)continue;
+  let pt=clamp(RET.tk+(near-1)*.1-(G.opp.def-5)*.03,.3,.95);if(dd>=.95)pt*=.88;
+  if(Math.random()<pt){car.fall=0;car.fdir=Math.sign(car.x-e.x)||-1;for(const t of cs)if(t===e||(dst(t,car)<1.8&&t.stun<=0)){t.dive=0;t.ddir=Math.sign(car.x-t.x)||car.fdir}return true}
+  e.cool=1;e.stun=dd>=.95?.7:.45;car.stumble=dd>=.95?0:.4;e.miss=0;e.mdir=Math.sign(car.x-e.x)||-1;if(dd<.95)pop('BROKEN!',car.x,car.y-2,'#ff6b6b')}
+ return false}
 function updateLive(dt){
  const p=G.play,R=S.r,o=G.opp,l=G.los;
  p.t+=dt;
@@ -1917,6 +2164,7 @@ function updateLive(dt){
   if(fl>0&&nc<=fl){nc=fl;G.hold=true}
   G.clock=Math.max(0,nc)}
  if(p.t>25){endPlay('tackle',p.runner?p.runner.x:l);return}
+ if(p.phase==='ret'){retStep(dt);return} /* v1.88: an interception is run back */
  if(p.type==='pass'){
   if(p.phase==='air'&&!p.trkSet){p.trkSet=1;p.trks=[];let best=null,bd=10;for(const r of G.recs){const d=dst(r,p.land);if(d<bd){bd=d;best=r}}if(best)p.trks.push(best);for(const r of G.recs)if(r!==best&&dst(r,p.land)<4)p.trks.push(r)
    /* defenders break off their coverage and run to the landing spot too: the nearest within 10 yds, plus any other within 4 */
@@ -1927,15 +2175,16 @@ function updateLive(dt){
  else for(const r of G.recs)if(r!==G.recs[3])routeStep(r,dt);
  if(p.phase==='back'||p.phase==='air'){
   const q=G.qb;q.x=l-5-Math.min(p.t,.6)*3;
-  const k=clamp((p.t-.35)/(p.T-.35),0,1),e=k*k*(3-2*k);p.k=k;
-  G.rush.forEach((d,i)=>{d.x=d.x0+(q.x+.9-d.x0)*e;d.y=d.y0+(q.y+(i-(G.rush.length-1)/2)*.8-d.y0)*e;d.vx=k>0?-3:0});
+  if(p.rs){if(rushStep(p,q,dt)&&p.phase==='back'){sackAnim(q);endPlay('sack',q.x-rnd(0,1.2));return}}
+  else{const k=clamp((p.t-.35)/(p.T-.35),0,1),e=k*k*(3-2*k);p.k=k;
+   G.rush.forEach((d,i)=>{d.x=d.x0+(q.x+.9-d.x0)*e;d.y=d.y0+(q.y+(i-(G.rush.length-1)/2)*.8-d.y0)*e;d.vx=k>0?-3:0})}
   for(const[d,r]of G.cover){
    if(p.t<d.delay){d.vx=2.5;d.vy=0;mv(d,dt)}
-   else if(p.phase==='air'&&p.dtrks&&p.dtrks.includes(d)){steer(d,p.land.x,p.land.y,G.wrS*1.15,45,dt);mv(d,dt)}
+   else if(p.phase==='air'&&p.dtrks&&p.dtrks.includes(d)){steer(d,p.land.x,p.land.y,G.wrS*1.15*PRE_DEF,45,dt);mv(d,dt)}
    else if(p.phase==='air'&&dst(d,p.land)<5){steer(d,p.land.x,p.land.y,d.spd*.85,30,dt);mv(d,dt)}
-   else{steer(d,r.x+1.1,r.y,(r.spd||d.spd)*(r===G.recs[4]&&G.lb.includes(d)?.9:1),36,dt);mv(d,dt)}} /* v1.74: man coverage matches the covered receiver's speed */ /* v1.62: a linebacker covering the TE is a little slower than a corner on a wideout */
+   else{steer(d,r.x+1.1,r.y,(r.spd||d.spd)*PRE_DEF*(r===G.recs[4]&&G.lb.includes(d)?.9:1),36,dt);mv(d,dt)}} /* v1.74: man coverage matches the covered receiver's speed */ /* v1.62: a linebacker covering the TE is a little slower than a corner on a wideout */
   for(const[d,z]of G.zone)zoneStep(d,z,p,dt);
-  if(p.phase==='back'&&k>=1){sackAnim(q);endPlay('sack',q.x-rnd(0,1.2));return}
+  if(!p.rs&&p.phase==='back'&&p.k>=1){sackAnim(q);endPlay('sack',q.x-rnd(0,1.2));return}
   if(p.phase==='air')updateBall(dt)
  }else if(p.phase==='run'){
   const r=p.runner;
@@ -1948,11 +2197,12 @@ function updateLive(dt){
   if(tackled(r)){sfx('tackle');if(Math.random()<.012){endPlay('fumble',r.x)}else endPlay('tackle',r.x)}
  }
 }
-const CATCH_BASE=.60,BUL={spd:1.8,rng:.7,rad:.88,pc:.12}, /* v1.47 bullet pass: much faster ball, shorter range, smaller ring and a lower catch chance */
+const CATCH_BASE=.70,INT_OPEN=.80,INT_FAIL=.28, /* v1.86: receivers catch more (base .60 to .70); a defender with no receiver near the ball picks it about 75% of the time (was ~20%); a contested ball ends as an interception about 10% of the time (was ~7%) */
+BUL={spd:1.8,rng:.7,rad:.88,pc:.12}, /* v1.47 bullet pass: much faster ball, shorter range, smaller ring and a lower catch chance */
 catchR=()=>clamp(1.02+.12*RO().qb.acc,.9,2.5)*(G&&G.bullet?BUL.rad:1); /* v1.46: the catch ring grows with the QB's accuracy (1.5 yards at 4) */
 const maxThrow=()=>(28+3*RO().qb.arm)*(G&&G.bullet?BUL.rng:1); /* v1.46: how far the QB can throw (40 yards at arm 4) */
 function limitThrow(x,y){const q=G.qb,m=maxThrow(),d=Math.hypot(x-q.x,y-q.y);return d>m?{x:q.x+(x-q.x)*m/d,y:q.y+(y-q.y)*m/d}:{x,y}} /* the landing ring and the catch radius in yards (v1.36, was 3.6); base of the catch chance (was .56) */
-const RUN_BOOST=1.2,DEF_BOOST=1.19,RUSH_SPEED=.72,DEF_TRACK=.97; /* v1.59/1.60: sack timer longer (RUSH_SPEED .65 to .73, then .69 as the middle); v1.65: .72, a little slower again */ /* v1.57: defenders a tad slower (boost 1.25 to 1.19, tracking and pre-catch speed 3% lower) */ /* defenders are faster than the offense: about 10% over the boosted ball carrier at equal ratings */ /* the ball carrier moves at full speed even though the game runs at 0.75x */
+const RUN_BOOST=1.2,DEF_BOOST=1.19,RUSH_SPEED=.78,DEF_TRACK=.97,PRE_DEF=.95; /* v1.90: RUSH_SPEED .72 to .78 (the sack timer is 8% longer); PRE_DEF: on a pass play the defense runs at 95% of the offense's speed until the ball is caught, then at full defender speed */  /* v1.59/1.60: sack timer longer (RUSH_SPEED .65 to .73, then .69 as the middle); v1.65: .72, a little slower again */ /* v1.57: defenders a tad slower (boost 1.25 to 1.19, tracking and pre-catch speed 3% lower) */ /* defenders are faster than the offense: about 10% over the boosted ball carrier at equal ratings */ /* the ball carrier moves at full speed even though the game runs at 0.75x */
 function runnerStep(dt,r){
  if(r.stumble>0)r.stumble-=dt;if(r.inv>0)r.inv-=dt;if(r.jcd>0)r.jcd-=dt;
  let dvy=0;
@@ -1968,7 +2218,8 @@ function predictRec(r,t){
   const d=Math.hypot(pt.x-x,pt.y-y);
   if(d<=left){x=pt.x;y=pt.y;left-=d;i++}else{x+=(pt.x-x)/d*left;y+=(pt.y-y)/d*left;left=0}}
  return{x,y:clamp(y,.5,39.5)}}
-const throwSpd=()=>(20+RO().qb.arm*2.2)*(G&&G.bullet?BUL.spd:1.15);
+const ballK=()=>1+(gameSpeed()-.61)*.6; /* v1.90: the faster the game speed step, the faster the ball flies (SLOWER .93, SLOW 1.0, MEDIUM 1.08, FAST 1.14, FASTER 1.23) */
+const throwSpd=()=>(20+RO().qb.arm*2.2)*(G&&G.bullet?BUL.spd:1.15)*ballK();
 /* v1.61: a pass to a spot more than 10 yards past the line floats: the ball slows up to 18% and the arc gets up to 90% higher (full effect at 25 yards; never on a bullet) */
 const floatF=x=>G&&!G.bullet?clamp((x-G.los-10)/15,0,1):0,airSpd=x=>throwSpd()*(1-.18*floatF(x)); /* v1.49/1.50: normal passes are 15% faster (the bullet is unchanged) */
 function toggleBullet(){if(!G||G.mode!=='live'||!G.play||G.play.phase!=='back'||G.play.type!=='pass')return;G.bullet=!G.bullet;updCtl()}
@@ -1991,17 +2242,17 @@ function resolveCatch(){
  let dd2=99;for(const d of G.defs)dd2=Math.min(dd2,dst(d,L));
  const oob=L.y<=.8||L.y>=39.2;
  const inc=()=>{pop('INCOMPLETE',L.x,L.y-2,'#ff6b6b');endPlay('incomplete',L.x)};
- if(!r){if(!oob&&dd2<1.8&&Math.random()<.24+(o.def-5)*.03){endPlay('int',L.x);return}inc();return}
+ if(!r){if(!oob&&dd2<1.8&&Math.random()<INT_OPEN+(o.def-5)*.03){intercept(L.x,L.y);return}inc();return}
  if(oob||r.y<=.8||r.y>=39.2){inc();return}
  let dd=99;for(const d of G.defs)dd=Math.min(dd,dst(d,r));
- if(dd2<rd-.5&&dd2<1.7&&Math.random()<.32+(o.def-5)*.03+(5-acc)*.01){endPlay('int',L.x);return}
+ if(dd2<rd-.5&&dd2<1.7&&Math.random()<.32+(o.def-5)*.03+(5-acc)*.01){intercept(L.x,L.y);return}
  const pc=clamp(CATCH_BASE+(G.pat?.08:0)+.076*Math.min(dd,5)+.04*((r.cat!=null?r.cat:R.wr)-5)+.025*(acc-5)-Math.max(0,b.d0-22)*.01-(o.def-5)*.015-Math.max(0,rd-1.5)*.05-Math.max(0,2.2-dd)*.04-(G.bullet?BUL.pc:0),.1,.98);
  const open=dd>=4.5; /* v1.61: a wide open receiver (no defender within 4.5 yards) with the ball in his ring catches it about every time (a bullet still costs .12) */ /* v1.60: a defender within 2.2 yards makes it a contested catch: up to -.09 */
  if(Math.random()<(open?Math.max(pc,.995-(G.bullet?BUL.pc:0)):pc)){
-  sfx('catch');G.st.comp++;for(const d of G.defs)d.spd=d.spdFull;p.ball=null;p.phase='run';p.runner=r;r.rating=r.sr!=null?r.sr:R.wr;r.inv=.25;
+  sfx('catch');G.st.comp++;for(const d of G.defs){d.spd=d.spdFull;d.lock=0}G.ol.forEach(o=>o.lock=0);p.ball=null;p.phase='run';p.runner=r;r.rating=r.sr!=null?r.sr:R.wr;r.inv=.25;
   for(const d of G.defs)d.wait=0;
   G.recs.forEach(x=>{if(x!==r)x.cont=false});updCtl();return}
- if(dd<1.9&&Math.random()<.14+(o.def-5)*.03+(5-acc)*.01){endPlay('int',L.x);return}
+ if(dd<1.9&&Math.random()<INT_FAIL+(o.def-5)*.03+(5-acc)*.01){intercept(L.x,L.y);return}
  inc()}
 
 /* ---------- play results & drives ---------- */
@@ -2013,16 +2264,17 @@ function addSc(s,n){G[s]+=n;const q=qNow()-1;G.qs[s][q]=(G.qs[s][q]||0)+n}
 const PLR=n=>G.pl[n]||(G.pl[n]={rec:0,recy:0,att:0,ruy:0,td:0,pos:''});
 function endPlay(kind,x){
  const p=G.play;if(!p||p.phase==='done')return;
- BN_PRE=(kind==='tackle'||kind==='sack'||kind==='fumble')?.8:0;
- if(kind==='int')G.st.ints++;if(kind==='sack')G.st.sacks++;
+ BN_PRE=(kind==='tackle'||kind==='sack'||kind==='fumble'||(kind==='int'&&p.ret))?.8:kind==='pick6'?.5:0;
+ if(kind==='int'||kind==='pick6')G.st.ints++;if(kind==='sack')G.st.sacks++;
  if(G.def&&p.type)G.rev={n:G.def.name,l:G.look&&G.look!==G.def?G.look.name:null};
- const wasPass=p.type==='pass'&&kind!=='sack'&&kind!=='incomplete'&&kind!=='int';
- const rn=p.runner;p.phase='done';G.bp={x:rn?rn.x:G.qb.x,y:rn?rn.y:20,z:0};
+ const wasPass=p.type==='pass'&&kind!=='sack'&&kind!=='incomplete'&&kind!=='int'&&kind!=='pick6';
+ const rn=p.runner;p.phase='done';for(const d of G.defs)d.lock=0;for(const o of G.ol)o.lock=0;G.bp=p.ret?{x:p.ret.car.x,y:p.ret.car.y,z:0}:{x:rn?rn.x:G.qb.x,y:rn?rn.y:20,z:0};
  if(G.pat){patResult(kind==='td');return}
  const l=G.los;
  if(kind==='td'){const y=Math.round(100-l);G.st[p.type==='run'?'ryd':'pyd']+=y;G.st[p.type==='run'?'rtd':'ptd']++;if(rn){const q=PLR(rn.nm);q.pos=rn.k;if(p.type==='run'){q.rtd=(q.rtd||0)+1;q.att++;q.ruy+=y}else{q.td++;q.rec++;q.recy+=y}}scoreTD();return}
+ if(kind==='pick6'){G.st.to++;G.ost.td++;pickSix(Math.round(p.ret.x0));return}
  if(kind==='int'||kind==='fumble'){G.st.to++;sfx('bad');
-  turnover(x,kind==='int'?'INTERCEPTED!':'FUMBLE!');return}
+  turnover(x,kind==='int'?'INTERCEPTED!':'FUMBLE!',kind==='int'&&p.ret?Math.max(0,Math.round(p.ret.x0-x)):0);return}
  let stop=false,gain=0,title;
  if(kind==='incomplete'){stop=true;title='INCOMPLETE'}
  else{gain=Math.round(x-l);if(kind==='oob')stop=true}
@@ -2053,7 +2305,14 @@ function patResult(ok){
  else{sfx('bad');showBanner('TWO-POINT TRY FAILED','',1.6,afterScore,'#ff6b6b')}}
 function afterScore(){if(G.ot)endGame();else if(G.clock<=0)timeUp();else oppPossession(25)}
 function safety(){addSc('op',2);sfx('bad');showBanner('SAFETY!','OPPONENT +2',2,()=>{if(G.ot)endGame();else if(G.clock<=0)timeUp();else oppPossession(40)},'#ff6b6b')}
-function turnover(x,label){const st=x>=100?20:clamp(100-x,2,98);showBanner(label,'OPPONENT BALL - OWN '+Math.round(st),1.8,()=>oppPossession(st),'#ff6b6b')}
+function turnover(x,label,ry){const st=x>=100?20:clamp(100-x,2,98);showBanner(label,(ry>0?'RETURNED '+ry+' YDS\n':'')+'OPPONENT BALL - OWN '+Math.round(st),1.8,()=>oppPossession(st),'#ff6b6b')}
+/* v1.88: the interceptor got all the way to your end zone: six points for them, the extra point is simulated (93%), none in overtime where it ends the game */
+function pickSix(from){
+ const xp=!G.ot&&Math.random()<.93,pts=G.ot?6:xp?7:6;addSc('op',pts);sfx('bad');
+ showBanner('PICK SIX!','RETURNED '+Math.round(from)+' YDS FOR A TOUCHDOWN\n'+(G.ot?'':xp?'EXTRA POINT IS GOOD':'EXTRA POINT MISSED'),2.4,()=>{
+  if(G.ot){endGame();return}
+  if(G.clock<=0){timeUp();return}
+  startMyDrive(25)},'#ff6b6b')}
 
 function simOpp(start,call){
  const o=G.opp,edge=o.off-S.r.def,fb=(start-25)*.0075,fbF=(start-25)*.0025; /* v1.59: where the drive starts matters about twice as much for scoring */
@@ -2149,7 +2408,7 @@ function endGame(){
   <p>PASSING ${st.comp}/${st.att} FOR ${st.pyd} YDS - RUSHING ${st.ryd} YDS - TURNOVERS ${st.to}</p>
   <div class="row"><button class="btn alt" id="bBox">BOX SCORE</button><button class="btn" id="bAgain">PLAY AGAIN</button><button class="btn xs alt" id="bPostGo">BACK</button></div>`;
   $('bBox').onclick=()=>{$('half').innerHTML=boxHTML(true)+'<div class="row"><button class="btn" id="bBoxBack">BACK</button></div>';show('half');$('bBoxBack').onclick=()=>show('post')};
-  $('bAgain').onclick=()=>{EXH={o};startGame()};$('bPostGo').onclick=()=>renderHub();show('post');return}
+  $('bAgain').onclick=()=>{EXH={o,home:G.home};startGame()};$('bPostGo').onclick=()=>{if(S&&S.sbx)xhLeave();else renderHub()};show('post');return}
  let cr=win?4+(G.me-G.op>=14?1:0):tie?3:2;
  if(S.phase==='playoff'&&win)cr+=2;
  const lbl=G.label;
@@ -2198,6 +2457,7 @@ function showHalf(cont){
 const SW=12,SH=18;let ANIM_DT=0; /* v1.59: frame time for the run cycle */
 const SK=[['#f1c9a0','#d9a97c'],['#c68c5f','#a96f45'],['#8a5a3b','#6e4429']];
 const DIG={'0':['11','10','11'],'1':['01','01','01'],'2':['11','01','10'],'3':['11','01','11'],'4':['10','11','01'],'5':['11','10','01'],'6':['10','11','11'],'7':['11','01','01'],'8':['11','11','11'],'9':['11','11','01']};
+const NUMS2={'0':['11','11'],'1':['1','1'],'2':['11','10'],'3':['01','11'],'4':['10','01'],'5':['10','11'],'6':['01','10'],'7':['11','01'],'8':['11','11'],'9':['11','00']};
 const NUMS={OL:[62,64,66,68,70],QB:[12],RB:[22],TE:[86],WR:[81,84,88],DL:[91,92,93,94],LB:[51,52,53],DB:[21,24,29,31],K:[3]};
 const hexRGB=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
 const shade=(h,f)=>'#'+hexRGB(h).map(v=>{v=f<0?v*(1+f):v+(255-v)*f;return Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')}).join('');
@@ -2218,33 +2478,36 @@ function spriteGrid(u,tone,frame,num,kind){
  const rect=(x,y,ww,hh,c)=>{for(let j=0;j<hh;j++)for(let i=0;i<ww;i++)put(x+i,y+j,c)};
  const jm=u.jersey.main,jd=shade(jm,-.22);
  /* legs: [x, lift]. back leg first */
- /* v1.59: a four-pose run cycle (frames 1 to 4: far leg back / legs passing / far leg forward / passing) with arms swinging against the legs; frame 0 stands. [x, lift] with the far leg first. */
- const L=[[[3,0],[6,0]],[[1,1],[7,0]],[[5,0],[3,2]],[[7,0],[1,1]],[[3,2],[5,0]]][frame%5];
+ /* v1.59: a four-pose run cycle (frames 1 to 4: far leg back / legs passing / far leg forward / passing) with arms swinging against the legs; frame 0 stands. [x, lift] with the far leg first.
+    v1.93: the body is turned more sideways (a narrower torso, arms and legs closer together) and the pants are longer (4 rows instead of 2) with a stripe down the side of each leg. */
+ const L=[[[4,0],[5,0]],[[2,1],[6,0]],[[5,0],[4,2]],[[6,0],[2,1]],[[4,2],[5,0]]][frame%5];
  L.forEach(([x0,lift],idx)=>{
-  const pm=idx?u.pants.main:shade(u.pants.main,-.12);
-  rect(x0,13,3,2,pm);put(x0+1,13,u.pants.stripe);put(x0+1,14,u.pants.stripe);
-  rect(x0,15,3,2-lift,u.socks.main);rect(x0,15,3,1,u.socks.stripe);
-  if(lift<1)put(x0,16,shade(u.socks.main,-.18));
-  put(x0,14,shade(pm,.12));put(x0+2,14,shade(pm,-.15));
+  const pm=idx?u.pants.main:shade(u.pants.main,-.12),ph=4-lift,ps=idx?u.pants.stripe:shade(u.pants.stripe,-.15);
+  rect(x0,12,3,ph,pm);
+  for(let y=13;y<12+ph;y++){put(x0,y,shade(pm,.1));put(x0+2,y,shade(pm,-.15))}
+  rect(x0+1,12,1,ph,ps);                                   /* the side stripe, from the waist to the hem */
+  put(x0,12,shade(pm,-.3));put(x0+2,12,shade(pm,-.3));     /* waistband shadow */
+  rect(x0,16-lift,3,1,u.socks.main);if(lift<1)put(x0,16,u.socks.stripe);
   rect(x0,17-lift,4,1,u.shoes);put(x0+3,17-lift,shade(u.shoes,.55));put(x0+1,17-lift,shade(u.shoes,.2))});
- rect(3,13,6,1,u.pants.main);put(4,13,u.pants.stripe);put(7,13,u.pants.stripe);put(5,13,shade(u.pants.main,-.3));put(6,13,shade(u.pants.main,-.3));
+ rect(3,12,6,1,shade(u.pants.main,-.2));put(5,12,u.pants.stripe);put(6,12,u.pants.stripe);  /* belt line between the legs */
  /* arms */
- const AR=[[1,10],[11,0],[10,1],[0,11],[1,10]][frame%5];
+ const AR=[[2,9],[10,1],[9,2],[1,10],[2,9]][frame%5];
  for(const[ax,back]of[[AR[0],1],[AR[1],0]]){
   const m=back?jd:jm;
   rect(ax,8,1,2,m);put(ax,8,back?jd:shade(jm,.14));put(ax,9,back?shade(u.jersey.trim,-.2):u.jersey.trim);
   rect(ax,10,1,2,back?sk[1]:sk[0]);put(ax,11,back?shade(u.jersey.trim,-.25):u.jersey.trim);put(ax,12,back?shade(u.gloves,-.2):u.gloves)}
- /* torso */
- rect(3,7,6,1,jm);rect(2,8,8,5,jm);rect(5,7,2,1,u.jersey.trim);
- /* shoulder pads: wider and shaded, bulkier for linemen and linebackers */
+ /* torso: six wide, five tall (turned to the side) */
+ rect(3,7,6,1,jm);rect(3,8,6,4,jm);rect(5,7,2,1,u.jersey.trim);
+ /* shoulder pads: shaded, bulkier for linemen and linebackers */
  put(2,7,jd);put(9,7,jd);put(3,7,shade(jm,.2));put(4,7,shade(jm,.12));
- if(kind==='OL'||kind==='DL'||kind==='LB'){put(1,7,jd);put(10,7,jd);put(1,8,jd);put(10,8,jd)}
+ if(kind==='OL'||kind==='DL'||kind==='LB'){put(2,8,jd);put(9,8,jd)}
  /* torso shading: light on the left, dark on the right, hem at the bottom */
- for(let y=8;y<12;y++)put(2,y,shade(jm,.1));
- rect(9,8,1,5,jd);rect(2,12,8,1,jd);rect(8,9,1,3,shade(jm,-.1));
- for(let x=3;x<9;x++)put(x,12,shade(jm,-.14));
- const s=String(num),wd=s.length*2+(s.length-1),nx=2+Math.floor((8-wd)/2);
- for(let k=0;k<s.length;k++){const d=DIG[s[k]];for(let r=0;r<3;r++)for(let c=0;c<2;c++)if(d[r][c]==='1')put(nx+k*3+c,9+r,u.jersey.number)}
+ for(let y=8;y<11;y++)put(3,y,shade(jm,.1));
+ rect(8,8,1,4,jd);rect(3,11,6,1,jd);rect(7,9,1,2,shade(jm,-.1));
+ for(let x=4;x<8;x++)put(x,11,shade(jm,-.14));
+ /* v1.94: smaller jersey numbers: two rows tall (was three) and a 1 is one pixel wide, so a number like 81 or 12 is only 4 pixels across */
+ const s=String(num),gl=[...s].map(c=>NUMS2[c]),wd=gl.reduce((a,b)=>a+b[0].length,0)+(gl.length-1);let nx=3+Math.floor((5-wd)/2);
+ for(const d of gl){for(let r=0;r<2;r++)for(let c=0;c<d[r].length;c++)if(d[r][c]==='1')put(nx+c,8+r,u.jersey.number);nx+=d[0].length+1}
  /* neck + helmet */
  rect(5,6,3,1,sk[1]);
  const hs=u.helmet.shell;
@@ -2653,7 +2916,7 @@ function assignDef(){
 /* zone defenders: cover a receiver who enters the zone, else drop to the spot */
 function zoneStep(d,z,p,dt){
  const l=G.los;
- if(p.phase==='air'&&p.dtrks&&p.dtrks.includes(d)){steer(d,p.land.x,p.land.y,G.wrS*1.15,45,dt);mv(d,dt);return}
+ if(p.phase==='air'&&p.dtrks&&p.dtrks.includes(d)){steer(d,p.land.x,p.land.y,G.wrS*1.15*PRE_DEF,45,dt);mv(d,dt);return}
  if(p.phase==='air'&&dst(d,p.land)<6){steer(d,p.land.x,p.land.y,d.spd*.8,26,dt);mv(d,dt);return}
  const deep=z.dep>=15,xa=deep?l+z.dep-9:l+1,xb=l+z.dep+(deep?14:4);
  let tgt=null,bd=99;
@@ -2724,18 +2987,21 @@ function drawP(e,col,dark,opt){
  const down=e.fall!=null||e.dive!=null;
  const sp=Math.abs(e.vx)+Math.abs(e.vy);let fr=0,bob=0; /* v1.59: the stride rate follows the player's speed; bob on the passing poses. v1.60: only while the play is live, so everyone stands when it ends */
  if(sp>1&&live&&!down&&e.miss==null){e.rp=(e.rp==null?(e.ph||0)*4:e.rp)+ANIM_DT*sp*1.1;fr=1+Math.floor(e.rp)%4;bob=fr%2===0?1:0}
+ let jump=0;if(e.pick!=null){e.pick+=ANIM_DT;if(e.pick>.55)e.pick=null;else jump=Math.sin(Math.PI*Math.min(1,e.pick/.5))*9} /* v1.88: the interceptor jumps for the ball */
+ if(e.lock&&live&&!down){e.rp=(e.rp==null?(e.ph||0)*4:e.rp)+ANIM_DT*9;fr=1+Math.floor(e.rp)%4;bob=0} /* v1.87: a locked lineman and rusher drive their legs */
  let f=e.side==='me'?1:-1;if(Math.abs(e.vx)>.8)f=e.vx>0?1:-1;
  /* v1.60: tackled runner falls away from the tackler, tacklers dive at him, a missed tackle is a short lunge */
  let ang=0,ox=0;
  if(e.fall!=null){const u=Math.min(1,e.fall/.35),k=u*u*(3-2*u);ang=fs*e.fdir*k*1.52;ox=fs*e.fdir*k*3}
  else if(e.dive!=null){const u=Math.min(1,e.dive/.28),k=u*(2-u);f=e.ddir;ang=fs*e.ddir*k*1.35;ox=fs*e.ddir*k*5}
  else if(e.miss!=null){const k=Math.sin(Math.PI*Math.min(1,e.miss/.5));f=e.mdir;ang=fs*e.mdir*k*1.1;ox=fs*e.mdir*k*4}
+ else if(e.lock&&live){f=e.ldir;ang=fs*e.ldir*(.17+.05*Math.sin(G.t*11+(e.ph||0)));ox=fs*e.ldir*1.5}
  const face=FLIP?-f:f;
  cx.fillStyle='rgba(0,0,0,.3)';cx.fillRect(x-5+Math.round(ox*.6),y-1,11+Math.round(Math.abs(ang)*8),3);
  if(e.stun>0)cx.globalAlpha=.55;
  const spr=getSprite(e,fr,face);
  if(ang){cx.save();cx.translate(x+ox,y-5);cx.rotate(ang);cx.drawImage(spr,-7,-14);cx.restore()}
- else cx.drawImage(spr,x-7,y-19-bob);
+ else cx.drawImage(spr,x-7,y-19-bob-Math.round(jump));
  cx.globalAlpha=1;
  if(opt&&opt.ring&&!down){cx.strokeStyle=opt.ring;cx.lineWidth=1.5;cx.strokeRect(x-9,y-22,19,25)}
  if(opt&&opt.n&&!down){txt(''+opt.n,x,y-24,7,opt.nc||'#fff','center')}}
@@ -2748,6 +3014,7 @@ function curBall(){
  if(G.mode==='kick')return G.bp;
  if(p&&p.phase==='air'&&p.ball)return p.ball;
  if(p&&p.runner&&p.phase!=='done')return{x:p.runner.x+.5,y:p.runner.y,z:0};
+ if(p&&p.phase==='ret'&&p.ret){const c=p.ret.car;return{x:c.x-.5,y:c.y,z:c.pick!=null&&c.pick<.5?Math.sin(Math.PI*Math.min(1,c.pick/.5))*.9:0}}
  if(p&&p.phase==='back')return{x:G.qb.x+.5,y:G.qb.y,z:0};
  if(p&&p.phase==='done')return G.bp;
  if(G.mode==='presnap')return{x:G.los,y:20,z:0};
@@ -2791,7 +3058,7 @@ function drawScene(){
  G.recs.forEach((r,i)=>{const o={};if(showN){o.n=r.n;o.nc=RC[i]}
   if(air){let dd=99;for(const d of G.defs)dd=Math.min(dd,dst(d,r));o.ring=dd>3?'#4ee08a':dd>1.8?'#ffd400':'#ff6b6b'}
   if(p&&p.runner===r&&p.phase==='run')o.ring='#fff';all.push([r,mc.c,mc.d,o])});
- for(const d of G.defs)all.push([d,oc.c,oc.d]);
+ for(const d of G.defs)all.push([d,oc.c,oc.d,p&&p.ret&&p.ret.car===d&&p.phase==='ret'?{ring:'#ff6b6b'}:undefined]);
  all.sort((a,b)=>(a[0].y+(a[0].fall!=null?.6:0))-(b[0].y+(b[0].fall!=null?.6:0))); /* v1.60: the tackled player is drawn on top of his tacklers */
  if(G.mode==='presnap')drawRoutes(.95,false);else if(p&&p.phase==='back')drawRoutes(.6,true);else if(p&&p.phase==='air')drawRoutes(.25,true);
  for(const a of all)drawP(a[0],a[1],a[2],a[3]);
@@ -2818,8 +3085,8 @@ function drawOverlay(){
 function kickFig(u,x,yf,s,back){
  const R=(a,b,w,h,c)=>{cx.fillStyle=c;cx.fillRect(Math.round(x+(a-4.5)*s),Math.round(yf-(13-b)*s),Math.ceil(w*s),Math.ceil(h*s))};
  const jm=u.jersey.main,hs=u.helmet.shell,sk='#c99a72';
- R(1,12,3,1,u.shoes);R(5,12,3,1,u.shoes);R(1,10,3,2,u.pants.main);R(5,10,3,2,u.pants.main);
- R(1,6,7,4,jm);R(0,5,9,2,jm);R(0,6,1,1,u.jersey.trim);R(8,6,1,1,u.jersey.trim);
+ R(1,12,3,1,u.shoes);R(5,12,3,1,u.shoes);R(1,9,3,3,u.pants.main);R(5,9,3,3,u.pants.main);R(1,9,1,3,u.pants.stripe);R(7,9,1,3,u.pants.stripe); /* v1.93: longer pants with a stripe down the outside of each leg */
+ R(1,6,7,3,jm);R(0,5,9,2,jm);R(0,6,1,1,u.jersey.trim);R(8,6,1,1,u.jersey.trim);
  if(back){R(3,7,3,2,u.jersey.number);R(2,0,5,4,hs);R(4,0,1,3,u.helmet.stripe);R(3,4,3,1,sk)}
  else{R(2,0,5,4,hs);R(3,2,3,1,sk);R(2,3,5,1,u.helmet.mask);R(3,4,3,1,sk);R(3,7,3,1,u.jersey.trim)}}
 function drawKickLine(cxm){
@@ -2866,7 +3133,7 @@ function render(){
 function camTarget(){
  const p=G.play;let f=G.los+9;
  if(G.mode==='kick')f=G.bp.x+6;
- else if(p){if(p.runner&&p.phase!=='back')f=p.runner.x+9;else if(p.phase==='air'&&p.ball)f=p.ball.x+6;else if(p.phase==='back')f=G.qb.x+16;else if(p.phase==='done')f=G.bp.x+8}
+ else if(p){if(p.runner&&p.phase!=='back')f=p.runner.x+9;else if(p.phase==='air'&&p.ball)f=p.ball.x+6;else if(p.phase==='back')f=G.qb.x+16;else if(p.phase==='ret'&&p.ret)f=p.ret.car.x-5;else if(p.phase==='done')f=G.bp.x+(p.ret?-5:8)}
  return clamp(f-VW/2,-10,110-VW)}
 function update(dt){
  if(!G)return;G.t+=dt;
@@ -2876,7 +3143,7 @@ function update(dt){
  else if(G.mode==='kick')updateKick(dt);
  else if(G.mode==='banner'&&G.bn){if(G.bn.pre>0)G.bn.pre-=dt;else{G.bn.left-=dt;if(G.bn.left<=0){const f=G.bn.fn;G.bn=null;f&&f()}}}}
 let last=0;
-function frame(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;ANIM_DT=dt;try{update(dt);render()}catch(e){console.error(e);const l=errLoc(e);errPush(e&&e.message,l[0],l[1],true)}requestAnimationFrame(frame)}
+function frame(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;ANIM_DT=TURN.on?0:dt;try{if(!TURN.on)update(dt);render()}catch(e){console.error(e);const l=errLoc(e);errPush(e&&e.message,l[0],l[1],true)}requestAnimationFrame(frame)}
 
 /* ---------- input ---------- */
 /* ---------- rotation (v1.58): on a touch screen held upright the whole game (#wrap) is turned 90 degrees with CSS ----------
@@ -2949,7 +3216,8 @@ function insets(){if(INS_OVR)return INS_OVR;
 function setInsets(o){INS_OVR=o?{t:Math.max(0,+o.t||0),r:Math.max(0,+o.r||0),b:Math.max(0,+o.b||0),l:Math.max(0,+o.l||0)}:null;fit()}
 function fit(){
  const W0=innerWidth,H0=innerHeight,wr=$('wrap'),a=$('app');let w;
- ROT=coarse()&&H0>W0?rotPref():0;
+ const up=coarse()&&H0>W0; /* a touch screen held upright */
+ ROT=up&&upOn()?rotPref():0;turnSet(up&&!upOn());
  const I=insets(),mg=v=>Math.max(8,v+4);
  const M=ROT===1?{t:mg(I.r),r:mg(I.b),b:mg(I.l),l:mg(I.t)}:ROT===-1?{t:mg(I.l),r:mg(I.t),b:mg(I.r),l:mg(I.b)}:{t:mg(I.t),r:mg(I.r),b:mg(I.b),l:mg(I.l)};
  const GW=ROT?H0:W0,GH=ROT?W0:H0; /* the game's own width and height (swapped when rotated) */
@@ -2961,12 +3229,26 @@ function fit(){
  else{for(const k of['position','width','height','left','top','transform','transformOrigin'])wr.style[k]=''}
  wr.style.padding=M.t+'px '+M.r+'px '+M.b+'px '+M.l+'px';
  a.style.width=w+'px';a.style.height=w*9/16+'px';a.style.fontSize=Math.max(6,w/78)+'px'}
-addEventListener('resize',fit);addEventListener('orientationchange',fit);if(window.visualViewport)visualViewport.addEventListener('resize',fit);
-/* bonus: on the first tap of a portrait touch screen try fullscreen and a landscape lock; if the device turns, the window is no longer portrait and the rotation turns itself off */
+/* v1.89: TURN YOUR PHONE SIDEWAYS. On a touch screen held upright (and UPRIGHT PLAY off) a full-screen prompt covers the game and the game waits: frame() skips update(), and
+   every pointer and key event is stopped before it reaches the game. It goes away the moment the window is wider than tall and play resumes exactly where it was. */
+const TURN={on:false};
+const isIOS=()=>{try{return/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}catch(e){return false}};
+function turnSet(v){v=!!v;if(v===TURN.on)return;TURN.on=v;
+ const e=$('turn');if(e){e.classList.toggle('on',v);e.setAttribute('aria-hidden',v?'false':'true')}
+ if(v){ctrl.ptr=false;ctrl.down=false;ctrl.sv=0;ctrl.aim=null;ctrl.kaim=null}} /* a finger that was down when the phone turned is let go */
+for(const ev of['pointerdown','pointermove','pointerup','pointercancel','click','dblclick','touchstart','touchmove','touchend','keydown','keyup','wheel'])
+ addEventListener(ev,e=>{if(!TURN.on)return;if(ev==='pointerup')fsTry();e.stopImmediatePropagation();if(ev!=='pointerup'&&ev!=='pointerdown'&&ev!=='touchstart'&&ev!=='touchend'&&e.cancelable)e.preventDefault()},{capture:true,passive:false});
+const fitSoon=()=>{fit();setTimeout(fit,120);setTimeout(fit,450)}; /* the phone reports its new size a moment after it turns */
+addEventListener('resize',fit);addEventListener('orientationchange',fitSoon);addEventListener('pageshow',fitSoon);addEventListener('focus',fit);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)fitSoon()});
+if(window.visualViewport)visualViewport.addEventListener('resize',fit);
+/* bonus: on the first tap of a portrait touch screen try fullscreen and a landscape lock (Android). v1.89: on an iPhone or iPad only when UPRIGHT PLAY is ON; if the device turns, the window is no longer portrait and the prompt / rotation turns itself off */
 let fsTried=false;
-document.addEventListener('pointerup',()=>{if(!ROT||fsTried)return;fsTried=true;try{const p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(p&&p.then)p.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}},{capture:true});
+function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return;if(isIOS()&&!upOn())return;
+ fsTried=true;try{const p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(p&&p.then)p.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
+document.addEventListener('pointerup',fsTry,{capture:true});
 fit();openMenu();
 requestAnimationFrame(frame);
-window.__pp={glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
+window.__pp={HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
 })();
 </script></body></html>
