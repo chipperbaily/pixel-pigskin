@@ -2,7 +2,15 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pixel Pigskin Football</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#1d2a44">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pixel Pigskin">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>/* font: the copy in the repo on the GitHub Pages site (works offline), Google Fonts everywhere else, as before */
+(function(){var d=document,h=d.head;if(location.hostname==='chipperbaily.github.io'){var s=d.createElement('style');s.textContent="@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/press-start-2p-latin-400-normal.woff2) format('woff2')}";h.appendChild(s)}
+else{var l=d.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap';h.appendChild(l)}})();</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:#070a12;color:#fff;font-family:'Press Start 2P',monospace;overflow:hidden;touch-action:manipulation;user-select:none}
@@ -77,6 +85,24 @@ select{font:inherit;font-size:.7em;padding:.4em;background:#16213a;color:#fff;bo
 #lock .lkc{width:100%;image-rendering:pixelated;background:#2f6b3a;border:.15em solid #000}
 .me{background:#2e4170}.now{color:#ffd400}
 .win{color:#4ee08a}.lose{color:#ff6b6b}
+/* v1.67 standings look */
+#stand{background:#2b66ff;padding:.9em 1.6em;gap:.7em;justify-content:flex-start}
+#stand .sm,#stand p{color:#dbe6ff}
+.sthd{display:flex;align-items:center;justify-content:center;gap:1.1em;font-size:2.1em;line-height:1;color:#fff;letter-spacing:.06em;text-shadow:.1em .1em 0 #1a3fa8}
+.stars{display:flex;gap:.12em}.stars svg{width:.95em;height:.95em}
+.stbody{flex:1;width:100%;min-height:0;display:flex;flex-direction:column;align-items:center;gap:.7em;overflow:auto}.stbody>:first-child{margin-top:auto}.stbody>:last-child{margin-bottom:auto}
+.sdg{display:grid;grid-template-columns:1fr 1fr;gap:1.5em 1.8em;width:100%;max-width:60em;padding-top:.5em}.sdg.one{grid-template-columns:1fr;max-width:34em}
+.sdb{position:relative;border:.2em solid #9db8ff;border-radius:.5em;padding:1.1em .9em .45em;color:#9db8ff;text-align:left;font-size:1em}
+.sdb.hot{border-color:#fff;color:#fff}
+.sdh{position:absolute;top:-.8em;left:.7em;right:.7em;display:grid;align-items:center}
+.sdh .t,.sdh b{background:#2b66ff;font-weight:normal;text-align:center;line-height:1.5}.sdh .t{justify-self:start;padding:0 .4em 0 .2em;text-align:left}
+.sdr{display:grid;align-items:center;padding:.38em 0}.sdr i{font-style:normal;text-align:center}
+.sdr.me{color:#e3e30c;background:none}
+#stand .lst .up{color:#fff}#stand .up.me{background:none;color:#e3e30c}
+.stbar{display:flex;flex-wrap:wrap;gap:.7em;justify-content:center;width:100%}
+.sbtn{font:inherit;font-size:.7em;background:#2b66ff;color:#fff;border:.25em solid #fff;border-radius:.2em;box-shadow:0 .3em 0 #4d4d4d;padding:.75em 1.3em;cursor:pointer}
+.sbtn.on{background:#d3d30b}.sbtn.sq{padding:.55em .8em;display:flex;align-items:center}.sbtn.sq svg{width:1.6em;height:1.4em}
+.sbtn:active{transform:translateY(.15em)}
 </style></head><body>
 <div id="wrap"><div id="app">
 <canvas id="c" width="640" height="360"></canvas>
@@ -96,6 +122,7 @@ select{font:inherit;font-size:.7em;padding:.4em;background:#16213a;color:#fff;bo
  <div class="row" id="mtabs"></div>
  <div id="mbody"></div>
  <div class="row" id="mrot"></div>
+ <div class="row" id="mpwa"></div>
 </div>
 <div class="screen top" id="stand"></div>
 <div class="screen top" id="lock"></div>
@@ -358,11 +385,52 @@ const LG_REAL={
    'PUGET ORCAS','TACOMA TIDES','SPOKANE FALLS','BEND CASCADES','MONTEREY OTTERS','FRESNO RAISINS','IRVINE ORANGES','MALIBU SURF','HILO VOLCANOS','EUREKA REDWOODS',
    'BAYOU BULLFROGS','MOBILE MARINERS','SAVANNAH MOSS','CHARLESTON RICE','MEMPHIS BLUES','TUPELO KINGS','BILOXI SHRIMP','MACON PEACHES','JACKSON JAYS','NAPLES HERONS',
    'TULSA TWISTERS','WICHITA WHEAT','FARGO FROST','SIOUX FALLS FOX','TOPEKA TORNADOS','DODGE BULLS','AMARILLO WINDS','BISMARCK BISON','LINCOLN HUSKS','ENID ENERGY']}};
+/* v1.67: the user's own league, in the division order of their screenshot (EAST, WEST, NORTH, SOUTH); spellings kept as shown */
+LG_REAL.SIFA={fmt:'NFL',league:'SIFA',conf:['SIFA E','SIFA W'],div:['EAST','WEST','NORTH','SOUTH'],names:[
+ 'PAC PANTHERS','GREENVILLE','WILDCATS','JDA','GEORGIA FORCE','TRIBE','GSIC','AUGUSTA EAGLE','PARROT','CARY','ASHEVILLE','FATH','COSTAL','BAKER','BRANDENTON','REAL LIFE',
+ 'EVANGEL','LIGHTHOUSE','FREEDOM','EZEKIEL','MIDSTATE HS','EAST CENTRAL','RIVER OAKS','BENS FORD','SOUTH HAVEN','TN HEAT','TN TIGERS','TRI CITYS','MISS STORM','LAKESIDE','SOUTH TAMPA','SOTHERN']};
+/* [HOME/main, AWAY/secondary]. U = given by the user, V = verified from a school/league source */
+LG_REAL.SIFA.cols=[
+ ['#8b919e','#14285a'], /* U PAC PANTHERS */
+ ['#16161c','#c0262d'], /* U GREENVILLE */
+ ['#5b2a9a','#16161c'], /* U WILDCATS */
+ ['#c0262d','#f4f4f8'], /* U JDA */
+ ['#2a56c6','#16161c'], /* U GEORGIA FORCE */
+ ['#14285a','#f4f4f8'], /* U TRIBE */
+ ['#f4f4f8','#14285a'], /* U GSIC */
+ ['#1f4fa8','#f0b323'], /* V AUGUSTA EAGLE */
+ ['#2a56c6','#c0262d'], /* U PARROT */
+ ['#14285a','#e6b84a'], /* U CARY */
+ ['#1a5a3a','#8b919e'], /* U ASHEVILLE */
+ ['#16161c','#c0262d'], /* U FATH */
+ ['#16161c','#20c5d5'], /* U COSTAL */
+ ['#f0c820','#16161c'], /* U BAKER */
+ ['#14285a','#e8782a'], /* U BRANDENTON */
+ ['#3a3d46','#c0262d'], /* U REAL LIFE */
+ ['#14285a','#b8bcc8'], /* V EVANGEL */
+ ['#5b2a9a','#16161c'], /* U LIGHTHOUSE */
+ ['#14285a','#f4f4f8'], /* U FREEDOM */
+ ['#e0b030','#7a1f2b'], /* U EZEKIEL */
+ ['#2a56c6','#f4f4f8'], /* U MIDSTATE HS */
+ ['#c0262d','#1f3f94'], /* V EAST CENTRAL */
+ ['#b8bcc8','#16161c'], /* U RIVER OAKS */
+ ['#2a56c6','#f0c820'], /* U BENS FORD */
+ ['#c0262d','#14285a'], /* U SOUTH HAVEN */
+ ['#c0262d','#16161c'], /* U TN HEAT */
+ ['#3a3d46','#2a56c6'], /* U TN TIGERS */
+ ['#14285a','#e6b84a'], /* U TRI CITYS */
+ ['#7a1f2b','#16161c'], /* U MISS STORM */
+ ['#14285a','#f4f4f8'], /* U LAKESIDE */
+ ['#8b919e','#e8782a'], /* U SOUTH TAMPA */
+ ['#14285a','#c8302e'] /* V SOTHERN */
+];
 const lgDark=h=>'#'+[1,3,5].map(i=>Math.round(parseInt(h.slice(i,i+2),16)*.5).toString(16).padStart(2,'0')).join('');
-function lgThemed(L){
- const r=LG_REAL[lgCfg(L).id];if(!r||r.names.length!==L.teams.length)return false;
+function lgThemed(L,key){
+ const id=lgCfg(L).id,r=LG_REAL[key||id];if(!r||(r.fmt&&r.fmt!==id)||r.names.length!==L.teams.length)return false;
+ if(r.conf){L.conf=r.conf.slice();L.div=r.div.slice()}
+ if(r.league&&(!L.name||L.name==='PIXEL LEAGUE'))L.name=r.league;
  L.teams.forEach((t,i)=>{t.name=r.names[i];
-  t.col=r.cols?{c:r.cols[i],d:lgDark(r.cols[i])}:lgCol((i*137.508)%360);t.uni=null;t.wd=null});
+  const k=r.cols&&r.cols[i];t.col=k?(Array.isArray(k)?{c:k[0],d:k[1]}:{c:k,d:lgDark(k)}):lgCol((i*137.508)%360);t.two=Array.isArray(k);t.uni=null;t.wd=null});
  return true}
 
 function lgNew(L,me){
@@ -536,26 +604,38 @@ function lgHub(){
 
 /* ----- standings, schedule, playoffs, scores ----- */
 const ST={tab:'c0'};
-function lgOpenStand(){ST.tab=ST.tab||'c0';lgStand();show('stand')}
+function lgOpenStand(){if(!ST.tab||/^c\d+$/.test(ST.tab))ST.tab='c'+LG().teams[LG().me].conf;lgStand();show('stand')}
+/* v1.67: standings look (blue screen, outlined division boxes with W L T, bottom button bar, yellow for my team) */
+const lgR=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+const lgStar=c=>`<svg viewBox="0 0 7 7" shape-rendering="crispEdges" fill="${c}">${lgR(3,0,1,2)+lgR(0,2,7,1)+lgR(1,3,5,1)+lgR(2,4,3,1)+lgR(1,5,2,1)+lgR(4,5,2,1)+lgR(1,6,1,1)+lgR(5,6,1,1)}</svg>`;
+const lgHouse=`<svg viewBox="0 0 9 8" shape-rendering="crispEdges" fill="#fff">${lgR(4,0,1,1)+lgR(3,1,3,1)+lgR(2,2,5,1)+lgR(1,3,7,1)+lgR(0,4,9,1)+lgR(1,5,7,1)+lgR(1,6,2,2)+lgR(6,6,2,2)}</svg>`;
+function lgBox(title,labels,rows,hot,w){
+ const g=`grid-template-columns:1fr repeat(${labels.length},${w||'2.6em'})`;
+ return`<div class="sdb${hot?' hot':''}"><div class="sdh" style="${g}"><span class="t">${title}</span>${labels.map(l=>`<b>${l}</b>`).join('')}</div>`+
+  rows.map(r=>`<div class="sdr${r.me?' me':''}" style="${g}"><span>${r.name}</span>${r.cells.map(c=>`<i>${c}</i>`).join('')}</div>`).join('')+'</div>'}
 function lgStand(){
- const L=LG(),cf=lgCfg(L),col=cf.id==='COL',T=L.teams,rec=x=>x.w+'-'+x.l+(x.t?'-'+x.t:''),tabs=[...L.conf.map((n,i)=>['c'+i,n]),['sc','SCHEDULE'],['po','PLAYOFFS'],['gm','SCORES']];
+ const L=LG(),cf=lgCfg(L),col=cf.id==='COL',T=L.teams,rec=x=>x.w+'-'+x.l+(x.t?'-'+x.t:''),myc=T[L.me].conf;
+ const tabs=[['gm','VIEW'],...L.conf.map((n,i)=>['c'+i,n]),['sc','SCHEDULE'],['po','PLAYOFFS']];
  if(/^c\d+$/.test(ST.tab)&&+ST.tab.slice(1)>=cf.nc)ST.tab='c0';
  let body='';
- const nm=id=>`<span style="color:${T[id].col.c}">&#9632;</span> ${T[id].name}`;
+ const nm=id=>`<span style="color:${T[id].col.c}">&#9632;</span> ${T[id].name}`,nm0=id=>T[id].name;
  if(/^c\d+$/.test(ST.tab)){
   const c=+ST.tab.slice(1);
-  body=`<div class="dvg"${col?' style="grid-template-columns:1fr;max-width:36em"':''}>`+Array.from({length:cf.dv},(_,d)=>{const ids=lgOrder(lgDivIds(c,d,cf));
-   return`<div class="dv"><h4>${cf.dv>1?L.div[d]:L.conf[c]}</h4><table>${ids.map((id,i)=>`<tr class="${id===L.me?'me':''}${i===0?' ld':''}"><td>${nm(id)}</td>${col?`<td>${L.rec[id].cw||0}-${L.rec[id].cl||0}</td>`:''}<td>${rec(L.rec[id])}</td><td>${L.rec[id].pf}</td><td>${L.rec[id].pa}</td></tr>`).join('')}</table></div>`}).join('')+`</div><div class="sm">${col?'CONFERENCE RECORD, OVERALL W-L, POINTS FOR, POINTS AGAINST':'W-L-T, POINTS FOR, POINTS AGAINST'}</div>`}
+  body=`<div class="sdg${col?' one':''}">`+Array.from({length:cf.dv},(_,d)=>{const ids=lgOrder(lgDivIds(c,d,cf));
+   const rows=ids.map(id=>{const r=L.rec[id];return{name:nm0(id),me:id===L.me,cells:col?[(r.cw||0)+'-'+(r.cl||0),r.w,r.l,r.t]:[r.w,r.l,r.t]}});
+   return lgBox(L.conf[c]+(cf.dv>1?' '+L.div[d]:''),col?['CONF','W','L','T']:['W','L','T'],rows,ids.includes(L.me),col?'3.4em':'')}).join('')+'</div>'}
  else if(ST.tab==='sc'){
   body='<div class="lst">'+L.sched.map((_,w)=>{const o=lgOpp(w,L.me),r=(L.res||[])[w];
    return`<div class="up"><b style="width:3.2em">WK ${w+1}</b><span class="sm" style="width:2.2em">${lgHomeWk(w)?'VS':'AT'}</span><span style="flex:1;text-align:left">${nm(o)}</span><span class="sm" style="width:5em">${lgKind(L.me,o).replace('NON-CONFERENCE','NON').slice(0,4)}</span><span class="sm ${r?(r[0]==='W'?'win':r[0]==='L'?'lose':''):''}" style="width:6em;text-align:right">${r||(w===S.week&&S.phase==='reg'&&!S.over?'NEXT':'')}</span></div>`}).join('')+'</div>'}
  else if(ST.tab==='po'){
   if(!L.po)body='<p>THE PLAYOFF SEEDS ARE SET AFTER WEEK '+cf.games+'.<br>'+cf.poTxt+'</p>';
-  else body=`<div class="dvg"${col?' style="grid-template-columns:1fr;max-width:36em"':''}>`+L.po.seeds.map((sd,c)=>`<div class="dv"><h4>${col?'12 TEAM PLAYOFF':L.conf[c]}</h4><table>${sd.map((id,i)=>`<tr class="${id===L.me?'me':''}"><td>${i+1}. ${nm(id)}${col&&(L.po.cc||[]).includes(id)?' <span class="sm">(CONF CHAMP)</span>':''}</td><td>${L.po.alive[c].includes(id)||L.champ===id?'IN':'OUT'}</td></tr>`).join('')}</table></div>`).join('')+'</div>'+(L.champ!=null?`<p style="color:#ffd400">CHAMPION: ${T[L.champ].name}</p>`:`<p>NEXT ROUND: ${L.po.round<4?cf.rnd[L.po.round]:''}</p>`)}
+  else body=`<div class="sdg${col?' one':''}">`+L.po.seeds.map((sd,c)=>lgBox(col?'12 TEAM PLAYOFF':L.conf[c],[''],sd.map((id,i)=>({name:(i+1)+'. '+nm0(id)+(col&&(L.po.cc||[]).includes(id)?' (CC)':''),me:id===L.me,cells:[L.po.alive[c].includes(id)||L.champ===id?'IN':'OUT']})),sd.includes(L.me),'3.2em')).join('')+'</div>'+(L.champ!=null?`<p style="color:#d9d90b">CHAMPION: ${T[L.champ].name}</p>`:`<p>NEXT ROUND: ${L.po.round<4?cf.rnd[L.po.round]:''}</p>`)}
  else{
   if(!L.scores)body='<p>NO GAMES PLAYED YET.</p>';
-  else body=`<div class="sm">WEEK ${L.scores.w} RESULTS</div><div class="lst">`+L.scores.games.map(([a,b,pa,pb])=>`<div class="up ${a===L.me?'me':''}"><span style="flex:1;text-align:left">${nm(a)}</span><b style="width:5em;text-align:center">${pa} - ${pb}</b><span style="flex:1;text-align:right">${nm(b)}</span></div>`).join('')+'</div>'}
- $('stand').innerHTML=`<div class="row">${tabs.map(([k,l])=>`<button class="btn xs ${ST.tab===k?'':'alt'}" data-st="${k}">${l}</button>`).join('')}<button class="btn xs" data-st="back">BACK</button></div>${body}`}
+  else body=`<div class="sm">WEEK ${L.scores.w} RESULTS</div><div class="lst">`+L.scores.games.map(([a,b,pa,pb])=>`<div class="up ${a===L.me||b===L.me?'me':''}"><span style="flex:1;text-align:left">${nm(a)}</span><b style="width:5em;text-align:center">${pa} - ${pb}</b><span style="flex:1;text-align:right">${nm(b)}</span></div>`).join('')+'</div>'}
+ $('stand').innerHTML=`<div class="sthd"><span class="stars">${lgStar('#b3202f')+lgStar('#fff')+lgStar('#3a3a73')}</span><span>LEAGUE</span><span class="stars">${lgStar('#3a3a73')+lgStar('#fff')+lgStar('#b3202f')}</span></div>
+ <div class="stbody">${body}</div>
+ <div class="stbar"><button class="sbtn sq" data-st="back" aria-label="HOME">${lgHouse}</button>${tabs.map(([k,l])=>`<button class="sbtn${ST.tab===k?' on':''}" data-st="${k}">${l}</button>`).join('')}</div>`}
 $('stand').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.st;
  if(k==='back'){if(S.over&&$('season').innerHTML)showSeasonEnd();else renderHub()}else if(k){ST.tab=k;lgStand()}};
 
@@ -569,7 +649,8 @@ function renderHome(){
  $('mtabs').innerHTML=hmTabs.map(([k,l])=>`<button class="btn xs ${HOME.tab===k?'':'alt'}" data-tab="${k}">${l}</button>`).join('');
  const f={lg:hmLeagues,new:hmNew,cz:hmCustom,help:hmHelp}[HOME.tab];$('mbody').innerHTML=f();
  if(HOME.tab==='cz')czDraw()
- $('mrot').innerHTML=coarse()?`<span class="sm">ROTATION:</span><button class="btn xs ${rotPref()===1?'':'alt'}" data-rot="1">AUTO</button><button class="btn xs ${rotPref()===-1?'':'alt'}" data-rot="-1">FLIP</button>`:''}
+ $('mrot').innerHTML=coarse()?`<span class="sm">ROTATION:</span><button class="btn xs ${rotPref()===1?'':'alt'}" data-rot="1">AUTO</button><button class="btn xs ${rotPref()===-1?'':'alt'}" data-rot="-1">FLIP</button>`:''
+ pwaUI()}
 
 /* ----- tab 1: saved leagues ----- */
 function hmLeagues(){
@@ -588,7 +669,7 @@ function hmNew(){
  <div class="sm">${cf.info} PICK YOUR TEAM:</div>
  <div class="dvg">${L.conf.map((_,c)=>conf(c)).join('')}</div>
  <div class="row"><span class="sm" style="color:${t.col.c}">YOU: ${hmEsc(t.name)}</span>
- <button class="btn xs alt" data-act2="reroll">NEW RANDOM TEAMS</button><button class="btn xs alt" data-act2="theme">REAL-STYLE TEAMS</button><button class="btn xs alt" data-act2="cust">CUSTOMIZE</button><button class="btn" data-act2="start">START LEAGUE</button></div>`}
+ <button class="btn xs alt" data-act2="reroll">NEW RANDOM TEAMS</button><button class="btn xs alt" data-act2="theme">REAL-STYLE TEAMS</button>${cf.id==='NFL'?'<button class="btn xs alt" data-act2="sifa">SIFA TEAMS</button>':''}<button class="btn xs alt" data-act2="cust">CUSTOMIZE</button><button class="btn" data-act2="start">START LEAGUE</button></div>`}
 
 /* ----- tab 3: customize (draft league or any saved league) ----- */
 function czTarget(){
@@ -604,13 +685,17 @@ const CZ_C=[['helmet','HELMET'],['jersey','JERSEY'],['pants','PANTS'],['socks','
 const CZ_F={helmet:['shell','stripe','mask','logo'],jersey:['main','trim','number'],pants:['main','stripe'],socks:['main','stripe']};
 /* wardrobe: several helmets, jerseys, pants and socks per team; wd.sel says which one of each is worn */
 function czWd(t){
- if(t.wd)return t.wd;
- const c=t.col,b=t.uni||defaultUni(c),cp=o=>JSON.parse(JSON.stringify(o));
- t.wd={helmet:[Object.assign(cp(b.helmet),{n:'HOME'}),{shell:'#f4f4f8',stripe:c.c,mask:'#cfd3dc',logo:c.c,n:'AWAY'}],
-  jersey:[Object.assign(cp(b.jersey),{n:'HOME'}),{main:'#f4f4f8',trim:c.c,number:c.d,n:'AWAY'}],
-  pants:[Object.assign(cp(b.pants),{n:'HOME'}),{main:c.d,stripe:'#f4f4f8',n:'AWAY'}],
-  socks:[Object.assign(cp(b.socks),{n:'HOME'}),{main:'#f4f4f8',stripe:c.c,n:'AWAY'}],
+ if(t.wd&&!(t.two&&t.wv!==2))return t.wd;
+ const c=t.col,b=t.uni||defaultUni(c),cp=o=>JSON.parse(JSON.stringify(o)),ink=x=>lum(x)>150?'#1a1a22':'#f4f4f8';
+ /* HOME = primary color, AWAY = secondary color (jersey, pants, helmet and socks all follow it) */
+ const hh=Object.assign(cp(b.helmet),{n:'HOME'}),hj=Object.assign(cp(b.jersey),{n:'HOME'}),hp=Object.assign(cp(b.pants),{n:'HOME'});
+ if(t.two){hh.shell=c.c;hh.stripe=c.d;hh.logo=c.d;Object.assign(hj,{main:c.c,trim:c.d,number:ink(c.c)});Object.assign(hp,{main:c.c,stripe:c.d})}
+ t.wd={helmet:[hh,{shell:c.d,stripe:c.c,mask:'#cfd3dc',logo:c.c,n:'AWAY'}],
+  jersey:[hj,{main:c.d,trim:c.c,number:ink(c.d),n:'AWAY'}],
+  pants:[hp,{main:c.d,stripe:c.c,n:'AWAY'}],
+  socks:[Object.assign(cp(b.socks),{n:'HOME'}),{main:c.d,stripe:c.c,n:'AWAY'}],
   sel:{helmet:0,jersey:0,pants:0,socks:0},gloves:b.gloves,shoes:b.shoes};
+ if(t.two)t.wv=2;
  t.uni=null;return t.wd}
 const czCur=(t,k)=>{const w=czWd(t);return w[k][w.sel[k]]};
 function hmCustom(){
@@ -636,7 +721,7 @@ function hmCustom(){
   <div class="up"><b style="width:5.5em">LEAGUE</b><input id="czln" maxlength="16" value="${hmEsc(L.name)}" style="width:100%"></div>
   ${L.conf.map((_,c)=>`<div class="up"><b style="width:5.5em">CONF ${c+1}</b><input data-cn="${c}" maxlength="14" value="${hmEsc(L.conf[c])}" style="width:100%"></div>`).join('')}
   ${(L.div.length>1?L.div:[]).map((_,d)=>`<div class="up"><b style="width:5.5em">DIV ${d+1}</b><input data-dn="${d}" maxlength="10" value="${hmEsc(L.div[d])}" style="width:100%"></div>`).join('')}
-  <div class="row" style="justify-content:flex-start"><button class="btn xs alt" data-cz="theme">REAL-STYLE TEAMS</button><button class="btn xs alt" data-cz="allnames">RANDOM TEAM NAMES</button><button class="btn xs alt" data-cz="allcols">RANDOM COLORS</button></div>
+  <div class="row" style="justify-content:flex-start"><button class="btn xs alt" data-cz="theme">REAL-STYLE TEAMS</button>${lgCfg(L).id==='NFL'?'<button class="btn xs alt" data-cz="sifa">SIFA TEAMS</button>':''}<button class="btn xs alt" data-cz="allnames">RANDOM TEAM NAMES</button><button class="btn xs alt" data-cz="allcols">RANDOM COLORS</button></div>
   ${obj?'<p>SAVED AUTOMATICALLY.</p>':'<p>APPLIES WHEN YOU START THE LEAGUE.</p>'}</div></div>`}
 function czPaint(c,u){
  if(!c)return;const x=c.getContext('2d');
@@ -666,6 +751,7 @@ $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.
  else if(d.act2==='reroll'){const n=$('lgn'),nm0=n?n.value.toUpperCase():hmDraft().name;HOME.drafts[HOME.fmt]=lgMake(nm0,HOME.fmt);renderHome()}
  else if(d.fmt){const n=$('lgn'),nm0=n?n.value.toUpperCase():hmDraft().name;if(d.fmt!==HOME.fmt){HOME.fmt=d.fmt;HOME.pick=0;hmDraft().name=nm0||hmDraft().name}renderHome()}
  else if(d.act2==='theme'){const n=$('lgn');if(n)hmDraft().name=n.value.toUpperCase();lgThemed(hmDraft());renderHome()}
+ else if(d.act2==='sifa'){const n=$('lgn');if(n)hmDraft().name=n.value.toUpperCase();lgThemed(hmDraft(),'SIFA');HOME.pick=0;renderHome()}
  else if(d.act2==='cust'){const n=$('lgn');if(n)hmDraft().name=n.value.toUpperCase();HOME.cz={src:'draft',team:HOME.pick};HOME.tab='cz';renderHome()}
  else if(d.act2==='start')hmStart();
  else if(d.cz){const{L,obj}=czTarget(),t=L.teams[HOME.cz.team];
@@ -673,6 +759,7 @@ $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.
   else if(d.cz==='rcol'){t.col=lgCol(rnd(0,360));t.uni=null;t.wd=null}
   else if(d.cz==='runi'){t.uni=null;t.wd=null}
   else if(d.cz==='theme'){lgThemed(L)}
+  else if(d.cz==='sifa'){lgThemed(L,'SIFA')}
   else if(d.cz==='allnames'){lgRollNames(L.teams.length).forEach((n,i)=>L.teams[i].name=n)}
   else if(d.cz==='allcols'){const h=shuffle(Array.from({length:L.teams.length},(_,i)=>(i*137.508)%360));L.teams.forEach((x,i)=>{x.col=lgCol(h[i]);x.uni=null;x.wd=null})}
   czSave(obj);resetSprites();renderHome()}
@@ -710,7 +797,8 @@ function lkSide(t,who){
  `<div class="row" style="margin-top:.5em"><button class="btn xs alt" data-lk="edit:${t.id}">EDIT TEAM</button></div></div>`}
 function openLocker(){
  const L=S.lg,t=L.teams[L.me],o=lgNextOpp(),ot=L.teams[o.id];
- if(!ot.wd&&!ot.uni){czWd(ot);ot.wd.sel.pants=1} /* keep the old away look (dark pants) until it is changed */
+ const wsel=(x,v)=>{if(!x.wd&&!x.uni){czWd(x);const s=x.wd.sel;s.helmet=s.jersey=s.pants=s.socks=v}}; /* first look at a team: HOME (primary) set at home, AWAY (secondary) set on the road */
+ wsel(ot,o.home===false?0:1);wsel(t,o.home===false?1:0);
  $('lock').innerHTML=`<h1 class="mh">LOCKER ROOM</h1><div class="sm">${lgLabel()} ${o.home===false?'AT':'VS'} ${hmEsc(o.name)} - ${siteTxt(o.home)}</div>
  <div class="czg2">${lkSide(t,'YOU')}${lkSide(ot,'OPPONENT')}</div>
  <div class="row"><button class="btn" data-lk="go">KICK OFF</button><button class="btn xs alt" data-lk="back">BACK</button></div>`;
@@ -720,6 +808,25 @@ $('lock').onclick=e=>{const b=e.target.closest('button');if(!b)return;const v=b.
  else if(v){const p=v.split(':');
   if(p[0]==='edit'){save();HOME.cz={src:S.id,team:+p[1],cat:'helmet'};HOME.ret=true;HOME.tab='cz';renderHome();show('menu')}
   else{const t=S.lg.teams[+p[0]],wd=czWd(t),k=p[1],n=wd[k].length;wd.sel[k]=(wd.sel[k]+ +p[2]+n)%n;save();resetSprites();openLocker()}}};
+/* ----- installable web app (PWA). Everything here is skipped unless the page is served from chipperbaily.github.io ----- */
+const PWA_ON=location.hostname==='chipperbaily.github.io',PWA_KEY='pixelPigskin.iosTipDismissed';
+let pwaEv=null;
+const pwaStandalone=()=>{try{return navigator.standalone===true||matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches}catch(e){return false}};
+const pwaIOS=()=>{try{return/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}catch(e){return false}};
+const pwaDismissed=()=>{try{return localStorage.getItem(PWA_KEY)==='1'}catch(e){return false}};
+function pwaUI(){
+ const el=$('mpwa');if(!el)return;
+ if(!PWA_ON||pwaStandalone()){el.innerHTML='';return}
+ if(pwaEv)el.innerHTML='<button class="btn xs" data-pwa="install">INSTALL</button>';
+ else if(pwaIOS()&&!pwaDismissed())el.innerHTML='<span class="sm">TO INSTALL: TAP SHARE, THEN ADD TO HOME SCREEN.</span><button class="btn xs alt" data-pwa="close">X</button>';
+ else el.innerHTML=''}
+if(PWA_ON){
+ addEventListener('beforeinstallprompt',e=>{e.preventDefault();pwaEv=e;pwaUI()});
+ addEventListener('appinstalled',()=>{pwaEv=null;pwaUI()});
+ if('serviceWorker'in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
+ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-pwa]');if(!b)return;
+  if(b.dataset.pwa==='close'){try{localStorage.setItem(PWA_KEY,'1')}catch(x){}pwaUI()}
+  else if(b.dataset.pwa==='install'&&pwaEv){const ev=pwaEv;pwaEv=null;pwaUI();try{ev.prompt()}catch(x){}}})}
 
 /* ---------- game setup ---------- */
 const cam={x:0},ctrl={dir:0,ptr:false,ty:20};

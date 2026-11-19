@@ -1,0 +1,16 @@
+{
+  "name": "Pixel Pigskin Football",
+  "short_name": "Pixel Pigskin",
+  "description": "Retro pixel-art football with leagues, playoffs and customizable teams.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "theme_color": "#1d2a44",
+  "background_color": "#070a12",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
