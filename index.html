@@ -194,7 +194,7 @@ html{background:#070a12}
 /* ===== v2.00 UI step 1: menu screens (only while #app has the class mn, set by fit() when show() put up a menu screen). Sizes come from the tokens, not from the 16:9 box. ===== */
 #app.mn{font-size:var(--mb);box-shadow:none}
 .ovp{font-size:var(--mb)}
-#app.mn #c{visibility:hidden}
+#app.mn #c,#app.mn #cfg,#app.mn #ctp{visibility:hidden}
 :is(#app.mn .screen,.ovp) *{font-size:var(--t1)}
 :is(#app.mn .screen,.ovp){padding:var(--s4);gap:var(--s3);line-height:1.5}
 :is(#app.mn .screen.top,.ovp.top){padding:var(--s4);gap:var(--s3)}
@@ -403,7 +403,8 @@ html{background:#070a12}
 /* ===== v2.06 UI step 6 part A: the game screen. The field fills the window under a short DOM banner (score, clock, PAUSE, down and distance); one big corner button on the offense's side; the PLAYS and PAUSE sheets. Atkinson Hyperlegible (latin 400 and 700, embedded above). All of it sits inside the safe areas (--pt --pr --pb --pl set by fit()). Not for menus (#app.mn) or the designer. ===== */
 #app.gm{box-shadow:none;font-size:16px;background:#000;--k:.9;--kb:1;--bh:31px;--pt:0px;--pr:0px;--pb:0px;--pl:0px;--pbg:rgba(8,13,28,.93);--tx1:#fff;--lab:#a9b9e6;--y:#ffd400;--bt:#ffd400;--btx:#10142a;--bb:#1a2547;--bbx:#fff}
 #app:not(.gm) :is(#gh,#bPlay,#gpl,#gpz,#lvtag,#pbp){display:none!important}
-#app.gm #c{position:absolute;left:0;top:var(--ct,var(--bh));width:100%;height:var(--ch,calc(100% - var(--bh)))}
+#app.gm #c,#app.gm #cfg,#app.gm #ctp{position:absolute;left:0;top:var(--ct,var(--bh));width:100%;height:var(--ch,calc(100% - var(--bh)))}
+#cbg{display:none;pointer-events:none}#app.gm #cbg{display:block;position:absolute;left:0;width:100%}#cfg,#ctp{pointer-events:none}#cfg{image-rendering:auto}#app:not(.gm) #cfg,#app:not(.gm) #ctp{display:none}
 .gh,.gh *,#bPlay,.shb,.shb *{font-family:'Atk',sans-serif;font-weight:700;letter-spacing:0}
 .gh{position:absolute;left:0;right:0;top:0;height:var(--bh);display:flex;align-items:center;justify-content:space-between;gap:calc(10px*var(--k));padding:var(--pt) calc(var(--pr) + 8px) 0 calc(var(--pl) + 8px);background:var(--pbg);color:var(--tx1);font-size:calc(18px*var(--k))}
 .gh.u1{box-shadow:inset 0 -3px 0 #ffb52e}.gh.u2{box-shadow:inset 0 -3px 0 #ff5a5a}
@@ -482,7 +483,7 @@ html{background:#070a12}
 @media (prefers-reduced-motion:reduce){#pbp .ys .yb,#pbp .ys .dm{transition:none}}
 </style></head><body>
 <div id="wrap"><div id="app">
-<canvas id="c" width="640" height="360"></canvas>
+<canvas id="cbg" width="1" height="1" aria-hidden="true"></canvas><canvas id="c" width="640" height="360"></canvas><canvas id="cfg" width="1" height="1" aria-hidden="true"></canvas><canvas id="ctp" width="640" height="360" aria-hidden="true"></canvas>
 <div id="gh" class="gh" aria-label="Scoreboard"><div class="bsc"><i class="ch" id="ghc1"></i><span class="ab" id="gha1"></span><span class="n us" id="ghs1">0</span><i class="ch" id="ghc2"></i><span class="ab" id="gha2"></span><span class="n" id="ghs2">0</span></div><div class="bmid"><div class="bck" id="ghck"><span class="lab" id="ghq">Q1</span><span class="t" id="ght">0:00</span><i class="dot off" id="ghdot" title="Clock"></i></div><button class="bt pz" id="bPause" aria-label="Pause menu" title="PAUSE"><i></i><i></i></button></div><div class="bdn"><span class="dd" id="ghdd"></span></div></div>
 <button class="bt p big hide" id="bPlay">PLAYS</button><div id="lvtag" aria-label="Live view">LIVE</div>
 <div class="shb" id="gpl"></div><div class="shb" id="gpz"></div><div id="pbp" aria-label="Their drive"></div>
@@ -518,7 +519,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="2.16"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.20"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -537,7 +538,9 @@ function errPush(msg,ln,col,dedupe){try{
 try{addEventListener('error',e=>{try{errPush(e&&e.message,e&&e.lineno,e&&e.colno)}catch(x){}});
  addEventListener('unhandledrejection',e=>{try{const r=e&&e.reason;let s=r&&r.message!=null?r.message:r;if(typeof s!=='string'){try{s=JSON.stringify(s)}catch(x){s=String(s)}}const l=errLoc(r);errPush(s,l[0],l[1])}catch(x){}})}catch(x){}
 const $=id=>document.getElementById(id);
-const cv=$('c'),cx=cv.getContext('2d');cx.imageSmoothingEnabled=false; /* v1.60: rotated tackle poses stay crisp */
+const cv=$('c'),LOWX=cv.getContext('2d');let cx=LOWX;cx.imageSmoothingEnabled=false; /* v2.18: cx is the drawing context the helpers use; render() points it at the field canvas (#c), the figure layer (#cfg, screen resolution) or the top layer (#ctp: text and banners) */
+const cvB=$('cbg'),BX=cvB&&cvB.getContext?cvB.getContext('2d'):null; /* v2.19: the park backdrop canvas, behind #c */
+const cvF=$('cfg'),cvT=$('ctp'),FX=cvF&&cvF.getContext?cvF.getContext('2d'):null,TX=cvT&&cvT.getContext?cvT.getContext('2d'):null; /* v1.60: rotated tackle poses stay crisp */
 let W=640,H=360,VW=640/12,HR=0;const PPY=12,FT=58,FB=316,UNIT=(FB-FT)/40; /* v2.06: W, H, VW are the canvas's logical size and change with the screen (fit() in p4.js); the designer keeps 640x360 */
 const rnd=(a,b)=>a+Math.random()*(b-a),ri=(a,b)=>Math.floor(rnd(a,b+1)),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -1990,8 +1993,31 @@ function afSet(v){if(!afLoaded)afLoad();afCur=v?1:0;
  try{localStorage.setItem(AF_KEY,JSON.stringify({v:1,on:afCur}))}catch(e){}
  afSync()}
 document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-af]');if(b)afSet(b.dataset.af==='1')}catch(x){}});
-const stGroup=()=>`<div class="stg"><div class="sm stt">SETTINGS</div>${spdRow()}${dcRow()}${dtRow()}${upRow()}${afRow()}</div>`;
-const stSync=()=>{spdSync();dcSync();dtSync();upSync();afSync()};
+/* ----- FIELD LOOK, v2.17. A per-device preference: localStorage 'pixelPigskin.fieldlook' = {v:1,look:0|1|2} (0 CLEAN, 1 WORN, 2 WORN + PANTHER HEAD); default CLEAN; missing or unreadable = CLEAN; blocked storage keeps it in memory; never in a save, backup, export, cloud copy or report. The field picture (p4.js) rebuilds itself when the look changes. ----- */
+const FL_KEY='pixelPigskin.fieldlook',FL_NAMES=['CLEAN','WORN','WORN + PANTHER HEAD'];let flCur=0,flLoaded=false;
+function flLoad(){flLoaded=true;try{const o=JSON.parse(localStorage.getItem(FL_KEY)||'null');if(o&&o.v===1&&(o.look===0||o.look===1||o.look===2))flCur=o.look}catch(e){}}
+function flGet(){if(!flLoaded)flLoad();return flCur}
+function flRow(){const k=flGet();
+ return stRow('flw','FIELD LOOK',FL_NAMES.map((n,i)=>`<button class="btn xs ${i===k?'':'alt'}" data-fl="${i}" aria-pressed="${i===k}">${n}</button>`).join(''),'THE FIELD YOU PLAY ON. CLEAN IS THE NORMAL TURF. WORN ADDS WORN GRASS DOWN THE MIDDLE AND ALONG THE SIDELINES. THE LAST ONE ALSO PUTS A FADED PANTHER HEAD AT MIDFIELD. TAKES EFFECT AT ONCE.')}
+function flSync(){try{const k=flGet();document.querySelectorAll('.flw [data-fl]').forEach(b=>{const v=+b.dataset.fl===k;b.classList.toggle('alt',!v);b.setAttribute('aria-pressed',v?'true':'false')})}catch(e){}}
+function flSet(v){if(!flLoaded)flLoad();flCur=v===1||v===2?v:0;
+ try{localStorage.setItem(FL_KEY,JSON.stringify({v:1,look:flCur}))}catch(e){}
+ flSync()}
+document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-fl]');if(b)flSet(+b.dataset.fl)}catch(x){}});
+/* ----- PARK VIEW, v2.20. A per-device preference in localStorage 'pixelPigskin.parkview' = {v:1,on:0|1}. Default ON (a short zoomed-out look at the park before the game and when the ball changes hands, p4.js). Missing, unreadable or unknown = ON.
+   If storage is blocked or full the choice stays in memory. Never part of a save, backup code, export, cloud copy or report. It only changes what is drawn and how long the game waits: G is not touched. ----- */
+const PV_KEY='pixelPigskin.parkview';let pvCur=1,pvLoaded=false;
+function pvLoad(){pvLoaded=true;try{const o=JSON.parse(localStorage.getItem(PV_KEY)||'null');if(o&&o.v===1&&(o.on===0||o.on===1))pvCur=o.on}catch(e){}}
+function pvIsOn(){if(!pvLoaded)pvLoad();return pvCur===1}
+function pvRow(){const on=pvIsOn();
+ return stRow('pvw','PARK VIEW',[[0,'OFF'],[1,'ON']].map(x=>`<button class="btn xs ${(x[0]===1)===on?'':'alt'}" data-pv="${x[0]}" aria-pressed="${(x[0]===1)===on}">${x[1]}</button>`).join(''),'WHEN ON, A SHORT ZOOMED-OUT LOOK AT THE PARK PLAYS BEFORE THE GAME AND WHEN THE BALL CHANGES HANDS. TAP TO SKIP IT. THE CLOCK WAITS. TAKES EFFECT AT ONCE.')}
+function pvSync(){try{const on=pvIsOn();document.querySelectorAll('.pvw [data-pv]').forEach(b=>{const v=b.dataset.pv==='1'===on;b.classList.toggle('alt',!v);b.setAttribute('aria-pressed',v?'true':'false')})}catch(e){}}
+function pvSet(v){if(!pvLoaded)pvLoad();pvCur=v?1:0;
+ try{localStorage.setItem(PV_KEY,JSON.stringify({v:1,on:pvCur}))}catch(e){}
+ pvSync()}
+document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-pv]');if(b)pvSet(b.dataset.pv==='1')}catch(x){}});
+const stGroup=()=>`<div class="stg"><div class="sm stt">SETTINGS</div>${spdRow()}${dcRow()}${dtRow()}${upRow()}${afRow()}${flRow()}${pvRow()}</div>`;
+const stSync=()=>{spdSync();dcSync();dtSync();upSync();afSync();flSync();pvSync()};
 /* ----- the ? overlay ----- */
 const HP={on:false};
 const HP_TEXT=`<div class="hpt"><h1 class="mh">HOW TO PLAY</h1>
@@ -2952,7 +2978,8 @@ function startGame(){
   st:{att:0,comp:0,pyd:0,ryd:0,to:0,ints:0,sacks:0,fdn:0,ptd:0,rtd:0,xp:[0,0],fg:[0,0],tp:[0,0]},qs:{me:[0,0,0,0,0],op:[0,0,0,0,0]},pl:{},ost:{dr:0,pl:0,yd:0,td:0,fg:0,to:0,pt:0},half:false,first:Math.random()<.5?'me':'opp',bp:{x:25,y:20,z:0}}; /* v1.48: coin toss, random who gets the ball first */
  if(S.lg){const _t=S.lg.teams[S.lg.me];S.uni=lgUni(_t)||defaultUni(_t.col)}else if(!S.uni)S.uni=defaultUni(myC());G.opp.uni=G.opp.uni||defaultUni(G.oc,true);unisSet();
  FLIP=S.flip!==false; /* v1.54: drive left is the default */show(null);formation();cam.x=camTarget();
- showBanner(G.label+' - '+siteTxt(home),(home===false?'AT ':'VS ')+o.name,1.6,()=>G.first==='me'?showBanner('COIN TOSS','YOU RECEIVE THE OPENING KICK',1.4,()=>showBanner('YOUR BALL','OWN 25',.9,setPresnap),'#ffd400'):showBanner('COIN TOSS',o.name+' RECEIVE THE OPENING KICK',1.8,()=>oppPossession(25),G.oc.c))}
+ PS.openG=G.first==='opp'?G:null; /* v2.20: the park shot before the opening kickoff (p4.js); a game that starts on defense does not get a second one at its first opponent drive */
+ parkRun(()=>showBanner(G.label+' - '+siteTxt(home),(home===false?'AT ':'VS ')+o.name,1.6,()=>G.first==='me'?showBanner('COIN TOSS','YOU RECEIVE THE OPENING KICK',1.4,()=>showBanner('YOUR BALL','OWN 25',.9,setPresnap),'#ffd400'):showBanner('COIN TOSS',o.name+' RECEIVE THE OPENING KICK',1.8,()=>oppPossession(25),G.oc.c)))}
 /* v2.02: the pre-snap line alignment in one table (yards from the line of scrimmage, field y 0-40), read by formation() and by the defense cards (dc.js). Same numbers as before. */
 const FM={ol:[14,17,20,23,26],olx:-1,qb:[-5,20],dl:[12,18,22,28],dlx:1.3,rc:[[-1,5],[-1,35],[-1.2,28],[-5,15.5],[-1,11]]};
 function formation(){
@@ -3514,7 +3541,7 @@ function oppPossession(start){
  if(dcIsOn()){dcAsk(start);return} /* v1.83: CALL YOUR DEFENSE (setting ON) asks first, then oppDrive rolls the drive */
  oppDrive(start,null)}
 function oppDrive(start,call){
- G.poss='opp';const s=simOpp(start,call);{const o2=G.ost;o2.dr++;o2.pl+=s.plays;o2.yd+=s.yd;if(s.kind==='td')o2.td++;else if(s.kind==='fg')o2.fg++;else if(s.kind==='to')o2.to++;else if(s.kind==='pt')o2.pt++}
+ G.poss='opp';const pk0=PS.openG===G;PS.openG=null;const s=simOpp(start,call);{const o2=G.ost;o2.dr++;o2.pl+=s.plays;o2.yd+=s.yd;if(s.kind==='td')o2.td++;else if(s.kind==='fg')o2.fg++;else if(s.kind==='to')o2.to++;else if(s.kind==='pt')o2.pt++}
  const after=()=>{
   G.clock=Math.max(0,G.clock-s.time);if(s.pts)addSc('op',s.pts);if(s.pts)sfx('bad');
   if(G.ot&&s.pts>0){endGame();return}
@@ -3522,7 +3549,9 @@ function oppDrive(start,call){
   startMyDrive(s.next)};
  /* v2.15: with PLAY DETAIL ON the drive is shown as a quick play-by-play (about 2 s); otherwise, and if anything goes wrong, the 2.7 s banner as before. Either way `after` does exactly what it did. */
  let shown=false;if(pbpWant(s)){try{shown=pbpShow(s,after)}catch(e){try{pbpClear()}catch(x){}}}
- if(!shown)showBanner('OPPONENT DRIVE',call?s.text+'\n'+dcLine(call):s.text,2.7,after,G.oc.c)}
+ if(!shown){const go=()=>showBanner('OPPONENT DRIVE',call?s.text+'\n'+dcLine(call):s.text,2.7,after,G.oc.c);
+  /* v2.20: the park shot comes before this banner. When the play-by-play screen shows instead (above) there is no shot here: that screen covers the change of possession, and the shot runs after it, at startMyDrive. The opening drive of a game that starts on defense already had its shot (PS.openG). */
+  if(pk0)go();else parkRun(go)}}
 /* ---------- v2.15 PLAY-BY-PLAY: the opponent's drive as a quick list (a DOM overlay over the game screen; the numbers are simOpp's, it only shows them) ----------
    Shown only with PLAY DETAIL ON (hp.js), never online (olHand does not come here), never with window.__PBPOFF. PBP_MS = the whole screen in ms.
    Timing: n lines, one every step = clamp(PBP_MS*.75/n, 90, 300) ms, then the result stays max(300, PBP_MS-step*n) ms. SKIP or a tap jumps to the end (0.4 s hold);
@@ -3599,7 +3628,7 @@ function pbpWatch(){ /* left the game, or something else took over: remove the s
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&PBP.on)pbpGo()})})(); /* a hidden page: carry on at once (timers can be throttled), never stuck */
 function startMyDrive(x){
  G.los=x;G.down=1;G.fd=Math.min(100,x+10);formation();G.poss='me';
- showBanner('YOUR BALL','OWN '+x,.9,setPresnap)}
+ parkRun(()=>showBanner('YOUR BALL','OWN '+x,.9,setPresnap))} /* v2.20: the park shot, then the banner */
 function timeUp(){if(G.me===G.op&&!G.ot)startOT();else endGame()}
 function startOT(){if(OL.on&&olOT())return;G.ot=true;G.clock=60;G.los=25;G.down=1;G.fd=35;formation();showBanner('OVERTIME!','SUDDEN DEATH - YOU GET THE BALL',2.4,setPresnap,'#ffd400')}
 
@@ -3730,7 +3759,7 @@ function defaultUni(c,away){
 function dress(e,side,i){
  const n=NUMS[e.k]||[0];e.side=side;e.num=n[i%n.length];e.tone=(e.k.charCodeAt(0)+i*5+(side==='me'?1:2))%3}
 const spriteCache={};
-function resetSprites(){for(const k in spriteCache)delete spriteCache[k];dcCacheClear()}
+function resetSprites(){for(const k in spriteCache)delete spriteCache[k];if(typeof FIG!=='undefined')FIG.bmp={};dcCacheClear()}
 function spriteGrid(u,tone,frame,num,kind){
  const P=1,w=SW+2,h=SH+2,g=Array.from({length:h},()=>Array(w).fill(null)),sk=SK[tone%3];
  const put=(x,y,c)=>{if(c&&x>=0&&x<SW&&y>=0&&y<SH)g[y+P][x+P]=c};
@@ -3796,6 +3825,80 @@ function getSprite(e,frame,face){
  c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const col=g[j][i];if(col){x.fillStyle=col;x.fillRect(face>0?i:w-1-i,j,1,1)}}
  return spriteCache[key]=c}
+
+/* ---------- v2.18: SMOOTH SIDE-VIEW FIGURES (the owner's pick from the sprite mock-up) ----------
+   Players are drawn at the screen's own resolution on their own canvas layer (#cfg, FIG.R device pixels per game unit), no pixel grid, from a small skeleton (feet, shins, thighs, torso, arms, helmet).
+   Each (side, skin tone, pose, run frame, facing) is drawn ONCE into a bitmap at the current scale and reused; resetSprites() and a resize/zoom (FIG.R changes) remake them. Nothing rebuilds the skeleton per frame.
+   Size is one constant: SPR_SCALE = 1.15 (115% of the old 12x18 sprite; the owner chose it, v2.18). The old 12x18 pixel sprites (getSprite, spriteGrid) stay for the play designer and the menu previews.
+   Outline = SOFT: each part gets a darker shade of its OWN color (shK(col,.5), multiplicative: this is NOT the lightening shade() above). Poses: 'stand', 'ready' (2-point), 'p3' (3-point), 'run' with 8 frames. */
+const SPR_SCALE=1.15;
+const FIG={R:1,dirty:false,n:0,bmp:{}};
+const FG_W=22,FG_H=24,FG_AX=11,FG_AY=22; /* bitmap box in game units; the feet centre sits at (AX,AY) */
+const shK=(h,k)=>{const n=parseInt(hx6(h).slice(1),16),f=v=>Math.max(0,Math.min(255,Math.round(v*k)));return'#'+[(n>>16)&255,(n>>8)&255,n&255].map(f).map(v=>v.toString(16).padStart(2,'0')).join('')};
+const FG_L1=3.7,FG_L2=3.5,FG_TORSO=4.4,FG_UA=2.9,FG_FA=2.6;
+const FG_POSES={
+ stand:{lean:.14,hd:.02,tilt:0,legs:[[.24,.1],[-.2,.08]],arms:[[.10,.30],[-.10,.05]]},
+ ready:{lean:.55,hd:.30,tilt:0,legs:[[.85,1.05],[.15,.55]],arms:[[.75,1.35],[.45,1.15]]},
+ p3:{lean:1.18,hd:.62,tilt:-.28,legs:[[.95,1.18],[-.30,.32]],arms:[[.30,.70],[.15,1.05]]}};
+function fgRun(ph){
+ const p=ph*Math.PI*2,legs=[],arms=[];
+ for(let i=0;i<2;i++){const q=p+i*Math.PI;legs.push([.85*Math.cos(q),.25+1.0*Math.max(0,-Math.sin(q))])}
+ for(let i=0;i<2;i++){const q=p+i*Math.PI,u=-.9*Math.cos(q)+.1;arms.push([u,u+1.15])}
+ return{lean:.24,hd:.12,tilt:0,legs,arms,lift:.9*(1-Math.abs(Math.cos(p)))}}
+function fgSolve(kind,ph){
+ const P=kind==='run'?fgRun(ph):FG_POSES[kind],hip={x:0,y:0},sh={x:FG_TORSO*Math.sin(P.lean),y:-FG_TORSO*Math.cos(P.lean)},hd=P.hd,head={x:sh.x+2.5*Math.sin(hd),y:sh.y-2.5*Math.cos(hd)};
+ const legs=P.legs.map(([a,b])=>{const k={x:FG_L1*Math.sin(a),y:FG_L1*Math.cos(a)},bb=a-b,an={x:k.x+FG_L2*Math.sin(bb),y:k.y+FG_L2*Math.cos(bb)};
+  const t=Math.max(-.2,Math.min(.75,-bb*.5)),heel={x:an.x-.9*Math.cos(t),y:an.y-.9*Math.sin(t)+.2},toe={x:an.x+1.9*Math.cos(t),y:an.y+1.9*Math.sin(t)+.2};return{k,an,heel,toe}});
+ const arms=P.arms.map(([u,f])=>{const e={x:sh.x+FG_UA*Math.sin(u),y:sh.y+FG_UA*Math.cos(u)};return{e,w:{x:e.x+FG_FA*Math.sin(f),y:e.y+FG_FA*Math.cos(f)}}});
+ let low=-1e9,minx=1e9,maxx=-1e9;const pts=[hip,sh,head,{x:head.x+3.4,y:head.y},{x:head.x-3.2,y:head.y}];
+ legs.forEach(l=>{pts.push(l.k,l.an,l.heel,l.toe);low=Math.max(low,l.heel.y+.5,l.toe.y+.5)});arms.forEach(a=>{pts.push(a.e,a.w)});
+ pts.forEach(p=>{minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x)});
+ return{P,hip,sh,head,legs,arms,tx:-(minx+maxx)/2,ty:-low-(P.lift||0),tilt:P.tilt||0}}
+function fgPal(u,tone){const H=hx6(u.helmet.shell),J=hx6(u.jersey.main),P=hx6(u.pants.main),S=hx6(u.socks.main),T=hx6(u.jersey.trim),G=hx6(u.gloves||u.jersey.trim);
+ return{J,jl:shK(J,1.2),jk:shK(J,.76),P,pk:shK(P,.72),q:hx6(u.pants.stripe),S,sk:shK(S,.8),c:hx6(u.socks.stripe),H,hl:shK(H,1.16),hk:shK(H,.76),w:hx6(u.helmet.stripe),m:hx6(u.helmet.mask),skin:tone,skd:shK(tone,.8),g:G,gk:shK(G,.78),b:hx6(u.shoes),e:'#1a1a1a'}}
+function fgCirc(c,x,y,r,col,ol){if(ol){c.beginPath();c.arc(x,y,r,0,7);c.lineWidth=ol.w*2;c.strokeStyle=ol.col(col);c.stroke()}c.beginPath();c.arc(x,y,r,0,7);c.fillStyle=col;c.fill()}
+function fgLimb(c,a,b,wa,wb,col,ol){
+ const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;
+ const quad=()=>{c.beginPath();c.moveTo(a.x+nx*wa/2,a.y+ny*wa/2);c.lineTo(b.x+nx*wb/2,b.y+ny*wb/2);c.lineTo(b.x-nx*wb/2,b.y-ny*wb/2);c.lineTo(a.x-nx*wa/2,a.y-ny*wa/2);c.closePath()};
+ if(ol){c.strokeStyle=ol.col(col);c.lineWidth=ol.w*2;c.lineJoin='round';quad();c.stroke();c.beginPath();c.arc(a.x,a.y,wa/2,0,7);c.stroke();c.beginPath();c.arc(b.x,b.y,wb/2,0,7);c.stroke()}
+ c.fillStyle=col;quad();c.fill();c.beginPath();c.arc(a.x,a.y,wa/2,0,7);c.fill();c.beginPath();c.arc(b.x,b.y,wb/2,0,7);c.fill()}
+const fgFrac=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+function fgLeg(c,l,hip,pl,far,ol){
+ const T=far?pl.pk:pl.P,Sk=far?pl.sk:pl.S;
+ fgLimb(c,l.an,l.k,2.1,2.4,Sk,ol);
+ const m=fgFrac(l.k,l.an,.32);fgLimb(c,{x:m.x,y:m.y},{x:m.x+(l.an.x-l.k.x)*.1,y:m.y+(l.an.y-l.k.y)*.1},2.2,2.2,pl.c,null);
+ fgLimb(c,l.heel,l.toe,1.7,1.5,pl.b,ol);
+ fgLimb(c,hip,l.k,3.4,2.9,T,ol);
+ if(!far)fgLimb(c,fgFrac(hip,l.k,.12),fgFrac(hip,l.k,.92),.8,.8,pl.q,null)}
+function fgArm(c,sh,a,pl,far,ol){
+ fgLimb(c,sh,a.e,1.9,1.7,far?pl.jk:pl.J,ol);fgLimb(c,a.e,a.w,1.5,1.3,far?pl.skd:pl.skin,ol);fgCirc(c,a.w.x,a.w.y,.95,far?pl.gk:pl.g,ol)}
+function fgDraw(c,S,pl,ol){
+ c.save();c.translate(S.tx,S.ty);c.lineJoin='round';
+ fgArm(c,S.sh,S.arms[1],pl,true,ol);fgLeg(c,S.legs[1],S.hip,pl,true,ol);
+ fgLimb(c,S.hip,S.sh,4.0,5.2,pl.J,ol);fgLimb(c,fgFrac(S.hip,S.sh,.3),fgFrac(S.hip,S.sh,.85),1.2,1.7,pl.jl,null);
+ fgCirc(c,S.hip.x,S.hip.y,2.0,pl.P,null);fgLeg(c,S.legs[0],S.hip,pl,false,ol);
+ fgCirc(c,S.sh.x,S.sh.y+.3,2.7,pl.J,ol);fgLimb(c,S.sh,S.head,1.8,1.8,pl.skd,ol);
+ c.save();c.translate(S.head.x,S.head.y);c.rotate(S.tilt);
+ const H=pl.H;
+ if(ol){c.beginPath();c.ellipse(0,0,3.0,2.7,0,0,7);c.lineWidth=ol.w*2;c.strokeStyle=ol.col(H);c.stroke()}
+ c.beginPath();c.ellipse(0,0,3.0,2.7,0,0,7);c.fillStyle=H;c.fill();
+ c.beginPath();c.ellipse(-.8,.55,2.1,1.9,0,0,7);c.fillStyle=pl.hk;c.fill();
+ c.beginPath();c.ellipse(-.6,-1.1,1.3,.8,0,0,7);c.fillStyle=pl.hl;c.fill();
+ c.beginPath();c.ellipse(0,0,2.3,2.0,0,Math.PI*1.1,Math.PI*1.9);c.lineWidth=.7;c.strokeStyle=pl.w;c.stroke();
+ c.beginPath();c.ellipse(1.55,.9,1.3,1.1,0,0,7);c.fillStyle=pl.skin;c.fill();
+ c.beginPath();c.arc(1.75,.7,.32,0,7);c.fillStyle=pl.e;c.fill();
+ c.beginPath();c.moveTo(1.7,-.35);c.lineTo(3.1,.6);c.lineTo(3.0,2.1);c.lineTo(1.4,2.2);c.moveTo(1.5,1.05);c.lineTo(3.05,1.15);c.lineWidth=.55;c.strokeStyle=pl.m;c.stroke();
+ c.beginPath();c.arc(-.7,.5,.42,0,7);c.fillStyle=pl.e;c.fill();
+ c.restore();
+ fgArm(c,S.sh,S.arms[0],pl,false,ol);c.restore()}
+const FG_OL={w:.45,col:c=>shK(c,.5)};
+/* the figure bitmap for one entity in one pose: {c: canvas, ax, ay: feet centre in bitmap pixels}. pose: stand|ready|p3|run; ph: 0..1 run phase (8 frames: 0, 1/8 ... 7/8); face: 1 right, -1 left (the bitmap is drawn mirrored) */
+function figBmp(e,pose,ph,face){
+ const key=e.side+(e.tone%3)+'|'+pose+'|'+ph+'|'+face+'|'+FIG.R;let b=FIG.bmp[key];if(b)return b;
+ const k=FIG.R*SPR_SCALE,w=Math.ceil(FG_W*k),h=Math.ceil(FG_H*k),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+ if(x){x.save();x.setTransform(face<0?-k:k,0,0,k,face<0?w-FG_AX*k:FG_AX*k,FG_AY*k);
+  fgDraw(x,fgSolve(pose,ph),fgPal(uniOf(e.side),SK[e.tone%3][0]),FG_OL);x.restore()}
+ FIG.n++;return FIG.bmp[key]={c,ax:face<0?w-FG_AX*k:FG_AX*k,ay:FG_AY*k}}
 
 /* ---------- v2.09 (UI step 7): team outlines and the opponent uniform guard.
    Runtime only: RUNU holds copies of the two uniforms for the game that is on screen. S.uni, G.opp.uni, saves, snapshots and backups are never written.
@@ -4250,25 +4353,314 @@ function fieldNum(n,a0,y,top,toGoal){
  const t=''+n,dl=top?-toGoal:toGoal;
  const ar=(e,d)=>{cx.beginPath();cx.moveTo(e,-13);cx.lineTo(e,-3);cx.lineTo(e+8*d,-8);cx.closePath();cx.fill()};
  cx.save();cx.translate(Math.round(a0),Math.round(y));if(top)cx.rotate(Math.PI);
- cx.fillStyle='rgba(255,255,255,.82)';
+ cx.fillStyle='rgba(255,255,255,'+FLA.num+')';
  cx.textAlign='right';cx.fillText(t[0],-3,0);cx.textAlign='left';cx.fillText(t[1],3,0);
  const e=3+cx.measureText(t[1]).width+4;
  if(dl>=0)ar(e,1);if(dl<=0)ar(-e,-1);
  cx.restore()}
-function drawField(){
- cx.fillStyle='#15202f';cx.fillRect(0,GMD?FT-HR:0,W,GMD?FB-FT+HR:H); /* v2.06: on the game screen the canvas is the field band only (FT..FB), full width: no crowd strips, no dark bands */
+/* ---------- v2.17: FIELD LOOK (CLEAN / WORN / WORN + PANTHER HEAD), end zone stripes, Y goalposts ----------
+   The turf (mow stripes, end zone colors and their faint diagonal stripes, the grass texture, the wear and the panther head) is drawn ONCE into an offscreen picture of the whole field (120 yards x the 258 field rows, always 1440 x 258: it does not depend on the screen size, so a resize needs no rebuild) and the visible part is copied each frame. The picture is rebuilt only when the look, the drive direction (FLIP) or an end zone color changes. Lines, numbers, hash marks, the line of scrimmage, pylons and posts are still drawn each frame on top. The wear (flWear, from the owner's park mock-up) runs per 2x2 block at build time only. The look is a device preference (hp.js: flGet, key pixelPigskin.fieldlook), never saved. */
+const FLK=[{wear:0,logo:0,num:.82,l5:.64,l10:.7},{wear:1,logo:0,num:.656,l5:1,l10:1},{wear:1,logo:1,num:.656,l5:1,l10:1}]; /* num = the yard number alpha: .82 on CLEAN; on the worn looks 80% of that (owner's decision Nov 20, ui-rules section 5). l5 / l10 = the 5-yard and 10-yard line alpha: unchanged on CLEAN, solid white on the worn looks (the strongest a line can be; it still measures a little under 3:1 on the heaviest wear, see ui-rules section 5) */
+let FLA=FLK[0];
+const FLPW=120*PPY,FLPH=FB-FT,FLFW=53.3; /* picture size; the field is 53.3 yards across */
+const FLC={m:{},ord:[],builds:0,wearCalls:0,ms:0};
+const FL_LOGO='0000001ff000000000 000000fffefffe0000 000007fffffffc0000 00003ffffff9fc0000 0000ffffff80700000 0003ffffff01e00000 0007fbffff839e0000 0007f3ffffe07fc000 003fc7fffffffff000 007ffffffffffffc00 007ffffc00fffffe00 017fff8001ffffff80 07fffc0007ffffffc0 1ffff07f0ff8001fe0 1fffe1fe0fe00003f0 3fff83ff87e00000f8 67ff000fe3f000003c dffe3f83f1f000000e 3fffffe0f9f8000003 7ffffff87cf8000000 7ffffffc3cfc000000 7ffffffe3e7c000000 7fe1ffff1e7c000000 3f907fff0f7c000000 1e601fff8f7c000000 0dc00fff8f7c000000 05800fff8ffc000000 008007ff8ff8000000 004003ff0ff8000000 000001ff0ff0000000 000001fe1fe0000000 00085dfc3f80000000 000ffdf87f00000000 0003f3f1fc00000000 0007bfe3c000000000 0007ff800000000000 0003ff000000000000 0003fe000000000000 0003fe000000000000 0001fc000000000000 0001f0000000000000'; /* the panther head, 72 x 41, one row per word (18 hex digits = 72 bits), already turned to face the way the mock-up shows it */
+let FLL=null;
+function flLogo(){if(FLL)return FLL;const cv=document.createElement('canvas');cv.width=72;cv.height=41;const g=cv.getContext('2d');g.fillStyle='#00245e';
+ FL_LOGO.split(' ').forEach((h,r)=>{const bits=parseInt(h.slice(0,9),16).toString(2).padStart(36,'0')+parseInt(h.slice(9),16).toString(2).padStart(36,'0');for(let q=0;q<72;q++)if(bits[q]==='1')g.fillRect(q,r,1,1)});return FLL=cv}
+const flRnd=n=>{const s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)},flH2=(a,b)=>flRnd(a*374.7+b*91.3);
+function flNoise(x,z){const xi=Math.floor(x),zi=Math.floor(z),xf=x-xi,zf=z-zi,u=xf*xf*(3-2*xf),v=zf*zf*(3-2*zf);
+ const a=flH2(xi,zi),b=flH2(xi+1,zi),c=flH2(xi,zi+1),d=flH2(xi+1,zi+1);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
+/* wear 0..1 at X (yards 0..120 along the field, the end zones are 0..10 and 110..120) and Z (yards 0..53.3 across): a light band down the middle between the hashes, dirt along both sidelines (heavier at midfield, a little more on the near side), a straight worn band along each goal line, softer wear spreading into the end zones */
+function flWear(X,Z){FLC.wearCalls++;
+ const u=(Z-FLFW/2)/(FLFW/2);
+ const mid=Math.exp(-Math.pow(u/.27,2))*(.35+.75*flNoise(X*.13,3.3));
+ const hash=Math.exp(-Math.pow((Math.abs(u)-.28)/.1,2))*.35;
+ const gd=Math.min(Math.abs(X-10),Math.abs(X-110)),ez=(X<10||X>110)?1:0;
+ const gline=Math.exp(-Math.pow(gd/3.2,2))*(.55+.2*flNoise(X*.02,Z*.5))*Math.exp(-Math.pow(u/1.05,4));
+ const gband=Math.exp(-Math.pow((gd-(ez?5:0))/(ez?6:9),2))*Math.exp(-Math.pow(u/.6,2))*(ez?.22:.12);
+ const goal=gline*1.15*(ez?.85:1)+gband;
+ const mm=Math.exp(-Math.pow((X-60)/15,2)),side=Math.exp(-Math.pow((Math.abs(u)-.9)/.17,2))*(.5+.95*mm)*(u>0?1:.88)*.85;
+ const n=flNoise(X*1.1,Z*1.6)*.55+flNoise(X*.45+7,Z*.7+2)*.45;
+ return Math.max(0,Math.min(1,mid*.9+hash*.8+goal*.8+side*.9+(n-.5)*.7))}
+function flRgb(h){h=String(h||'');let m=/^#([0-9a-f]{6})$/i.exec(h);if(m){const n=parseInt(m[1],16);return[n>>16,(n>>8)&255,n&255]}m=/^#([0-9a-f]{3})$/i.exec(h);if(m){const t=m[1];return[17*parseInt(t[0],16),17*parseInt(t[1],16),17*parseInt(t[2],16)]}return[40,80,160]}
+const FL_DIRT=[[185,166,110],[168,152,95]]; /* soft sandy tan, not brown */
+function flBuild(look,flip,ezL,ezR,notex){
+ const t0=performance.now(),K=FLK[look],c=document.createElement('canvas');c.width=FLPW;c.height=FLPH;const g=c.getContext('2d');if(!g)return null;
+ /* 1: mow stripes every 5 yards and the two end zones in the teams' own colors */
+ for(let k=0;k<24;k++){const x0=flip?FLPW-(k+1)*5*PPY:k*5*PPY;g.fillStyle=k<2?ezL:k>=22?ezR:(k&1?'#2e7d32':'#2a7030');g.fillRect(x0,0,5*PPY,FLPH)}
+ /* 2: faint diagonal stripes in the end zones, 45 degrees on the screen, a band every 0.9 yard, the second shade 5% lighter than the team color (the colors stay the team's own) */
+ let im=g.getImageData(0,0,FLPW,FLPH),d=im.data;const pw=.9*PPY,ezW=10*PPY;
+ for(let r=0;r<FLPH;r++)for(let cc=0;cc<FLPW;cc++){if(cc>=ezW&&cc<FLPW-ezW)continue;if(!(Math.floor((cc+r)/pw)&1))continue;const i=(r*FLPW+cc)*4;d[i]+=(255-d[i])*.05;d[i+1]+=(255-d[i+1])*.05;d[i+2]+=(255-d[i+2])*.05}
+ g.putImageData(im,0,0);
+ /* 3: the grass texture (the same tile the game always used, fixed to the field) */
+ const tile=notex?null:flGrassCv();if(tile){g.fillStyle=g.createPattern(tile,'repeat');g.fillRect(0,0,FLPW,FLPH)}
+ /* 4: wear, blended into the turf per 2x2 block (WORN looks only; lighter in the end zones) */
+ if(K.wear){im=g.getImageData(0,0,FLPW,FLPH);d=im.data;
+  for(let r=0;r<FLPH;r+=2)for(let cc=0;cc<FLPW;cc+=2){
+   const X=flip?120-(cc+1)/PPY:(cc+1)/PPY,Z=(r+1)/FLPH*FLFW,inEZ=X<10||X>110;
+   const v=flWear(X,Z)+(flH2(cc>>1,r>>1)-.5)*.05,t=Math.max(0,Math.min(1,(v-.36)/.42)),tt=t*t*(3-2*t)*(inEZ?.42:.78);
+   if(tt<=.02)continue;const dc=FL_DIRT[flH2(cc*3,r*5)<.5?0:1];
+   for(let y=r;y<r+2&&y<FLPH;y++)for(let x=cc;x<cc+2;x++){const i=(y*FLPW+x)*4;d[i]=Math.round(d[i]+(dc[0]-d[i])*tt);d[i+1]=Math.round(d[i+1]+(dc[1]-d[i+1])*tt);d[i+2]=Math.round(d[i+2]+(dc[2]-d[i+2])*tt)}}
+  g.putImageData(im,0,0)}
+ /* 5: the panther head at midfield, about 30% */
+ if(K.logo){g.imageSmoothingEnabled=false;g.globalAlpha=.3;g.drawImage(flLogo(),Math.round(FLPW/2-79),Math.round(FLPH/2-45),158,90);g.globalAlpha=1}
+ FLC.builds++;FLC.ms=performance.now()-t0;return c}
+let flGrassC=null;
+function flGrassCv(){
+ if(flGrassC)return flGrassC;
+ const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');let s=2463534242;
+ const r=()=>((s=Math.imul(s,1664525)+1013904223>>>0)/4294967296);
+ for(let i=0;i<300;i++){g.fillStyle=r()<.5?'rgba(0,0,0,.11)':'rgba(255,255,255,.07)';g.fillRect(r()*63|0,r()*63|0,r()<.3?2:1,1)}
+ for(let i=0;i<46;i++){g.fillStyle=r()<.6?'rgba(0,0,0,.13)':'rgba(255,255,255,.08)';g.fillRect(r()*63|0,r()*62|0,1,2)}
+ return flGrassC=c}
+function flPic(look,flip,notex){ /* the cached picture for a look (also used by the tests; notex = a one-off build without the grass specks, for the contrast checks, never cached) */
+ const ezL=(G.lv?G.oc:myC()).d,ezR=(G.lv?myC():G.oc).d,key=look+'|'+(flip?1:0)+'|'+ezL+'|'+ezR;
+ if(notex){const b0=FLC.builds,w0=FLC.wearCalls,ms0=FLC.ms,p=flBuild(look,flip,ezL,ezR,true);FLC.builds=b0;FLC.wearCalls=w0;FLC.ms=ms0;return p}
+ let p=FLC.m[key];
+ if(p===undefined){try{p=flBuild(look,flip,ezL,ezR)}catch(e){p=null}
+  FLC.m[key]=p;FLC.ord.push(key);while(FLC.ord.length>4)delete FLC.m[FLC.ord.shift()]}
+ return p}
+function flTurf(){
+ const p=flPic(flGet(),FLIP);if(!p)return false;
+ const off=FLIP?Math.round((110-cam.x)*PPY-W):Math.round((cam.x+10)*PPY),s0=Math.max(0,-off),s1=Math.min(Math.ceil(W),FLPW-off);
+ if(s1>s0)cx.drawImage(p,off+s0,0,s1-s0,FLPH,s0,FT,s1-s0,FLPH);
+ return true}
+/* the Y goalpost at the middle of each end line: a 6-yard crossbar across the field, two uprights rising up and outward, a short stem, whole pixels, a dark outline under the yellow (from the park mock-up at the game's own scale) */
+function flLine(x0,y0,x1,y1,th){x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);
+ const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),stx=x0<x1?1:-1,sty=y0<y1?1:-1;let err=dx+dy;
+ for(let n=0;n<4000;n++){cx.fillRect(x0,y0,th,th);if(x0===x1&&y0===y1)break;const e2=2*err;if(e2>=dy){err+=dy;x0+=stx}if(e2<=dx){err+=dx;y0+=sty}}}
+function flPosts(){
+ const th=Math.max(1,Math.round(PPY/7)),up=Math.max(5,Math.round(6.7*PPY*(UNIT*40/FLFW/PPY))),zu=3.1*40/FLFW; /* 6.7 yards of height at the game's across-the-field scale */
+ for(const px of[-10,110]){const xa=Math.round(sx(px));if(xa<-60||xa>W+60)continue;
+  const d=(px<0?-1:1)*(FLIP?-1:1),ya=Math.round(sy(20-zu)),yb=Math.round(sy(20+zu)),ym=Math.round(sy(20)),ux=Math.round(up*.5)*d,st=Math.max(2,Math.round(PPY*1.1))*d;
+  for(const[col,t]of[['#1d3a22',th+2],['#ffd51f',th]]){cx.fillStyle=col;flLine(xa,ya,xa,yb,t);flLine(xa,ya,xa+ux,ya-up,t);flLine(xa,yb,xa+ux,yb-up,t);flLine(xa,ym,xa+st,ym,t)}}}
+function flTurfOld(){
  const cp=Math.floor(cam.x*PPY);
- if(!GMD)for(let x=0;x<W;x+=5)for(const yy of[[FT-14,FT-3],[FB+5,H-3]]){const h=(Math.imul((x+cp)/5|0,2654435761)>>>0)%97;if(h<60){cx.fillStyle=h%3?'#2a3b55':COLORS[h%8].c;cx.fillRect(x,yy[0]+(h%9),3,3)}}
  for(let yd=-10;yd<110;yd+=5){const a0=sx(yd),b0=sx(yd+5),a=Math.min(a0,b0),b=Math.max(a0,b0);if(b<0||a>W)continue;
   const ez=yd<0||yd>=100;
   cx.fillStyle=yd<0?(G.lv?G.oc:myC()).d:yd>=100?(G.lv?myC():G.oc).d:(((yd+10)/5)%2?'#2e7d32':'#2a7030');cx.fillRect(a,FT,b-a+1,FB-FT);
   if(ez){cx.save();cx.beginPath();cx.rect(a,FT,b-a+1,FB-FT);cx.clip();cx.strokeStyle='rgba(255,255,255,.09)';cx.lineWidth=5;cx.beginPath();for(let k=-FB;k<b-a+FB;k+=14){cx.moveTo(a+k,FT);cx.lineTo(a+k+(FB-FT),FB)}cx.stroke();cx.restore()}}
- /* grass texture, scrolling with the camera */
  if(!grassPat)grassPat=grassTile();
  if(grassPat){const m=((cp%64)+64)%64;cx.save();cx.translate(FLIP?m-64:-m,FT);cx.fillStyle=grassPat;cx.fillRect(0,0,W+128,FB-FT);cx.restore()}
+}
+/* ===== v2.19: THE PARK BEHIND THE FIELD =====
+   The rows that are not the field band (the headroom rows above it and the spare strips above and below it on 568x320, 667x375 and the iPad) show the park scenery from the owner's park mock-up at the game's own scale
+   (12 px per yard along the field, 4.8375 px per yard across: the same projection the field uses, so a yard here is a yard there). It is drawn ONCE into an offscreen picture the first time a game is on screen (PK.pic), only as tall as the
+   screen needs (PK.ra rows above the field top, PK.rb rows below the field bottom, a little more, in steps of 64; a bigger window rebuilds it), and a backdrop canvas (#cbg, same pixel grid as #c, sitting behind it) gets the
+   visible slice: two drawImage calls, only when the camera has moved by a pixel or the drive direction flipped. The field canvas #c is transparent in the headroom rows, so the backdrop shows through; the strips are outside #c.
+   Mock-up yards: the field is X 0..120 (end zones included, the game's yard -10 is X 0) and Z 0..53.33 (the game's y 0..40). Nothing here is tappable (pointer-events:none) and nothing in it touches saves, scoring or play. */
+const PK={vt:0,pic:null,X0:-24,X1:144,ZO:0,PW:0,PH:0,ra:0,rb:0,builds:0,ms:0,draws:0,skips:0,key:'',AB:0,B:0,vis:null,gc:'#86c25e'},PKZ=258/(160/3),PKCA=760,PKCB=360,PKW={pic:null,X0:-300,Z0:-214,PW:0,PH:0,ZO:0,builds:0,ms:0}; /* PKW: v2.20, the whole-park picture for the PARK shot (built the first time a shot runs) */ /* the picture is never taller than 760 rows above the field top or 360 below its bottom (a window taller than that shows plain ground beyond) */
+function parkBuild(ra,rb,wide){ /* v2.20: wide = the whole-park picture for the PARK shot: 1.35 px per yard both ways (true proportions), X -300..420, Z -214..210, with the farmland and the east woods; otherwise the game-scale picture of v2.19, byte for byte */
+ const t0=performance.now(),WD=!!wide,ppy=WD?1.35:12,zs=WD?1.35:PKZ,K=zs/ppy,FW=160/3,X0=WD?-300:PK.X0,X1=WD?420:PK.X1,Z0=WD?-214:-(ra+3)/PKZ,Z1=WD?210:FW+(rb+3)/PKZ,ZO=Math.round(-Z0*zs),PW=Math.round((X1-X0)*ppy),PH=Math.round((Z1-Z0)*zs);
+ const cv2=document.createElement('canvas');cv2.width=PW;cv2.height=PH;const c=cv2.getContext('2d');c.imageSmoothingEnabled=false;
+ const sx=x=>Math.round((x-X0)*ppy),sz=z=>Math.round(ZO+z*zs),wx=px=>X0+px/ppy,wz=py=>(py-ZO)/zs;
+ const rn=n=>{const s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)},h2=(a,b)=>rn(a*374.7+b*91.3);
+ const fr=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
+ const R=(x0,z0,x1,z1,col)=>{const a=sx(x0),b=sz(z0),e=sx(x1),f=sz(z1);if(e<0||a>PW||f<0||b>PH)return;c.fillStyle=col;c.fillRect(a,b,Math.max(1,e-a),Math.max(1,f-b))};
+ const disc=(cx0,cy,r,col)=>{c.fillStyle=col;for(let y=-r;y<=r;y++){const hw=Math.round(Math.sqrt(Math.max(0,r*r-y*y+r*.4)));c.fillRect(cx0-hw,cy+y,hw*2+1,1)}};
+ const ell=(cx0,cz,rx,rz,col)=>{const y0=sz(cz-rz),y1=sz(cz+rz);if(y1<0||y0>PH)return;const ry=(y1-y0)/2||1,my=(y0+y1)/2,rxp=rx*ppy,mx=sx(cx0);c.fillStyle=col;
+  for(let y=Math.max(0,y0);y<Math.min(PH,y1);y++){const t=(y+.5-my)/ry;if(Math.abs(t)>1)continue;const hw=Math.round(rxp*Math.sqrt(1-t*t));c.fillRect(mx-hw,y,hw*2,1)}};
+ const polyS=(pts,col)=>{let mn=1e9,mx=-1e9;pts.forEach(p=>{mn=Math.min(mn,p[1]);mx=Math.max(mx,p[1])});mn=Math.max(0,Math.floor(mn));mx=Math.min(PH-1,Math.ceil(mx));c.fillStyle=col;
+  for(let y=mn;y<=mx;y++){const xs=[];for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];if((a[1]<=y+.5&&b[1]>y+.5)||(b[1]<=y+.5&&a[1]>y+.5))xs.push(a[0]+(y+.5-a[1])/(b[1]-a[1])*(b[0]-a[0]))}
+   xs.sort((p,q)=>p-q);for(let i=0;i+1<xs.length;i+=2){const x0=Math.round(xs[i]),x1=Math.round(xs[i+1]);if(x1>x0)c.fillRect(x0,y,x1-x0,1)}}};
+ const polyW=(pts,col)=>polyS(pts.map(p=>[sx(p[0]),sz(p[1])]),col);
+ const lineS=(x0,y0,x1,y1,col,th)=>{th=th||1;x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),stx=x0<x1?1:-1,sty=y0<y1?1:-1;let err=dx+dy;c.fillStyle=col;
+  for(let n=0;n<5000;n++){c.fillRect(x0,y0,th,th);if(x0===x1&&y0===y1)break;const e2=2*err;if(e2>=dy){err+=dy;x0+=stx}if(e2<=dx){err+=dx;y0+=sty}}};
+ const lineW=(a,b,col,th)=>lineS(sx(a[0]),sz(a[1]),sx(b[0]),sz(b[1]),col,th);
+ const OLC='#14203a';
+ /* ground, with the 12-yard mowing stripes */
+ fr(0,0,PW,PH,PK.gc);for(let k=WD?-30:-20;k<(WD?40:30);k++){const a=sx(k*12),b=sx(k*12+6);if(b>0&&a<PW)fr(a,0,b-a,PH,'#7fbb58')}
+ if(WD){ /* the east woods floor and the farmland to the west (from the mock-up's drawPark) */
+  R(214,-320,420,320,'#2d6a34');
+  const vn=(x,z)=>{const xi=Math.floor(x),zi=Math.floor(z),xf=x-xi,zf=z-zi,u=xf*xf*(3-2*xf),v=zf*zf*(3-2*zf),a=h2(xi,zi),b=h2(xi+1,zi),c2=h2(xi,zi+1),d=h2(xi+1,zi+1);return a+(b-a)*u+(c2-a)*v+(a-b-c2+d)*u*v};
+  const xr=z=>-34+(vn(z*.03,5)-.5)*9+Math.sin(z*.11)*1.2,T=-125,Bm=125,BV=26,lim=z=>{let l=xr(z);if(z<T+BV)l+=BV-(z-T);else if(z>Bm-BV)l+=BV-(Bm-z);return l};
+  const edge=[[lim(T),T]];for(let z=T+2;z<=Bm-2;z+=4)edge.push([lim(z),z]);edge.push([lim(Bm),Bm]);
+  polyW(edge.map(p=>[p[0]+7,p[1]]).concat(edge.slice().reverse()),'#dbc99a');polyW([[-300,T]].concat(edge).concat([[-300,Bm]]),'#5f6a38');
+  const FPL=['#586336','#657039','#6a7340','#5d6836','#6b6a3c'],cell=5;
+  for(let X=-300;X<-20;X+=cell)for(let Z=T;Z<Bm;Z+=cell){if(X+cell>lim(Z+cell/2)-1)continue;const v=vn(X*.06,Z*.06)*.6+vn(X*.23+9,Z*.23)*.4,k=Math.min(4,Math.floor(v*5));R(X,Z,X+cell,Z+cell,FPL[k]);
+   if(ppy>=1.2){const r=h2(X*1.7,Z*2.3);if(r<.35)R(X+1,Z+1,X+cell-1.5,Z+cell-2,FPL[(k+1+(r*10|0))%5])}}}
+ /* woods floor and the highway: only where the picture reaches that far (a tall window) */
+ R(-260,-320,420,-122,'#2d6a34');
+ R(-260,-161,420,-139,'#6a727c');R(-260,-161,420,-160,'#aab2bb');R(-260,-140,420,-139,'#aab2bb');for(let X=-260;X<420;X+=14)R(X,-150.5,X+7,-149.5,'#e7d36a');
+ /* baseball and softball grounds (from the mock-up's diamond()) */
+ const diamond=(hx,hz,phi,s,rOut)=>{const f=[Math.cos(phi),Math.sin(phi)],r=[-f[1],f[0]],P=(a,b)=>[hx+f[0]*a+r[0]*b,hz+f[1]*a+r[1]*b];
+  const sec=[[hx,hz]];for(let i=-20;i<=20;i++){const an=i/20*Math.PI/4;sec.push(P(rOut*Math.cos(an),rOut*Math.sin(an)))}polyW(sec,'#9bd36f');
+  const d=21.2*s,cen=P(d,0),dr=34*s;ell(cen[0],cen[1],dr,dr,'#d99a62');ell(hx,hz,9*s,9*s,'#d99a62');
+  polyW([P(8*s,0),P(d,-d+4*s),P(2*d-8*s,0),P(d,d-4*s)],'#7fbf5a');ell(...P(d,0),3.2*s,3.2*s,'#d99a62');
+  lineW(P(0,0),P(rOut*.7071,-rOut*.7071),'#ffffff',1);lineW(P(0,0),P(rOut*.7071,rOut*.7071),'#ffffff',1);
+  const bs=Math.max(2,Math.round(2*s*ppy*.6));[P(d,-d),P(2*d,0),P(d,d)].forEach(p=>fr(sx(p[0])-bs,sz(p[1])-(bs>>1),bs*2,Math.max(2,bs),'#fff'));fr(sx(hx)-bs,sz(hz)-1,bs*2,Math.max(2,bs),'#fff')};
+ const BB={x:97.4,z:-23.6,phi:-2.309},SA={x:135.5,z:-23.8,phi:-1.125},SB={x:42.7,z:82.5,phi:Math.PI/2},SC={x:89.5,z:82.5,phi:Math.PI/2};
+ diamond(BB.x,BB.z,BB.phi,1,104);diamond(SA.x,SA.z,SA.phi,.88,68);diamond(SB.x,SB.z,SB.phi,.64,52);diamond(SC.x,SC.z,SC.phi,.69,52);
+ /* the apron round the field and the gravel path: the mock-up's sand colors are toned down so the white sideline keeps its edge, plus a dark shadow row band hugging the field */
+ R(-8,-4,128,59,'#a99f78');R(-12,58.5,128,70,'#b3a984');R(121,-4,137,70,'#a99f78');
+ fr(sx(-8),sz(0)-3,sx(128)-sx(-8),3,'rgba(24,22,10,.38)');fr(sx(-8),sz(FW),sx(128)-sx(-8),3,'rgba(24,22,10,.38)');
+ /* the parking lot with its dirt stain (only reached on a very wide window) */
+ polyW([[137,22],[196,0],[211,136],[155,130],[138,70]],'#d8c9a0');polyW([[140,24],[194,3],[207,134],[157,126],[141,70]],'#a4aab1');
+ polyW([[140,62],[196,45],[205,58],[145,75]],'#abaaa8');polyW([[148,64],[190,52],[197,57],[151,70]],'#b4ab9d');
+ if(ppy>=1.8){ const lx=z=>z<70?142:141.6+(z-70)/56*15.7,rx=z=>194.1+(z-2.6)/131.8*13.1;for(let z=84;z<=126;z+=7)lineW([lx(z)+3,z],[rx(z)-3,z],'#e9edf1',1);for(let z=30;z<=44;z+=7)lineW([lx(z)+3,z],[rx(z)-3,z],'#e9edf1',1)}
+ /* standing things, far to near */
+ const treeAt=(x,z,r)=>{const bx=sx(x),by=sz(z),R2=Math.max(2,Math.round(r*ppy*.9)),th=Math.round(R2*.8),tr=Math.max(1,Math.round(R2*.18));
+  if(bx<-R2*2||bx>PW+R2*2||by<-R2*4||by>PH+R2*3)return;
+  fr(bx-R2+1,by-1,R2*2,Math.max(1,Math.round(R2*.35)),'rgba(0,0,0,.16)');fr(bx-tr,by-th,tr*2,th,'#5a3b22');const cy=by-th-Math.round(R2*.6);
+  disc(bx,cy,R2+1,'#173d22');disc(bx,cy,R2,'#2f8b3e');disc(bx+Math.round(R2*.18),cy+Math.round(R2*.22),Math.max(1,Math.round(R2*.72)),'#26753a');disc(bx-Math.round(R2*.28),cy-Math.round(R2*.3),Math.max(1,Math.round(R2*.42)),'#4fae4e');
+  if(R2>=7){fr(bx-Math.round(R2*.5),cy+Math.round(R2*.1),2,2,'#3d9a44');fr(bx+Math.round(R2*.25),cy-Math.round(R2*.2),2,2,'#3d9a44')}};
+ const fenceH=(x0,x1,z,hy)=>{const a=sx(x0),b=sx(x1),y=sz(z),hp=Math.max(1,Math.round(hy*ppy));if(b<0||a>PW||y<-hp||y>PH+4)return;
+  const A=Math.max(0,a),B=Math.min(PW,b);for(let X=A;X<B;X++){for(let k=0;k<hp;k++){if(((X+k)&3)===0||((X-k+400)&3)===0)fr(X,y-hp+k,1,1,'#b4bfca')}}
+  fr(A,y-hp,B-A,1,'#e8edf2');fr(A,y-1,B-A,1,'#8793a0');const gap=Math.round(3*ppy);for(let X=a;X<=b;X+=gap){if(X<0||X>PW)continue;fr(X-1,y-hp-1,2,hp+2,'#7a8591');fr(X-1,y-hp-1,1,hp+2,'#a5b0bb')}};
+ const fenceV=(x,z0,z1,hy)=>{const X=sx(x),ya=sz(z0),yb=sz(z1),hp=Math.max(1,Math.round(hy*ppy));if(X<-3||X>PW+3)return;
+  fr(X,ya-hp,1,yb-ya,'#cfd7df');fr(X,ya,1,yb-ya,'#8793a0');const gap=Math.max(3,Math.round(3*ppy*K));for(let y=ya;y<=yb;y+=gap)fr(X-1,y-hp,2,hp,'#7a8591')};
+ const box=o=>{const x0=sx(o.x),W2=Math.round(o.w*ppy),yb=sz(o.zf),hh=Math.round(o.h*ppy),dd=Math.max(2,Math.round(o.d*ppy*K));if(x0>PW||x0+W2<0||yb<0||yb-hh-dd>PH)return;
+  const ov=Math.max(1,Math.round(ppy*.25));if(ppy>=3)fr(x0-ov-1,yb-hh-dd-1,W2+ov*2+2,dd+hh+2,OLC);fr(x0,yb-hh,W2,hh,o.wall);fr(x0-ov,yb-hh-dd,W2+ov*2,dd,o.roof);
+  fr(x0-ov,yb-hh-dd,W2+ov*2,Math.max(1,Math.round(dd*.25)),o.roofHi||o.roof);fr(x0-ov,yb-hh-Math.max(1,Math.round(ppy*.12)),W2+ov*2,Math.max(1,Math.round(ppy*.3)),o.eave||'#1c6f66');
+  if(o.dark)fr(x0+Math.round(W2*(o.dk||.2)),yb-hh+Math.round(hh*.3),Math.round(W2*(o.dw||.6)),Math.round(hh*.55),o.dark);return{x0,W:W2,yb,hh,dd}};
+ const concession=()=>{const b=box({x:137,zf:47,w:8,d:20,h:4,wall:'#f3e8c8',roof:'#2fa093',roofHi:'#47bdaf',eave:'#1c6f66'});if(!b||ppy<3)return;
+  const wx0=b.x0+Math.round(b.W*.12),ww=Math.round(b.W*.5),wy=b.yb-Math.round(b.hh*.78),wh=Math.round(b.hh*.5);fr(wx0,wy,ww,wh,'#27394c');fr(wx0+1,wy+1,Math.max(1,ww>>1),Math.max(1,wh>>2),'#4d6a86');
+  const aw=Math.max(3,Math.round(ppy*.5)),st=Math.max(2,Math.round(ppy*.4));for(let i=0;i<ww+4;i+=st)fr(wx0-2+i,wy-aw,st,aw,(i/st|0)%2?'#ffffff':'#e23b4a');fr(b.x0+Math.round(b.W*.7),b.yb-Math.round(b.hh*.72),Math.round(b.W*.18),Math.round(b.hh*.72),'#7a4a28');
+  for(const pz of[32,41]){const tx=sx(128),ty=sz(pz),w=Math.round(4*ppy),h=Math.max(2,Math.round(ppy*.3));fr(tx,ty-h*2,w,h,OLC);fr(tx,ty-h*2,w,h-1,'#a8794a');fr(tx,ty-h,w,h,'#7d5733')}};
+ const GL={P:["####.","#...#","#...#","####.","#....","#....","#...."],R:["####.","#...#","#...#","####.","#.#..","#..#.","#...#"],E:["#####","#....","#....","####.","#....","#....","#####"],S:[".####","#....","#....",".###.","....#","....#","####."]};
+ const pressBox=()=>{const b=box({x:62.5,zf:75,w:8,d:6,h:3.4,wall:'#ece6d6',roof:'#9aa6b2',roofHi:'#b8c3ce',eave:'#6b7886',dark:'#27394c',dk:.1,dw:.8});
+  if(b&&ppy>=7){const t='PRESS',x=b.x0+Math.round(b.W/2-(t.length*6-1)/2),y=b.yb-Math.round(b.hh*.62);for(let i=0;i<t.length;i++){const g=GL[t[i]];for(let r=0;r<7;r++)for(let q=0;q<5;q++)if(g[r][q]==='#')fr(x+i*6+q,y+r,1,1,'#e8eef5')}}};
+ /* the container is the brightest thing near the field: its white is cut back a little so it does not shout */
+ const container=()=>{const b=box({x:50,zf:73,w:7.5,d:3,h:2.6,wall:'#b9bec5',roof:'#cfd4d9',roofHi:'#dde1e5',eave:'#7d858d'});
+  if(b&&ppy>=4){for(let x=b.x0+3;x<b.x0+b.W-2;x+=3)fr(x,b.yb-b.hh+1,1,b.hh-2,'#9aa1a9');fr(b.x0+b.W-Math.round(b.W*.12),b.yb-b.hh+2,Math.max(1,Math.round(b.W*.04)),b.hh-4,'#80868e')}};
+ const backstop=(hx,hz,phi,r)=>{const f=phi+Math.PI,pts=[];for(let i=-4;i<=4;i++){const a=f+i*.2;pts.push([hx+Math.cos(a)*r,hz+Math.sin(a)*r])}const th=Math.max(1,Math.round(ppy*.3));
+  for(let i=0;i<pts.length-1;i++){lineW(pts[i],pts[i+1],'#8793a0',th);lineW([pts[i][0],pts[i][1]-.5],[pts[i+1][0],pts[i+1][1]-.5],'#cfd7df',1)}};
+ const bleachers=(x0,x1,zf,tiers,seed)=>{const Xa=sx(x0),W2=sx(x1)-Xa,base=sz(zf),th=Math.max(2,Math.round(ppy*.62));if(Xa>PW||Xa+W2<0||base<0||base-(tiers+1)*th>PH)return;
+  if(ppy>=3)fr(Xa-1,base-tiers*th-2,W2+2,tiers*th+2+Math.max(1,Math.round(ppy*.3)),OLC);
+  for(let i=tiers-1;i>=0;i--){const y=base-(i+1)*th;fr(Xa,y,W2,th,'#6f7d8b');fr(Xa,y,W2,Math.max(1,Math.round(th*.4)),'#d6dde5');
+   const sp=Math.max(4,Math.round(ppy*.55));if(ppy>=6)for(let x=Xa+3;x<Xa+W2-3;x+=sp){const r=h2(x+seed,i*7);if(r<.55){const col=['#2b66ff','#e23b4a','#ffd400','#ffffff','#8f6bd8','#2eb06a'][Math.floor(r*40)%6];
+    fr(x,y-Math.round(ppy*.32),Math.max(2,Math.round(ppy*.26)),Math.max(2,Math.round(ppy*.32)),col);fr(x,y-Math.round(ppy*.5),Math.max(2,Math.round(ppy*.26)),Math.max(1,Math.round(ppy*.2)),'#e0a878')}}}
+  fr(Xa,base-tiers*th-Math.max(2,Math.round(ppy*.3)),W2,1,'#aeb8c2')};
+ const bench=(x,zf,w,col)=>{const Xa=sx(x),W2=Math.round(w*ppy),y=sz(zf),h=Math.max(2,Math.round(ppy*.35));if(Xa>PW||Xa+W2<0)return;
+  if(ppy>=3){fr(Xa,y-h*2,W2,h*2,OLC);fr(Xa+1,y-h*2+1,W2-2,h-1,'#cfd6de');fr(Xa+1,y-h,W2-2,h-1,'#8a96a3')}
+  if(ppy>=6)for(let i=0;i<Math.floor(w/1.6);i++){const px=Xa+3+i*Math.round(1.6*ppy);fr(px,y-h*2-Math.round(ppy*.55),Math.round(ppy*.5),Math.round(ppy*.5),col);fr(px,y-h*2-Math.round(ppy*.1),Math.round(ppy*.5),Math.round(ppy*.12),'#fff')}};
+ const dugout=(x,zf,w)=>{box({x,zf,w,d:3,h:1.5,wall:'#5c6670',roof:'#8d98a4',roofHi:'#aeb8c2',eave:'#4a535c',dark:'#1b2230',dk:.1,dw:.8})};
+ const car=(x,z,col)=>{const X=sx(x),y=sz(z),w=Math.round(4*ppy),h=Math.max(2,Math.round(1.2*ppy));if(ppy<3||X>PW||X+w<0)return;
+  fr(X-1,y-h*2-1,w+2,h*2+2,OLC);fr(X,y-h*2,w,h*2,col);fr(X+Math.round(w*.2),y-h*2+1,Math.round(w*.6),Math.max(1,h-1),'#9ad0ee');fr(X+1,y-h,2,2,'#111');fr(X+w-3,y-h,2,2,'#111')};
+ /* trees: the mock-up's scatter, kept off the field, the diamonds, the lot and the highway */
+ const TREES=[];{const inD=(x,z,o,r)=>{const dx=x-o.x,dz=z-o.z;if(Math.hypot(dx,dz)>r)return false;let a=Math.atan2(dz,dx)-o.phi;a=Math.atan2(Math.sin(a),Math.cos(a));return Math.abs(a)<Math.PI/4+.3};
+  const free=(x,z)=>{if(x>-12&&x<130&&z>-8&&z<82)return false;if(inD(x,z,BB,112)||Math.hypot(x-82.8,z+39.7)<38)return false;if(inD(x,z,SA,70)||Math.hypot(x-143.6,z+40.7)<30)return false;
+   if(inD(x,z,SB,56)||inD(x,z,SC,56))return false;if(x>128&&x<212&&z>0&&z<140)return false;if(z>-166&&z<-134)return false;if(x<-30)return false;if(x>-130&&x<30&&z>112&&z<210&&x<14)return false;return true};
+  let n=0;for(let x=-32;x<324;x+=4)for(let z=-214;z<210;z+=4){const forest=(x>214)||(z<-120&&x>40)||(x>150&&z<-60),p=forest?.9:(x>130&&z>140?.5:.07);
+   if(rn(n++)<p){const X=x+(rn(n++)-.5)*5,Z=z+(rn(n++)-.5)*5;if(X>X0-8&&X<X1+8&&Z>Z0-12&&Z<Z1+8&&free(X,Z))TREES.push([X,Z,(forest?2.4:2)+rn(n++)*1.4]);else n++}}}
+ const items=[];TREES.forEach(t=>items.push([t[1],()=>treeAt(t[0],t[1],t[2])]));
+ items.push([-3,()=>fenceH(-6,126,-3,1)],[57.8,()=>fenceH(-6,126,57.8,1)],[-2,()=>fenceV(-6,-3,57.8,1)],[-2,()=>fenceV(126,-3,57.8,1)]);
+ items.push([-5.5,()=>bleachers(32,44,-5.5,3,11)],[66.5,()=>bleachers(16,32,66.5,3,5)],[66.5,()=>bleachers(36,48,66.5,3,23)],[66.5,()=>bleachers(78,94,66.5,4,41)]);
+ items.push([-13,()=>dugout(68,-12,9)],[-13,()=>dugout(84,-12,9)],[BB.z+5,()=>backstop(BB.x,BB.z,BB.phi,6)],[SA.z+4,()=>backstop(SA.x,SA.z,SA.phi,4.5)],[SB.z+4,()=>backstop(SB.x,SB.z,SB.phi,4)],[SC.z+4,()=>backstop(SC.x,SC.z,SC.phi,4)]);
+ items.push([20,concession],[56,()=>bench(20,56.2,14,'#22348a')],[56,()=>bench(86,56.2,14,'#e23b4a')],[73,container],[75,pressBox]);
+ [[152,88,'#e23b4a'],[160,88,'#2b66ff'],[170,90,'#d8d8d8'],[184,89,'#2eb06a'],[154,100,'#ffd400'],[168,101,'#8f6bd8'],[188,103,'#e23b4a'],[158,113,'#2b66ff'],[176,116,'#d8d8d8'],[190,120,'#ffd400'],[166,124,'#2eb06a'],[160,36,'#d8d8d8'],[178,38,'#e23b4a'],[170,76,'#2b66ff']].forEach(q=>items.push([q[1],()=>car(q[0],q[1],q[2])]));
+ items.sort((a,b)=>a[0]-b[0]);items.forEach(i=>i[1]());
+ if(WD){PKW.pic=cv2;PKW.PW=PW;PKW.PH=PH;PKW.ZO=ZO;PKW.builds++;PKW.ms=performance.now()-t0;return cv2}
+ PK.pic=cv2;PK.PW=PW;PK.PH=PH;PK.ZO=ZO;PK.ra=ra;PK.rb=rb;PK.builds++;PK.ms=performance.now()-t0;PK.key='';return cv2}
+/* sizes the backdrop canvas (#cbg) for the current screen: it has the same pixel grid as #c and reaches AB rows above its top row and B rows below its bottom row, covering the whole window under the banner */
+function parkFit(s,top,chh,GH,bh){
+ if(!cvB)return;
+ const AB=Math.max(0,Math.ceil((top-bh)/s)),B=Math.max(0,Math.ceil((GH-(top+chh))/s)),rows=AB+(258+HR)+B,cw=cv.width;
+ if(cvB.width!==cw||cvB.height!==rows){cvB.width=cw;cvB.height=rows;BX.imageSmoothingEnabled=false;PK.key=''}
+ PK.AB=AB;PK.B=B;const t=top-AB*s;PK.vt=Math.max(0,(bh-t)/s);cvB.style.top=t+'px';cvB.style.height=rows*s+'px';cvB.style.clipPath=t<bh?'inset('+(bh-t)+'px 0 0 0)':'none'}
+/* each frame on the game screen: make the picture the first time (and again only when the screen needs more rows than it has), then copy the slice that is visible */
+function parkDraw(on){
+ if(!cvB)return;
+ if(PK.vis!==on){PK.vis=on;cvB.style.visibility=on?'visible':'hidden';PK.key=''}
+ if(!on)return;
+ const rowTop=PK.AB+HR,below=PK.B,needA=Math.min(rowTop,PKCA),needB=Math.min(below,PKCB);
+ if(!PK.pic||PK.ra<needA||PK.rb<needB){const up=n=>Math.ceil((n+8)/64)*64;parkBuild(Math.min(PKCA+8,Math.max(PK.ra,up(needA))),Math.min(PKCB+8,Math.max(PK.rb,up(needB))))}
+ const L=Math.round(cam.x*PPY)+(10-PK.X0)*PPY,key=L+'|'+(FLIP?1:0)+'|'+W+'|'+cvB.height+'|'+rowTop+'|'+PK.builds;
+ if(key===PK.key){PK.skips++;return}PK.key=key;PK.draws++;
+ const bw=cvB.width,bh2=cvB.height;BX.setTransform(1,0,0,1,0,0);BX.clearRect(0,0,bw,bh2);
+ const dx0=Math.max(0,-L),sx0=L+dx0,w=Math.min(bw-dx0,PK.PW-sx0);
+ BX.fillStyle=PK.gc;BX.fillRect(0,0,bw,rowTop);BX.fillRect(0,rowTop+258,bw,bh2-rowTop-258);
+ if(w<=0)return;
+ BX.save();if(FLIP){BX.translate(bw,0);BX.scale(-1,1)}
+ const sy0=Math.max(0,PK.ZO-rowTop),h0=PK.ZO-sy0;if(h0>0)BX.drawImage(PK.pic,sx0,sy0,w,h0,dx0,rowTop-h0,w,h0); /* above the field top */
+ const sy1=PK.ZO+258,h1=Math.min(bh2-rowTop-258,PK.PH-sy1);if(h1>0)BX.drawImage(PK.pic,sx0,sy1,w,h1,dx0,rowTop+258,w,h1); /* below the field bottom */
+ BX.restore()}
+/* ===== v2.20: THE PARK SHOT =====
+   A short zoomed-out look at the park (no players): once before the opening kickoff of a hand-played game and at each change of possession (when startMyDrive or the opponent drive begins a new drive).
+   G.mode is 'park' for its length, so update() runs no clock and no play; the camera cam.x keeps easing exactly as before, and the shot is drawn from the LIVE cam.x, so it starts and ends on the normal game view.
+   The zoom is the mock-up's: 12 px per yard (squeezed sideways, K .403) -> 3.8 (K 1) -> 1.35 px per yard (true proportions), ease out, hold, ease back (PARK_MS in all). It is drawn on the backdrop canvas #cbg (the field canvas #c and the figure layers are left empty),
+   from pictures only: the scenery (PK.pic at the game scale, PKW for the whole park), the field (a picture of the whole game field with its lines and numbers, and a small turf picture with 1-pixel lines), blended by the zoom. Nothing is saved; leaving the game, a hidden page or any error ends it at once. */
+const PARK_MS=1500,PARK_CUT=200,PARK_OUT=.4,PARK_HOLD=.2,PARK_RM=900; /* total length, the length of a cut-short ending, share of the time zooming out, share held, the still shot with reduced motion (ms) */
+const PS={on:false,g:null,t:0,dur:0,then:null,cut:null,rm:false,prev:'banner',ready:false,runs:0,skips:0,cancels:0,frames:0,ms:0,max:0,bms:0,openG:null,fine:null,cf:null,fkey:'',fms:0,err:null};
+function parkWant(){let on=true;try{on=pvIsOn()}catch(e){}
+ return !window.__PARKOFF&&on&&!PS.on&&GMD&&!!G&&!G.online&&!OL.on&&!LV.on&&!DS.on&&!TURN.on&&!document.hidden&&!!cvB&&!PBP.on&&G.mode!=='park'}
+function parkRun(then){
+ if(!parkWant()){then();return}
+ let ok=false;
+ try{const rm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+  PS.on=true;PS.g=G;PS.t=0;PS.dur=rm?PARK_RM:PARK_MS;PS.then=then;PS.cut=null;PS.rm=rm;PS.prev=G.mode;PS.ready=false;PS.runs++;
+  G.mode='park';ctrl.ptr=false;ctrl.down=false;ctrl.sv=0;ctrl.aim=null;ctrl.kaim=null;ok=true}catch(e){PS.on=false}
+ if(!ok)then()}
+const parkEs=u=>{u=u<0?0:u>1?1:u;return u*u*(3-2*u)};
+function parkZ(){const P=PS;
+ if(P.cut)return P.cut.z*(1-parkEs((P.t-P.cut.t0)/PARK_CUT));
+ if(P.rm)return 1;
+ const o=P.dur*PARK_OUT,h=P.dur*PARK_HOLD,t=P.t;
+ return t<o?parkEs(t/o):t<o+h?1:parkEs(1-(t-o-h)/(P.dur-o-h))}
+function parkStep(dt){const P=PS;if(!P.on)return;
+ if(!P.ready){try{parkPrep()}catch(e){PS.err=e;console.error(e);parkEnd(true)}return} /* the pictures are made on the first step (once per session); the clock of the shot starts after that */
+ if(P.skipDt){P.skipDt=false;return}
+ P.t+=dt*1000;
+ if(P.cut){if(P.t-P.cut.t0>=PARK_CUT)parkEnd(true)}else if(P.t>=P.dur)parkEnd(true)}
+function parkEnd(run){const P=PS;if(!P.on)return;P.on=false;const th=P.then;P.then=null;P.g=null;P.cut=null;PK.key='';if(!run)P.cancels++;
+ try{if(G&&G.mode==='park')G.mode=(P.prev==='pbp'?'banner':P.prev)||'banner'}catch(e){}
+ if(run&&th)th()}
+function parkSkip(){const P=PS;if(!P.on||P.t<120||P.cut)return;P.skips++;
+ if(P.rm){parkEnd(true);return}
+ const z=parkZ();if(z<.01){parkEnd(true);return}
+ P.cut={t0:P.t,z}}
+document.addEventListener('pointerdown',()=>{if(PS.on)parkSkip()},true);
+document.addEventListener('keydown',e=>{if(PS.on&&(e.key==='Escape'||e.key==='Enter'||e.key===' '))parkSkip()},true);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&PS.on)parkEnd(true)});
+/* a picture made smaller in halving steps, so thin lines average out instead of dropping out */
+function parkShrink(src,tw,th){let s=src,w=s.width,h=s.height;
+ while(w>tw||h>th){const nw=w>tw*2?Math.ceil(w/2):tw,nh=h>th*2?Math.ceil(h/2):th,c=document.createElement('canvas');c.width=nw;c.height=nh;const g=c.getContext('2d');g.imageSmoothingEnabled=true;try{g.imageSmoothingQuality='high'}catch(e){}g.drawImage(s,0,0,w,h,0,0,nw,nh);s=c;w=nw;h=nh}
+ return s}
+/* the two field pictures of this game and look: PS.fine = the game's own field (turf, lines, numbers, end zone names, posts, no LOS or first-down lines) for all 120 yards at the game scale (1440 x FB rows, the field band is rows FT..FB);
+   PS.cf = the whole field at 1.35 px per yard (the turf picture made smaller, plus the mock-up's 1-pixel lines) with a 10 pixel margin. Made again only when the look, the drive direction or a team changes. */
+function parkField(){
+ const look=flGet(),key=look+'|'+(FLIP?1:0)+'|'+S.name+'|'+G.opp.name+'|'+(G.lv?1:0)+'|'+myC().c+'|'+G.oc.c;
+ if(PS.fkey===key&&PS.fine&&PS.cf)return;
+ const t0=performance.now(),c0=document.createElement('canvas');c0.width=1440;c0.height=FB;const g=c0.getContext('2d');g.imageSmoothingEnabled=false;
+ const sv={cx,W,VW,x:cam.x,m:G.mode};cx=g;W=1440;VW=1440/PPY;cam.x=-10;G.mode='over';
+ try{drawField()}finally{cx=sv.cx;W=sv.W;VW=sv.VW;cam.x=sv.x;G.mode=sv.m}
+ const M=10,tw=Math.round(120*1.35),th=Math.round(160/3*1.35),sm=parkShrink(flPic(look,FLIP),tw,th),cf=document.createElement('canvas');cf.width=tw+2*M;cf.height=th+2*M;
+ const q=cf.getContext('2d');q.imageSmoothingEnabled=false;q.drawImage(sm,M,M);q.fillStyle='#f4f7f2';
+ for(let k=0;k<=24;k++){const w=(k===2||k===22)?2:1;q.fillRect(M+Math.round(k*5*1.35)-(w>>1),M,w,th)}
+ q.fillRect(M,M,tw,2);q.fillRect(M,M+th-2,tw,2);
+ PS.fine=c0;PS.cf=cf;PS.fkey=key;PS.fms=performance.now()-t0}
+/* the camera at zoom z (0 = the game view, .5 = between drives, 1 = the whole park): the mock-up's keyframes, the game view's centre taken from the live camera */
+function parkCam(z){
+ const bw=cvB.width,bh=cvB.height,yc0=PK.AB+HR+129,yc1=(PK.vt+bh)/2,cx0=cam.x+10+bw/24;
+ const A=z<.5?[12,cx0,160/6,PKZ/12,0]:[3.8,64,24,1,.5],B=z<.5?[3.8,64,24,1,.5]:[1.35,78,-5,1,1],u=(z-A[4])/(B[4]-A[4]);
+ return{ppy:A[0]*Math.pow(B[0]/A[0],u),cx:A[1]+(B[1]-A[1])*u,cz:A[2]+(B[2]-A[2])*u,K:A[3]+(B[3]-A[3])*u,yc:yc0+(yc1-yc0)*z}}
+function parkPrep(){const t0=performance.now();parkDraw(true);if(!PKW.pic)parkBuild(0,0,true);parkField();LOWX.clearRect(0,0,cv.width,cv.height);figClear();PS.ready=true;PS.skipDt=true;PS.bms=performance.now()-t0}
+function parkShot(){
+ const t0=performance.now(),P=PS;
+ if(!P.ready)parkPrep();
+ const bw=cvB.width,bh=cvB.height,z=parkZ(),m=parkCam(z),ppy=m.ppy,zsc=ppy*m.K,R=Math.round;
+ const X2=X=>bw/2+(X-m.cx)*ppy,Z2=Z=>m.yc+(Z-m.cz)*zsc,fx0=X2(0),fx1=X2(120),rx=FLIP?bw-fx1:fx0,rw=fx1-fx0,ry=Z2(0),rh=Z2(160/3)-ry;
+ const fu=(ppy-3.8)/4.2,fa=ppy>=8?1:ppy<=3.8?0:fu*fu*(3-2*fu),B=BX;
+ B.setTransform(1,0,0,1,0,0);B.globalAlpha=1;B.fillStyle=PK.gc;B.fillRect(0,0,bw,bh);B.imageSmoothingEnabled=false;
+ B.save();if(FLIP){B.translate(bw,0);B.scale(-1,1)} /* the whole-park scenery, at its own scale (1.35 px per yard) */
+ B.drawImage(PKW.pic,R(X2(PKW.X0)),R(Z2(PKW.Z0)),R(PKW.PW*ppy/1.35),R(PKW.PH*zsc/1.35));B.restore();
+ const sc=ppy/1.35,sz=zsc/1.35;B.drawImage(P.cf,R(rx-10*sc),R(ry-10*sz),R(P.cf.width*sc),R(P.cf.height*sz)); /* the small field, 1 px lines */
+ if(fa>.004){B.save();B.globalAlpha=fa;B.imageSmoothingEnabled=ppy<11.99;try{B.imageSmoothingQuality='medium'}catch(e){}
+  B.save();B.beginPath();B.rect(0,0,bw,bh);B.rect(R(rx),R(ry),R(rw),R(rh));B.clip('evenodd');if(FLIP){B.translate(bw,0);B.scale(-1,1)} /* the game-scale scenery, with a hole where the field is */
+  B.drawImage(PK.pic,R(X2(PK.X0)),R(Z2(-PK.ZO/PKZ)),R(PK.PW*ppy/12),R(PK.PH*zsc/PKZ));B.restore();
+  B.drawImage(P.fine,0,FT,1440,FB-FT,R(rx),R(ry),R(rw),R(rh)); /* the game's own field */
+  B.restore()}
+ const d=performance.now()-t0;P.frames++;P.ms+=d;if(d>P.max)P.max=d} /* P.bms = the time to make the pictures (first step of a shot, once per session); these are the zoom frames */
+function drawField(){
+ cx.fillStyle='#15202f';cx.fillRect(0,GMD?FT:0,W,GMD?FB-FT:H);if(GMD)cx.clearRect(0,FT-HR,W,HR); /* v2.06: on the game screen the canvas is the field band only (FT..FB), full width: no crowd strips, no dark bands. v2.19: the headroom rows above the band are transparent: the park backdrop (#cbg, behind this canvas) shows through them */
+ const cp=Math.floor(cam.x*PPY);
+ if(!GMD)for(let x=0;x<W;x+=5)for(const yy of[[FT-14,FT-3],[FB+5,H-3]]){const h=(Math.imul((x+cp)/5|0,2654435761)>>>0)%97;if(h<60){cx.fillStyle=h%3?'#2a3b55':COLORS[h%8].c;cx.fillRect(x,yy[0]+(h%9),3,3)}}
+ const FLK0=FLK[flGet()];FLA=FLK0;
+ if(!flTurf())flTurfOld();
  /* yard lines: every 5, brighter at 10s */
  for(let yd=0;yd<=100;yd+=5){const a0=Math.round(sx(yd));if(a0<-30||a0>W+30)continue;
-  cx.fillStyle=yd%10===0?'rgba(255,255,255,.7)':'rgba(255,255,255,.64)';cx.fillRect(a0-1,FT,2,FB-FT)}
+  cx.fillStyle='rgba(255,255,255,'+(yd%10===0?FLA.l10:FLA.l5)+')';cx.fillRect(a0-1,FT,2,FB-FT)}
  /* big painted numbers, top row upside down, arrows toward the nearer goal line */
  for(let yd=10;yd<=90;yd+=10){const a0=sx(yd);if(a0<-60||a0>W+60)continue;
   const n=yd<=50?yd:100-yd,toGoal=yd===50?0:(sx(yd<50?0:100)>a0?1:-1);
@@ -4280,24 +4672,39 @@ function drawField(){
  cx.fillStyle='#fff';cx.fillRect(sx(0)-2,FT,4,FB-FT);cx.fillRect(sx(100)-2,FT,4,FB-FT);
  if(GMD){cx.fillRect(0,FT,W,3);cx.fillRect(0,FB-3,W,3)}else{cx.fillRect(0,FT-1,W,3);cx.fillRect(0,FB-1,W,3)} /* v2.06: the sidelines sit on the very edges of the field area */
  /* midfield logo */
- {const mx=Math.round(sx(50)),my=Math.round(sy(20));if(mx>-60&&mx<W+60){cx.save();cx.translate(mx,my);cx.strokeStyle='rgba(255,255,255,.35)';cx.lineWidth=3;cx.beginPath();cx.arc(0,0,34,0,6.283);cx.stroke();
+ if(flGet()!==2){const mx=Math.round(sx(50)),my=Math.round(sy(20));if(mx>-60&&mx<W+60){cx.save();cx.translate(mx,my);cx.strokeStyle='rgba(255,255,255,.35)';cx.lineWidth=3;cx.beginPath();cx.arc(0,0,34,0,6.283);cx.stroke();
    cx.fillStyle='rgba(255,255,255,.32)';cx.beginPath();for(let i=0;i<10;i++){const r=i%2?7:17,t=-Math.PI/2+i*Math.PI/5;cx.lineTo(Math.cos(t)*r,Math.sin(t)*r)}cx.closePath();cx.fill();cx.restore()}}
  /* team names in the end zones, bigger */
  for(const[x,n,c]of G.lv?[[-5,G.opp.name,G.oc.c],[105,S.name,myC().c]]:[[-5,S.name,myC().c],[105,G.opp.name,G.oc.c]]){cx.save();cx.translate(sx(x),sy(20));cx.rotate(-Math.PI/2);txt(n,0,6,14,c,'center');cx.restore()}
  /* goal posts and pylons */
- for(const px of[110,-10]){const a=sx(px);cx.fillStyle='#ffd400';cx.fillRect(a-1,sy(16.5),2,sy(23.5)-sy(16.5));cx.fillRect(a-2,sy(16.5)-2,4,4);cx.fillRect(a-2,sy(23.5)-2,4,4)}
+ flPosts();
  for(const px of[0,100])for(const py of[FT,FB]){const a=Math.round(sx(px));cx.fillStyle='#ff7a1a';cx.fillRect(a-3,py-3,6,6);cx.fillStyle='#ffd0a0';cx.fillRect(a-3,py-3,6,2)}
  if(G.mode!=='over'){cx.fillStyle='#4df0ff';cx.fillRect(sx(G.los)-1,FT,2,FB-FT);if(G.fd<100){cx.fillStyle='#ffd400';cx.fillRect(sx(G.fd)-1,FT,2,FB-FT)}}}
+/* v2.18: which still pose a player takes when he is not running: linemen in the 3-point stance and everyone else but the kicker in the 2-point ready stance before the snap; ready while a play is live; standing the rest of the time */
+function figStance(e){
+ if(e.k==='K')return'stand';
+ if(G.mode==='presnap')return e.k==='OL'||e.k==='DL'?'p3':(e.k==='QB'||e.k==='RB'||e.k==='WR'||e.k==='TE'||e.k==='LB'||e.k==='DB')?'ready':'stand';
+ return G.mode==='live'&&G.play&&G.play.phase!=='done'?'ready':'stand'}
+/* v2.18: the figure layer (#cfg) is cleared and given the device-pixel transform; the top layer (#ctp) gets the field transform. Called at the start of drawScene. FIG.R = device pixels per game unit (set by fit()). */
+function figBegin(){
+ if(!FX||!TX)return false;
+ FX.setTransform(1,0,0,1,0,0);FX.globalAlpha=1;FX.clearRect(0,0,cvF.width,cvF.height);
+ TX.setTransform(1,0,0,1,0,0);TX.clearRect(0,0,cvT.width,cvT.height);TX.save();TX.translate(0,-(FT-HR));FIG.dirty=true;return true}
+function figClear(){
+ if(!FIG.dirty||!FX||!TX)return;FIG.dirty=false;
+ FX.setTransform(1,0,0,1,0,0);FX.clearRect(0,0,cvF.width,cvF.height);TX.setTransform(1,0,0,1,0,0);TX.clearRect(0,0,cvT.width,cvT.height)}
+/* the figure layer in game units (the same camera transform as the field, scaled by FIG.R): used by the ball and the aim marks */
+function figUnits(){FX.setTransform(FIG.R,0,0,FIG.R,0,-(FT-HR)*FIG.R)}
 function drawP(e,col,dark,opt){
- const x=Math.round(sx(e.x)),y=Math.round(sy(e.y));if(x<-30||x>W+30)return;
+ const X=sx(e.x),Y=sy(e.y),x=Math.round(X),y=Math.round(Y);if(x<-30||x>W+30)return;
  const fs=FLIP?-1:1,live=G.mode==='live'&&G.play&&G.play.phase!=='done';
  /* v1.60: the pose clocks run on drawing time so a tackle plays out during the banner too */
  if(e.fall!=null)e.fall+=ANIM_DT;if(e.dive!=null)e.dive+=ANIM_DT;if(e.miss!=null){e.miss+=ANIM_DT;if(e.miss>.5)e.miss=null}
  const down=e.fall!=null||e.dive!=null;
- const sp=Math.abs(e.vx)+Math.abs(e.vy);let fr=0,bob=0; /* v1.59: the stride rate follows the player's speed; bob on the passing poses. v1.60: only while the play is live, so everyone stands when it ends */
- if(sp>1&&live&&!down&&e.miss==null){e.rp=(e.rp==null?(e.ph||0)*4:e.rp)+ANIM_DT*sp*1.1;fr=1+Math.floor(e.rp)%4;bob=fr%2===0?1:0}
+ const sp=Math.abs(e.vx)+Math.abs(e.vy);let fr=0; /* v1.59: the stride rate follows the player's speed. v1.60: only while the play is live, so everyone stands when it ends. v2.18: the cycle has 8 frames (it had 4) over the same stride time, so fr is 1 to 8 */
+ if(sp>1&&live&&!down&&e.miss==null){e.rp=(e.rp==null?(e.ph||0)*4:e.rp)+ANIM_DT*sp*1.1;fr=1+Math.floor(e.rp*2)%8}
  let jump=0;if(e.pick!=null){e.pick+=ANIM_DT;if(e.pick>.55)e.pick=null;else jump=Math.sin(Math.PI*Math.min(1,e.pick/.5))*9} /* v1.88: the interceptor jumps for the ball */
- if(e.lock&&live&&!down){e.rp=(e.rp==null?(e.ph||0)*4:e.rp)+ANIM_DT*9;fr=1+Math.floor(e.rp)%4;bob=0} /* v1.87: a locked lineman and rusher drive their legs */
+ if(e.lock&&live&&!down){e.rp=(e.rp==null?(e.ph||0)*4:e.rp)+ANIM_DT*9;fr=1+Math.floor(e.rp*2)%8} /* v1.87: a locked lineman and rusher drive their legs */
  let f=e.fc||(e.side==='me'?1:-1);if(Math.abs(e.vx)>.8)f=e.vx>0?1:-1;
  /* v1.60: tackled runner falls away from the tackler, tacklers dive at him, a missed tackle is a short lunge */
  let ang=0,ox=0;
@@ -4306,18 +4713,27 @@ function drawP(e,col,dark,opt){
  else if(e.miss!=null){const k=Math.sin(Math.PI*Math.min(1,e.miss/.5));f=e.mdir;ang=fs*e.mdir*k*1.1;ox=fs*e.mdir*k*4}
  else if(e.lock&&live){f=e.ldir;ang=fs*e.ldir*(.17+.05*Math.sin(G.t*11+(e.ph||0)));ox=fs*e.ldir*1.5}
  const face=FLIP?-f:f;
- cx.fillStyle='rgba(0,0,0,.3)';cx.fillRect(x-5+Math.round(ox*.6),y-1,11+Math.round(Math.abs(ang)*8),3);
- if(e.stun>0)cx.globalAlpha=.55;
- const spr=getSprite(e,fr,face);
- if(ang){cx.save();cx.translate(x+ox,y-5);cx.rotate(ang);cx.drawImage(spr,-7,-14);cx.restore()}
- else cx.drawImage(spr,x-7,y-19-bob-Math.round(jump));
- cx.globalAlpha=1;
- if(opt&&opt.ring&&!down){cx.strokeStyle=opt.ring;cx.lineWidth=1.5;cx.strokeRect(x-9,y-22,19,25)}
- if(opt&&opt.n&&!down){txt(''+opt.n,x,y-24,7,opt.nc||'#fff','center')}}
+ if(FX){ /* v2.18: the figure: a pre-drawn bitmap at the screen's own resolution (see ps.js), put on the figure layer at a device-pixel position */
+  const R=FIG.R,k=R*SPR_SCALE,oy=FT-HR,run=fr>0,pose=run?'run':e.fall!=null?'stand':(e.dive!=null||e.miss!=null)?'ready':figStance(e),b=figBmp(e,pose,run?(fr-1)/8:0,face),dx=(X+ox)*R,dy=(Y-oy)*R;
+  FX.setTransform(1,0,0,1,0,0);
+  FX.fillStyle='rgba(0,0,0,.3)';FX.beginPath();FX.ellipse((X+ox*.6)*R,(Y-oy+.2)*R,5.75*(1+.7*Math.abs(ang))*R,1.3*R,0,0,7);FX.fill();
+  if(e.stun>0)FX.globalAlpha=.55;
+  if(ang){const pv=5*k,c=Math.cos(ang),s=Math.sin(ang);FX.setTransform(c,s,-s,c,dx,dy-pv);FX.drawImage(b.c,-b.ax,-(b.ay-pv));FX.setTransform(1,0,0,1,0,0)}
+  else FX.drawImage(b.c,Math.round(dx-b.ax),Math.round(dy-b.ay-Math.round(jump)*R));
+  FX.globalAlpha=1}
+ if(opt&&opt.ring&&!down){cx.strokeStyle=opt.ring;cx.lineWidth=1.5;cx.strokeRect(x-10,y-26,21,29)} /* v2.18: the ring and the number sit on the top layer, a little larger for the 115% figures */
+ if(opt&&opt.n&&!down){txt(''+opt.n,x,y-28,7,opt.nc||'#fff','center')}}
+/* v2.18: the ball is drawn smooth on the figure layer (over the players), in game units */
 function drawBall(b){
- const x=Math.round(sx(b.x)),y=Math.round(sy(b.y));
- cx.fillStyle='rgba(0,0,0,.35)';cx.fillRect(x-3,y,6,2);
- const yy=y-5-Math.round((b.z||0)*5);cx.fillStyle='#8a4b1f';cx.fillRect(x-3,yy,6,4);cx.fillStyle='#fff';cx.fillRect(x-1,yy+1,2,1)}
+ const x=sx(b.x),y=sy(b.y);
+ if(!FX)return;
+ figUnits();
+ FX.fillStyle='rgba(0,0,0,.35)';FX.beginPath();FX.ellipse(x,y+1,3.3,1.1,0,0,7);FX.fill();
+ const yy=y-3-(b.z||0)*5;
+ FX.fillStyle='#8a4b1f';FX.beginPath();FX.ellipse(x,yy,3.4,2.2,-.2,0,7);FX.fill();
+ FX.strokeStyle='#5a2d10';FX.lineWidth=.5;FX.stroke();
+ FX.strokeStyle='#fff';FX.lineWidth=.55;FX.beginPath();FX.moveTo(x-1.2,yy-.1);FX.lineTo(x+1.2,yy-.1);FX.stroke();
+ FX.setTransform(1,0,0,1,0,0)}
 function curBall(){
  const p=G.play;
  if(G.mode==='kick')return G.bp;
@@ -4359,7 +4775,7 @@ function drawAim(){
 function drawSnapHints(){
  const pu=1+Math.sin(G.t*6)*.15,ps=hnStr('pre'),d=FLIP?1:-1; /* v1.79: the boxes always pulse; the PASS and RUN words fade with the pre-snap tip and never sit on another player or the ball */
  for(const[e,l]of[[G.qb,'PASS'],[G.recs[3],'RUN']]){const x=Math.round(sx(e.x)),y=Math.round(sy(e.y));
-  cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.globalAlpha=.85;cx.strokeRect(x-10*pu,y-22*pu,20*pu,27*pu);cx.globalAlpha=1;hnText(l,6,'#ffd400',ps,[[x,y+14,'center'],[x+d*14,y+2,d>0?'left':'right'],[x-d*14,y+2,d>0?'right':'left']],e)}}
+  cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.globalAlpha=.85;cx.strokeRect(x-11*pu,y-26*pu,22*pu,31*pu);cx.globalAlpha=1;hnText(l,6,'#ffd400',ps,[[x,y+14,'center'],[x+d*14,y+2,d>0?'left':'right'],[x-d*14,y+2,d>0?'right':'left']],e)}}
 function drawScene(){
  const mc=myC(),oc=G.oc,p=G.play;
  const all=[];
@@ -4372,9 +4788,15 @@ function drawScene(){
  for(const d of G.defs)all.push([d,oc.c,oc.d,p&&p.ret&&p.ret.car===d&&p.phase==='ret'?{ring:'#ff6b6b'}:undefined]);
  all.sort((a,b)=>(a[0].y+(a[0].fall!=null?.6:0))-(b[0].y+(b[0].fall!=null?.6:0))); /* v1.60: the tackled player is drawn on top of his tacklers */
  if(G.mode==='presnap')drawRoutes(.95,false);else if(p&&p.phase==='back')drawRoutes(.6,true);else if(p&&p.phase==='air')drawRoutes(.25,true);
- for(const a of all)drawP(a[0],a[1],a[2],a[3]);
- if(p&&p.phase==='back'){const q=G.qb,x=sx(q.x),y=sy(q.y)-29;cx.fillStyle='#000';cx.fillRect(x-12,y,24,4);cx.fillStyle=p.k>.7?'#ff4040':'#ffd400';cx.fillRect(x-11,y+1,22*p.k,2)}
- drawBall(curBall());drawAim();if(G.mode==='presnap')drawSnapHints()}
+ /* v2.18: three layers. The field and the routes are on #c (low resolution, as before); the players, the ball and the aim marks go on the figure layer #cfg (screen resolution); rings, numbers, bars, hints and every banner go on the top layer #ctp, so a banner still dims the players. cx points at the top layer from here until render() puts it back. */
+ const low=cx,lay=figBegin();
+ if(lay)cx=TX;
+ try{
+  for(const a of all)drawP(a[0],a[1],a[2],a[3]);
+  if(p&&p.phase==='back'){const q=G.qb,x=sx(q.x),y=sy(q.y)-33;cx.fillStyle='#000';cx.fillRect(x-12,y,24,4);cx.fillStyle=p.k>.7?'#ff4040':'#ffd400';cx.fillRect(x-11,y+1,22*p.k,2)}
+  if(lay){drawBall(curBall());cx=FX;figUnits();try{drawAim()}finally{cx=TX;FX.setTransform(1,0,0,1,0,0)}}else{cx=low;drawAim();cx=low}
+  if(G.mode==='presnap')drawSnapHints()
+ }catch(err){cx=low;if(lay)TX.restore();throw err}}
 function drawOverlay(){
  if(G.mode==='patchoice'){cx.fillStyle='rgba(6,10,20,.85)';cx.fillRect(0,110,W,100);txt('EXTRA POINT OR TWO?',W/2,150,16,'#ffd400','center');txt('KICK = +1 (YOU AIM THE KICK)   -   GO FOR 2 = ONE PLAY FROM THE 2',W/2,180,7,'#b8c4dc','center')}
  const p=G.play;let h='',hs=0;const yb=GMD?FB-6-GI.b:FB-6;let ys=GMD?[yb,FT+22]:[FB+16,FB-6,FT+22]; /* v1.79: every field tip fades with use (see hp.js) and picks a line that is clear of the QB, the receivers and the ball */
@@ -4443,13 +4865,17 @@ function drawKickAim(){
  if(a.dist>a.maxR)txt('OUT OF RANGE FOR YOUR KICKER!',W/2,96,7,'#ff6b6b','center');
  txt('PULL BACK TO AIM AND SET POWER (GREEN LINE = MIN). RELEASE TO KICK',W/2,FB+30,7,'#fff','center')}
 function render(){
- if(DS.on){drawDesigner();return}
- if(!G){cx.fillStyle='#101820';cx.fillRect(0,0,cv.width,cv.height);return}
+ cx=LOWX;
+ if(PS.on){if(!G||G!==PS.g||!GMD||G.mode!=='park')parkEnd(false);else{let ok=true;try{parkShot()}catch(e){ok=false;PS.err=e;console.error(e);parkEnd(true)}if(ok)return}} /* v2.20: the park shot draws itself on #cbg and nothing else; leaving the game or an error ends it */
+ parkDraw(!!(GMD&&!DS.on&&G&&!(G.mode==='kickaim'&&G.ka))); /* v2.19: the park behind the field (the picture is made lazily at the first game frame) */
+ if(DS.on){figClear();drawDesigner();return}
+ if(!G){figClear();cx.fillStyle='#101820';cx.fillRect(0,0,cv.width,cv.height);return}
+ if(G.mode==='kickaim'&&G.ka)figClear();
  if(G.mode==='kickaim'&&G.ka){ /* v2.06: the kick screen keeps its 640x360 art: its bottom 310 rows (the old HUD strip is gone) are scaled to the canvas height, and the sky and grass are drawn wider when the screen is wider */
   const k=cv.height/310,w0=W,h0=H;cx.save();cx.scale(k,k);cx.translate(0,-50);W=cv.width/k;H=cv.height/k+50;
   try{cx.fillStyle='#101820';cx.fillRect(0,50,W,H-50);drawKickAim()}finally{W=w0;H=h0;cx.restore()}return}
- cx.save();cx.translate(0,-(FT-HR)); /* v2.10: HR extra rows above the band show the heads at the top sideline. v2.06: all the field drawing keeps its field coordinates (FT..FB); the canvas shows just that band */
- try{drawField();drawScene();drawOverlay()}finally{cx.restore()}}
+ const lo=LOWX;cx=lo;lo.save();lo.translate(0,-(FT-HR)); /* v2.10: HR extra rows above the band show the heads at the top sideline. v2.06: all the field drawing keeps its field coordinates (FT..FB); the canvas shows just that band */
+ try{drawField();drawScene();drawOverlay()}finally{cx=lo;lo.restore();if(FX&&FIG.dirty)TX.restore()}}
 
 /* ---------- loop ---------- */
 /* v1.82: the live-play speed is read every frame from the chosen step (hp.js: gameSpeed()); SLOW = .61 is the default and the old constant */
@@ -4467,6 +4893,7 @@ function update(dt){
  cam.x+=(camTarget()-cam.x)*Math.min(1,dt*5);
  if(G.mode==='live'){updateLive(dt*gameSpeed());if(OL.on)lkTick(dt)}
  else if(G.mode==='kick')updateKick(dt);
+ else if(G.mode==='park')parkStep(dt);
  else if(G.mode==='banner'&&G.bn){if(G.bn.pre>0)G.bn.pre-=dt;else{G.bn.left-=dt;if(G.bn.left<=0){const f=G.bn.fn;G.bn=null;f&&f()}}}}
 let last=0;
 function frame(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;const fz=TURN.on||gpFrozen();ANIM_DT=fz?0:dt;try{if(!fz)update(dt);if(LV.on&&LV.g)lvDraw();else{render();ghUpdate()}}catch(e){console.error(e);const l=errLoc(e);errPush(e&&e.message,l[0],l[1],true)}requestAnimationFrame(frame)}
@@ -4658,6 +5085,11 @@ function fit(){
   wr.style.padding='0';a.style.width=GW+'px';a.style.height=GH+'px';a.style.fontSize='';
   HR=hr;
   if(cv.width!==cw||cv.height!==258+HR){cv.width=cw;cv.height=258+HR;cx.imageSmoothingEnabled=false} /* resizing a canvas resets its context */
+  if(cvF&&cvT){ /* v2.18: the top layer matches the field canvas; the figure layer has the screen's own pixels: FIG.R device pixels per game unit (CSS scale s times the device pixel ratio, at most 6) */
+   const R=Math.min(6,Math.max(1,s*Math.max(1,Math.min(4,window.devicePixelRatio||1)))),fw=Math.round(cw*R),fh=Math.round((258+HR)*R);
+   if(cvT.width!==cw||cvT.height!==258+HR){cvT.width=cw;cvT.height=258+HR;if(TX)TX.imageSmoothingEnabled=false}
+   if(cvF.width!==fw||cvF.height!==fh||FIG.R!==R){cvF.width=fw;cvF.height=fh;FIG.R=R;FIG.bmp={}}}
+  parkFit(s,bh+sp,chh,GH,bh);
   W=cw;H=258+HR;VW=W/PPY;GI={l:Im.l/s,r:Im.r/s,b:Math.max(0,(Im.b-sp)/s)};GEO={s,kb,Im,sp,ct:bh+sp,ch:chh};
   a.style.setProperty('--k',kk);a.style.setProperty('--kb',kb);a.style.setProperty('--bh',bh+'px');a.style.setProperty('--ct',(bh+sp)+'px');a.style.setProperty('--ch',chh+'px');
   a.style.setProperty('--pt',Im.t+'px');a.style.setProperty('--pr',Im.r+'px');a.style.setProperty('--pb',Im.b+'px');a.style.setProperty('--pl',Im.l+'px');return}
@@ -4688,6 +5120,6 @@ function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return
 document.addEventListener('pointerup',fsTry,{capture:true});
 UI.ready=true;fit();openMenu();olBoot();
 requestAnimationFrame(frame);
-window.__pp={oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:()=>Math.min(UPCAP,UPSHIFT*upSpent()/100),LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
+window.__pp={startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:()=>Math.min(UPCAP,UPSHIFT*upSpent()/100),LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
 })();
 </script></body></html>
