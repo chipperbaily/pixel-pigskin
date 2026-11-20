@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Link Test">
+<title>Pixel Pigskin LIVE LINK TEST</title>
+<style>
+:root{--bg:#0b0b12;--fg:#e8e8f0;--dim:#8a8aa0;--ac:#ffd24a;--ok:#4ade80;--bad:#ff6b6b;--card:#171726}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.35 ui-monospace,Menlo,Consolas,monospace}
+body{padding:12px;max-width:780px;margin:0 auto}
+h1{font-size:18px;margin:0 0 4px;color:var(--ac);letter-spacing:.04em}
+.sub{color:var(--dim);font-size:13px}
+.card{background:var(--card);border-radius:10px;padding:12px;margin:10px 0}
+button{font:inherit;min-height:44px;padding:8px 14px;border-radius:8px;border:0;background:var(--ac);color:#111;font-weight:700;cursor:pointer}
+button.alt{background:#2c2c44;color:var(--fg)}
+button.on{outline:3px solid var(--ok)}
+button:disabled{opacity:.4}
+input{font:inherit;min-height:44px;padding:8px 10px;border-radius:8px;border:2px solid #2c2c44;background:#0b0b12;color:var(--fg);width:8em;letter-spacing:.2em}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.big{font-size:40px;letter-spacing:.25em;color:var(--ac);font-weight:700}
+.stat{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:14px}
+.stat b{color:var(--dim);font-weight:400}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+#field{width:100%;aspect-ratio:3/1;display:block;border-radius:8px;touch-action:none;background:#14532d;user-select:none;-webkit-user-select:none}
+#log{font-size:12px;color:var(--dim);white-space:pre-wrap;max-height:9em;overflow:auto;margin-top:8px}
+#state{font-size:20px;font-weight:700;margin:4px 0}
+.hide{display:none!important}
+</style></head><body>
+<h1>PIXEL PIGSKIN LIVE LINK TEST</h1>
+<div class="sub" id="ver"></div>
+
+<div id="start">
+ <div class="card">
+  <div class="row"><button id="bCreate">CREATE GAME</button></div>
+  <div class="sub">THIS PHONE IS THE OFFENSE: IT RUNS THE PLAY AND SENDS IT LIVE.</div>
+ </div>
+ <div class="card">
+  <div class="row"><input id="code" inputmode="numeric" pattern="[0-9]*" maxlength="9" placeholder="12345" autocomplete="off" spellcheck="false"><button id="bJoin">JOIN GAME</button></div>
+  <div class="sub">THIS PHONE IS THE DEFENSE: IT WATCHES LIVE AND STEERS ONE PLAYER (THE WHITE-RINGED DOT).</div>
+ </div>
+ <div class="card sub">HOW TO TEST: HOLD THE PHONES SIDEWAYS. CREATE ON ONE PHONE, TYPE THE 5 NUMBERS ON THE OTHER. WHEN IT SAYS LIVE LINK OK, DRAG A FINGER ON THE FIELD ON THE DEFENSE PHONE AND WATCH THE LAG. TRY: BOTH ON WI-FI, ONE ON CELLULAR, AND LOCKING A SCREEN. FOR THE INSTALLED-APP TEST ON AN IPHONE, OPEN THIS PAGE IN SAFARI, TAP SHARE, ADD TO HOME SCREEN, AND RUN IT FROM THAT ICON. THEN TAP COPY REPORT AND SEND IT TO ME.</div>
+</div>
+
+<div id="wait" class="card hide">
+ <div class="sub">TELL THE OTHER PHONE THIS CODE:</div>
+ <div class="big" id="roomCode">-----</div>
+ <div class="row"><button id="bShare" class="alt">SHARE</button><button id="bCancel" class="alt">CANCEL</button></div>
+ <div class="sub" id="waitMsg">WAITING FOR THE OTHER PHONE...</div>
+</div>
+
+<div id="live" class="hide">
+ <div id="state">...</div>
+ <canvas id="field" width="960" height="320"></canvas>
+ <div class="row" id="ctlHost">
+  <span class="sub">STREAM RATE:</span>
+  <button class="alt rate" data-hz="10">10</button><button class="alt rate" data-hz="20">20</button><button class="alt rate" data-hz="30">30</button>
+ </div>
+ <div class="row hide" id="ctlGuest">
+  <button class="alt" id="bPredict">PREDICT MY MOVES: ON</button>
+ </div>
+ <div class="row">
+  <button class="alt" id="bWake">KEEP SCREEN ON: ON</button>
+  <button class="alt" id="bReport">COPY REPORT</button>
+  <button class="alt" id="bLeave">LEAVE</button>
+ </div>
+ <div class="card"><div class="stat" id="stats"></div></div>
+</div>
+
+<div id="err" class="card bad hide"></div>
+<div id="log"></div>
+
+<script type="module">
+/* ---------- constants ---------- */
+const VERSION='rtc-test 1';
+const CFG={apiKey:"AIzaSyAp3vPyxdsRs7LRcc_iPQRQVNDXJ9W6GUI",authDomain:"pixel-pigskin.firebaseapp.com",projectId:"pixel-pigskin",storageBucket:"pixel-pigskin.firebasestorage.app",messagingSenderId:"1094292197633",appId:"1:1094292197633:web:bb836df9bd720f33140b00"}; /* public web config, same as the game; the Firestore rules protect the data */
+const SDK='10.14.1', COLL='rtctest';
+const NP=22, YOU=16, SPD=9, BUFMS=100, PLAYLEN=7.5;
+const $=id=>document.getElementById(id);
+const S={role:null,pc:null,st:null,ev:null,fb:null,seq:0,ack:0,hz:20,predict:true,wake:true,pings:[],rx:[],gaps:[],win:[],jit:0,inputs:[],iseq:0,inRx:[],evRx:0,drops:0,snaps:[],offs:[],me:null,disp:null,stick:null,keys:{},logs:[]};
+const qs=new URLSearchParams(location.search);
+$('ver').textContent=VERSION+' - NOT PART OF THE GAME';
+
+/* ---------- small helpers ---------- */
+const now=()=>performance.now();
+const q=(a,p)=>{if(!a.length)return null;const s=[...a].sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(p*s.length))]};
+const ahead=(a,b)=>{const d=(a-b)&0xffff;return d!==0&&d<0x8000};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function log(m){const t=((now()-(S.t0||now()))/1000).toFixed(1);S.logs.push(t+'s '+m);if(S.logs.length>60)S.logs.shift();$('log').textContent=S.logs.slice(-12).join('\n');$('log').scrollTop=1e9}
+S.t0=now();
+function lim(p,ms){return new Promise((res,rej)=>{const t=setTimeout(()=>rej({code:'timeout'}),ms);Promise.resolve(p).then(v=>{clearTimeout(t);res(v)},e=>{clearTimeout(t);rej(e)})})}
+function show(id){for(const x of ['start','wait','live'])$(x).classList.toggle('hide',x!==id)}
+function fail(msg){$('err').textContent=msg;$('err').classList.remove('hide');log('ERROR '+msg)}
+function clearErr(){$('err').classList.add('hide')}
+function newCode(){let s=String(1+(crypto.getRandomValues(new Uint8Array(1))[0]%9)); /* first digit 1-9 */ while(s.length<5){for(const v of crypto.getRandomValues(new Uint8Array(12))){if(v<250&&s.length<5)s+=String(v%10)}} return s}
+const normCode=r=>String(r||'').replace(/[^0-9]/g,'');
+const validCode=c=>/^[1-9][0-9]{4}$/.test(c);
+
+/* ---------- ICE and peer connection ---------- */
+function iceCfg(){
+ const servers=qs.get('nostun')==='1'?[]:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];
+ const t=qs.get('turn'); if(t){const [u,n,c]=t.split('|');servers.push({urls:u,username:n,credential:c})} /* optional relay for testing: ?turn=turn:host:3478|user|pass */
+ return {iceServers:servers,iceTransportPolicy:qs.get('relay')==='1'?'relay':'all'};
+}
+function gathered(pc,ms){return new Promise(res=>{if(pc.iceGatheringState==='complete')return res();const f=()=>{if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',f);res()}};pc.addEventListener('icegatheringstatechange',f);setTimeout(res,ms)})}
+function makePC(){
+ const pc=new RTCPeerConnection(iceCfg());
+ const st=pc.createDataChannel('st',{negotiated:true,id:0,ordered:false,maxRetransmits:0}); /* positions and inputs: a late packet is dropped, never waited for */
+ const ev=pc.createDataChannel('ev',{negotiated:true,id:1}); /* events: reliable and in order */
+ st.binaryType='arraybuffer';
+ st.onopen=()=>{S.tOpen=now();log('LINK OPEN after '+((S.tOpen-(S.tStart||S.tOpen))/1000).toFixed(1)+' s');startLive()};
+ st.onclose=()=>{if(S.live){S.drops++;log('LINK CLOSED')}};
+ st.onmessage=e=>onSt(e.data);
+ ev.onmessage=e=>onEv(e.data);
+ pc.onconnectionstatechange=()=>log('CONNECTION '+pc.connectionState);
+ pc.oniceconnectionstatechange=()=>log('ICE '+pc.iceConnectionState);
+ S.pc=pc;S.st=st;S.ev=ev;return pc;
+}
+
+/* ---------- Firebase (only for the handshake: two writes per game) ---------- */
+async function fb(){
+ if(S.fb)return S.fb;
+ const base='https://www.gstatic.com/firebasejs/'+SDK+'/';
+ const [A,F,X]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
+ const app=A.initializeApp(CFG,'rtctest'),auth=F.getAuth(app);
+ if(auth.authStateReady)await auth.authStateReady();
+ if(!auth.currentUser)await F.signInAnonymously(auth);
+ S.fb={X,db:X.getFirestore(app),uid:auth.currentUser.uid};return S.fb;
+}
+const cloudMsg=e=>e&&e.code==='permission-denied'?'THE CLOUD REFUSED THIS. EITHER THE NEW RULES ARE NOT DEPLOYED YET, OR THIS PAGE IS NOT OPEN FROM chipperbaily.github.io. ALSO CHECK THE DATE AND TIME ON THIS DEVICE.':e&&e.code==='timeout'?'THE CLOUD TOOK TOO LONG. CHECK THE CONNECTION AND TRY AGAIN.':'COULD NOT REACH THE CLOUD ('+((e&&(e.code||e.message))||'unknown')+').';
+
+/* ---------- create / join ---------- */
+async function create(){
+ clearErr();$('bCreate').disabled=true;
+ try{
+  S.role='host';S.tStart=null;S.answered=false;
+  const fbp=lim(fb(),12000); fbp.catch(()=>{});
+  const pc=makePC();
+  await pc.setLocalDescription(await pc.createOffer()); await gathered(pc,4000);
+  const sdp=JSON.stringify({type:pc.localDescription.type,sdp:pc.localDescription.sdp});
+  const {X,db,uid}=await fbp; let code=null,lastErr=null;
+  for(let i=0;i<4&&!code;i++){const c=newCode();try{await lim(X.setDoc(X.doc(db,COLL,c),{schema:1,created:Date.now(),host:uid,offer:sdp,guest:null,answer:null}),10000);code=c}catch(e){lastErr=e;if(e&&e.code==='timeout')break}}
+  if(!code)throw lastErr||{code:'unknown'};
+  S.code=code;$('roomCode').textContent=code;show('wait');$('waitMsg').textContent='WAITING FOR THE OTHER PHONE...';log('ROOM '+code+' CREATED');
+  S.unsub=X.onSnapshot(X.doc(db,COLL,code),snap=>{const d=snap.data();if(d&&d.answer&&!S.answered){S.answered=true;S.tStart=now();$('waitMsg').textContent='CONNECTING...';log('ANSWER RECEIVED');pc.setRemoteDescription(JSON.parse(d.answer)).catch(e=>fail('HANDSHAKE FAILED: '+e.message));armTimeout()}},e=>fail(cloudMsg(e)));
+ }catch(e){fail(cloudMsg(e));leave(true)}
+ $('bCreate').disabled=false;
+}
+async function join(){
+ clearErr();const code=normCode($('code').value);
+ if(!validCode(code)){fail('THE CODE IS 5 NUMBERS.');return}
+ $('bJoin').disabled=true;
+ try{
+  S.role='guest';S.tStart=now();log('LOOKING FOR GAME '+code);
+  const {X,db,uid}=await lim(fb(),12000);
+  const ref=X.doc(db,COLL,code),snap=await lim(X.getDoc(ref),10000);
+  if(!snap.exists()){fail('NO GAME WITH THAT CODE. CHECK THE NUMBERS.');leave(true);$('bJoin').disabled=false;return}
+  const d=snap.data(); if(d.answer){fail('THAT GAME ALREADY HAS TWO PHONES.');leave(true);$('bJoin').disabled=false;return}
+  const pc=makePC(); await pc.setRemoteDescription(JSON.parse(d.offer));
+  await pc.setLocalDescription(await pc.createAnswer()); await gathered(pc,4000);
+  await lim(X.updateDoc(ref,{guest:uid,answer:JSON.stringify({type:pc.localDescription.type,sdp:pc.localDescription.sdp})}),10000);
+  S.code=code;$('roomCode').textContent=code;show('wait');$('waitMsg').textContent='CONNECTING...';log('ANSWER SENT');armTimeout();
+ }catch(e){fail(cloudMsg(e));leave(true)}
+ $('bJoin').disabled=false;
+}
+function armTimeout(){clearTimeout(S.tmo);S.tmo=setTimeout(async()=>{if(S.live)return;const p=await pathInfo().catch(()=>null);fail('COULD NOT CONNECT DIRECTLY. TRY ONE PHONE ON WI-FI AND THE OTHER ON CELLULAR, OR SWAP THEM. (STATE: '+(S.pc?S.pc.iceConnectionState:'?')+')');log('NO LINK. PATH '+JSON.stringify(p&&{l:p.lt,r:p.rt}))},25000)}
+function leave(quiet){
+ clearTimeout(S.tmo);clearInterval(S.simT);clearInterval(S.inT);clearInterval(S.pingT);clearInterval(S.uiT);
+ try{S.unsub&&S.unsub()}catch(e){} S.unsub=null;
+ try{S.st&&(S.st.onclose=null);S.st&&S.st.close();S.ev&&S.ev.close();S.pc&&S.pc.close()}catch(e){}
+ S.pc=S.st=S.ev=null;S.live=false;S.role=null;clearInterval(S.pathT);
+ wl(false);show('start');if(!quiet)clearErr();
+ Object.assign(S,{lastSeq:null,inSeq:null,tOpen:null,tStart:null,drops:0,path:null,lastEv:null,auth:null,cur:null,pings:[],rx:[],gaps:[],win:[],jit:0,inputs:[],iseq:0,inRx:[],evRx:0,snaps:[],offs:[],me:null,disp:null,stick:null,seq:0,ack:0,answered:false});
+}
+
+/* ---------- snapshots (host -> guest), inputs (guest -> host), pings (both) ---------- */
+function encSnap(pos,ball){
+ const b=new ArrayBuffer(9+NP*4+6),v=new DataView(b);
+ v.setUint8(0,1);v.setUint16(1,S.seq=(S.seq+1)&0xffff,true);v.setUint32(3,Math.round(now())>>>0,true);v.setUint16(7,S.ack,true);
+ let o=9;for(let i=0;i<NP*2;i++){v.setInt16(o,Math.round(pos[i]*10),true);o+=2}
+ for(let i=0;i<3;i++){v.setInt16(o,Math.round(ball[i]*10),true);o+=2}
+ return b;
+}
+function decSnap(buf){
+ const v=new DataView(buf),pos=new Float32Array(NP*2),ball=[0,0,0];let o=9;
+ for(let i=0;i<NP*2;i++){pos[i]=v.getInt16(o,true)/10;o+=2}
+ for(let i=0;i<3;i++){ball[i]=v.getInt16(o,true)/10;o+=2}
+ return {seq:v.getUint16(1,true),ht:v.getUint32(3,true),ack:v.getUint16(7,true),pos,ball};
+}
+function sendSt(buf){try{if(S.st&&S.st.readyState==='open')S.st.send(buf)}catch(e){}}
+function sendPing(){const b=new ArrayBuffer(7),v=new DataView(b);v.setUint8(0,3);v.setUint16(1,(S.pid=((S.pid||0)+1)&0xffff),true);v.setUint32(3,Math.round(now())>>>0,true);sendSt(b)}
+function onSt(buf){
+ const v=new DataView(buf),t=v.getUint8(0),T=now();
+ if(t===3){const b=buf.slice(0);new DataView(b).setUint8(0,4);sendSt(b)}
+ else if(t===4){const r=Math.round(T)-v.getUint32(3,true);if(r>=0&&r<10000){S.pings.push(r);if(S.pings.length>100)S.pings.shift()}}
+ else if(t===1&&S.role==='guest'){
+  const s=decSnap(buf);s.arr=T;
+  const last=S.snaps[S.snaps.length-1];
+  /* loss, jitter, gaps */
+  if(S.lastSeq!=null){const d=(s.seq-S.lastSeq)&0xffff;if(d===0||d>=0x8000)return; /* duplicate or old */ S.win.push(d-1);if(S.win.length>200)S.win.shift()}
+  S.lastSeq=s.seq;
+  if(last){const dj=Math.abs((T-last.arr)-(s.ht-last.ht));S.jit+=(dj-S.jit)/16;S.gaps.push([T,T-last.arr]);while(S.gaps.length&&T-S.gaps[0][0]>5000)S.gaps.shift()}
+  S.rx.push(T);while(S.rx.length&&T-S.rx[0]>2000)S.rx.shift();
+  S.offs.push(T-s.ht);if(S.offs.length>100)S.offs.shift();
+  S.snaps.push(s);if(S.snaps.length>40)S.snaps.shift();
+  reconcile(s);
+ }
+ else if(t===2&&S.role==='host'){
+  const seq=v.getUint16(1,true),sx=v.getInt8(3)/127,sy=v.getInt8(4)/127;
+  S.inRx.push(T);while(S.inRx.length&&T-S.inRx[0]>2000)S.inRx.shift();
+  if(S.inSeq==null||ahead(seq,S.inSeq)){S.inSeq=seq;S.ack=seq;S.you.x=clamp(S.you.x+sx*SPD/30,1,119);S.you.y=clamp(S.you.y+sy*SPD/30,1,39)}
+ }
+}
+function onEv(txt){try{const e=JSON.parse(txt);S.evRx++;S.lastEv=e.n;log('EVENT '+e.n+(e.p!=null?' #'+e.p:''))}catch(x){}}
+function sendEv(n,p){try{if(S.ev&&S.ev.readyState==='open')S.ev.send(JSON.stringify({n,p,t:Math.round(now())}))}catch(e){}}
+
+/* ---------- the pretend play (host) ---------- */
+const BASE=[[39,14],[39,17],[39,20],[39,23],[39,26],[35,20],[39,5],[39,35],[38.8,28],[34,15.5],[39.5,24.5],[41.3,12],[41.3,18],[41.3,22],[41.3,28],[44.5,11],[44.5,20],[44.5,26],[46,6],[46,34],[46,30],[54,20]];
+const ease=u=>u*u*(3-2*u);
+function simPlay(t){
+ const pos=new Float32Array(NP*2),u=clamp(t/5,0,1),e=ease(u);
+ for(let i=0;i<NP;i++){
+  let [x,y]=BASE[i];
+  if(i<5){x-=1.2*Math.sin(u*Math.PI);y+=.4*Math.sin(t*3+i)}
+  else if(i===5){x-=4*Math.min(t/1.2,1)}
+  else if(i<11){const k=i-6;x+=[14,10,8,3,6][k]*e;y+=[2,-3,-4,5,0][k]*Math.sin(u*Math.PI)}
+  else if(i<15){x+=[2,3,3,2][i-11]*Math.sin(u*Math.PI)-1.5*Math.min(t/2,1);y+=.5*Math.sin(t*4+i)}
+  else{x+=9*e;y+=1.5*Math.sin(t*2+i)}
+  pos[i*2]=x;pos[i*2+1]=y;
+ }
+ pos[YOU*2]=S.you.x;pos[YOU*2+1]=S.you.y; /* the steered player */
+ const qx=pos[10],qy=pos[11],rx=pos[12],ry=pos[13]; let b=[qx,qy,0];
+ if(t>=2&&t<4){const f=(t-2)/2,tqx=BASE[5][0]-4;b=[tqx+(rx-tqx)*f,qy+(ry-qy)*f,3.5*Math.sin(Math.PI*f)]}
+ else if(t>=4)b=[rx,ry,0];
+ return {pos,ball:b};
+}
+function hostTick(){
+ const el=(now()-S.playStart)/1000,t=el%PLAYLEN,n=Math.floor(el/PLAYLEN);
+ if(n!==S.playNo){S.playNo=n;S.you={x:BASE[YOU][0],y:BASE[YOU][1]};S.evDone={}}
+ for(const [k,at] of [['SNAP',0],['THROW',2],['CATCH',4],['TACKLE',5.5]]){if(t>=at&&!S.evDone[k]){S.evDone[k]=1;sendEv(k,n)}}
+ const s=simPlay(t);S.cur=s;sendSt(encSnap(s.pos,s.ball));
+}
+function startHostSim(){S.playStart=now();S.playNo=-1;S.you={x:BASE[YOU][0],y:BASE[YOU][1]};S.evDone={};clearInterval(S.simT);S.simT=setInterval(hostTick,1000/S.hz)}
+
+/* ---------- the defense phone: steer, predict, reconcile ---------- */
+function stickVec(){let vx=0,vy=0;if(S.stick){vx=S.stick.vx;vy=S.stick.vy}
+ if(S.keys.ArrowLeft)vx-=1;if(S.keys.ArrowRight)vx+=1;if(S.keys.ArrowUp)vy-=1;if(S.keys.ArrowDown)vy+=1;
+ const l=Math.hypot(vx,vy);if(l>1){vx/=l;vy/=l}return [vx,vy]}
+function inputTick(){
+ const [vx,vy]=stickVec(),sx=Math.round(vx*127),sy=Math.round(vy*127);
+ const b=new ArrayBuffer(5),v=new DataView(b);S.iseq=(S.iseq+1)&0xffff;v.setUint8(0,2);v.setUint16(1,S.iseq,true);v.setInt8(3,sx);v.setInt8(4,sy);sendSt(b);
+ S.inputs.push({seq:S.iseq,sx:sx/127,sy:sy/127});if(S.inputs.length>120)S.inputs.shift();
+}
+function reconcile(s){
+ let x=s.pos[YOU*2],y=s.pos[YOU*2+1];
+ for(const i of S.inputs){if(ahead(i.seq,s.ack)){x=clamp(x+i.sx*SPD/30,1,119);y=clamp(y+i.sy*SPD/30,1,39)}} /* re-apply the moves the host has not confirmed yet */
+ S.me={x,y};S.auth={x:s.pos[YOU*2],y:s.pos[YOU*2+1]};
+}
+function interp(){
+ if(!S.snaps.length)return null;
+ const off=Math.min(...S.offs),ht=now()-off-BUFMS;
+ let a=S.snaps[0],b=S.snaps[S.snaps.length-1];
+ if(ht>=b.ht)a=b;else if(ht>a.ht){for(let i=S.snaps.length-1;i>0;i--){if(S.snaps[i-1].ht<=ht){a=S.snaps[i-1];b=S.snaps[i];break}}}
+ const f=b.ht>a.ht?clamp((ht-a.ht)/(b.ht-a.ht),0,1):0,pos=new Float32Array(NP*2);
+ for(let i=0;i<NP*2;i++)pos[i]=a.pos[i]+(b.pos[i]-a.pos[i])*f;
+ const ball=[0,1,2].map(i=>a.ball[i]+(b.ball[i]-a.ball[i])*f);
+ return {pos,ball};
+}
+
+/* ---------- drawing ---------- */
+const cv=$('field'),cx=cv.getContext('2d');
+function draw(){
+ requestAnimationFrame(draw);
+ if(!S.live)return;
+ let s=S.role==='host'?S.cur:interp(); if(!s)return;
+ const W=cv.width,H=cv.height,k=W/120;
+ cx.fillStyle='#14532d';cx.fillRect(0,0,W,H);
+ cx.strokeStyle='rgba(255,255,255,.25)';cx.lineWidth=1;cx.font='11px monospace';cx.fillStyle='rgba(255,255,255,.4)';
+ for(let y=10;y<=110;y+=10){cx.beginPath();cx.moveTo(y*k,0);cx.lineTo(y*k,H);cx.stroke();cx.fillText(String(y<=60?y-10:110-y),y*k+3,12)}
+ cx.strokeStyle='#ffd24a';cx.beginPath();cx.moveTo(40*k,0);cx.lineTo(40*k,H);cx.stroke();
+ const pos=s.pos;let me=null;
+ if(S.role==='guest'){
+  if(S.me&&S.auth){ /* the dot I steer: predicted, or just the host's (delayed) position */
+   const target=S.predict?S.me:{x:pos[YOU*2],y:pos[YOU*2+1]};
+   S.disp=S.disp?{x:S.disp.x+(target.x-S.disp.x)*.35,y:S.disp.y+(target.y-S.disp.y)*.35}:target;
+   pos[YOU*2]=S.disp.x;pos[YOU*2+1]=S.disp.y;
+  }
+ }
+ for(let i=0;i<NP;i++){
+  const px=pos[i*2]*k,py=pos[i*2+1]*(H/40);
+  cx.beginPath();cx.arc(px,py,i===YOU?8:6,0,7);cx.fillStyle=i<11?'#22d3ee':'#fb923c';cx.fill();
+  if(i===YOU){cx.lineWidth=3;cx.strokeStyle='#fff';cx.stroke();cx.fillStyle='#fff';cx.font='bold 12px monospace';cx.fillText('YOU',px-12,py-12)}
+ }
+ const bx=s.ball[0]*k,by=s.ball[1]*(H/40)-s.ball[2]*5;
+ cx.beginPath();cx.ellipse(bx,by,6,4,0,0,7);cx.fillStyle='#8b4513';cx.fill();cx.strokeStyle='#fff';cx.lineWidth=1;cx.stroke();
+ if(S.role==='guest'&&S.stick){cx.strokeStyle='rgba(255,255,255,.5)';cx.lineWidth=2;cx.beginPath();cx.arc(S.stick.px,S.stick.py,30,0,7);cx.stroke();cx.beginPath();cx.arc(S.stick.px+S.stick.vx*30,S.stick.py+S.stick.vy*30,12,0,7);cx.fillStyle='rgba(255,255,255,.5)';cx.fill()}
+}
+draw();
+cv.addEventListener('pointerdown',e=>{if(S.role!=='guest')return;try{cv.setPointerCapture(e.pointerId)}catch(x){}const r=cv.getBoundingClientRect(),sc=cv.width/r.width;S.stick={ax:e.clientX,ay:e.clientY,vx:0,vy:0,px:(e.clientX-r.left)*sc,py:(e.clientY-r.top)*sc};e.preventDefault()});
+cv.addEventListener('pointermove',e=>{const s=S.stick;if(!s)return;let dx=(e.clientX-s.ax)/50,dy=(e.clientY-s.ay)/50;const l=Math.hypot(dx,dy);if(l>1){dx/=l;dy/=l}s.vx=dx;s.vy=dy});
+for(const t of ['pointerup','pointercancel'])cv.addEventListener(t,()=>{S.stick=null});
+addEventListener('keydown',e=>{if(e.key.startsWith('Arrow')){S.keys[e.key]=1;e.preventDefault()}});
+addEventListener('keyup',e=>{delete S.keys[e.key]});
+
+/* ---------- stats ---------- */
+async function pathInfo(){
+ if(!S.pc)return null;
+ const r=await S.pc.getStats(),cands={};let pair=null,selId=null;
+ r.forEach(s=>{if(s.type==='transport'&&s.selectedCandidatePairId)selId=s.selectedCandidatePairId;if(s.type==='local-candidate'||s.type==='remote-candidate')cands[s.id]=s});
+ r.forEach(s=>{if(s.type==='candidate-pair'&&(s.id===selId||(!selId&&s.nominated&&s.state==='succeeded')))pair=pair||s});
+ if(!pair)return null;
+ const l=cands[pair.localCandidateId]||{},m=cands[pair.remoteCandidateId]||{};
+ return {lt:(l.candidateType||'?')+'/'+(l.protocol||'?'),rt:(m.candidateType||'?')+'/'+(m.protocol||'?'),relay:l.candidateType==='relay'||m.candidateType==='relay'};
+}
+function statsNow(){
+ const T=now(),pr=S.pings,loss=(()=>{const lost=S.win.reduce((a,b)=>a+b,0),n=S.win.length;return n?100*lost/(lost+n):0})();
+ const rate=a=>a.length?(a.length/Math.min(2,(T-a[0])/1000||2)).toFixed(0):'0';
+ const mg=S.gaps.length?Math.max(...S.gaps.map(g=>g[1])):0;
+ const rt={n:pr.length,med:q(pr,.5),min:pr.length?Math.min(...pr):null,max:pr.length?Math.max(...pr):null,p95:q(pr,.95)};
+ return {rt,loss,jit:S.jit,mg,snapRate:S.role==='guest'?rate(S.rx):String(S.hz),inRate:S.role==='host'?rate(S.inRx):String(30),
+  viewDelay:rt.med!=null?Math.round(BUFMS+rt.med/2):null,path:S.path};
+}
+function paint(){
+ if(!S.live)return;
+ const s=statsNow(),open=S.st&&S.st.readyState==='open';
+ const fresh=S.role==='host'||(S.rx.length&&now()-S.rx[S.rx.length-1]<1500);
+ $('state').textContent=!open?'LINK LOST':fresh?'LIVE LINK OK':'WAITING FOR DATA...';
+ $('state').className=open&&fresh?'ok':'bad';
+ const f=v=>v==null?'-':Math.round(v);
+ const rows=[['YOU ARE',S.role==='host'?'OFFENSE (RUNS THE PLAY)':'DEFENSE (WATCHES, STEERS ONE PLAYER)'],
+  ['PATH',s.path?(s.path.relay?'RELAY':'DIRECT')+'  ('+s.path.lt+' to '+s.path.rt+')':'...'],
+  ['ROUND TRIP (MS)',s.rt.n?'MEDIAN '+f(s.rt.med)+'  MIN '+f(s.rt.min)+'  MAX '+f(s.rt.max)+'  P95 '+f(s.rt.p95)+'  (N='+s.rt.n+')':'...'],
+  S.role==='guest'?['POSITIONS IN','~'+s.snapRate+' PER SEC, LOST '+s.loss.toFixed(1)+'%, JITTER '+f(s.jit)+' MS, LONGEST GAP '+f(s.mg)+' MS']:['STEERING IN','~'+s.inRate+' PER SEC (FROM THE OTHER PHONE)'],
+  S.role==='guest'?['LIVE VIEW DELAY','ABOUT '+(s.viewDelay==null?'-':s.viewDelay)+' MS ('+BUFMS+' MS SMOOTHING + HALF THE ROUND TRIP)']:['STREAM','22 PLAYERS + BALL, 103 BYTES, '+S.hz+' PER SEC'],
+  ['EVENTS',S.evRx+' RECEIVED'+(S.lastEv?' (LAST: '+S.lastEv+')':'')+'   LINK DROPS: '+S.drops],
+  ['CONNECT TIME',S.tOpen&&S.tStart?((S.tOpen-S.tStart)/1000).toFixed(1)+' S':'-']];
+ $('stats').innerHTML=rows.map(r=>'<b>'+r[0]+'</b><span>'+r[1]+'</span>').join('');
+}
+function report(){
+ const s=statsNow(),f=v=>v==null?'-':Math.round(v);
+ const standalone=(navigator.standalone===true)||matchMedia('(display-mode: standalone)').matches;
+ return ['PIXEL PIGSKIN LIVE LINK TEST ('+VERSION+')','role: '+(S.role||'-'),'device: '+navigator.userAgent,'installed app (standalone): '+(standalone?'yes':'no'),
+  'network type: '+((navigator.connection&&navigator.connection.effectiveType)||'unknown'),
+  'path: '+(s.path?(s.path.relay?'RELAY':'DIRECT')+' local='+s.path.lt+' remote='+s.path.rt:'unknown')+(qs.get('relay')==='1'?' (relay forced)':''),
+  'connect time: '+(S.tOpen&&S.tStart?((S.tOpen-S.tStart)/1000).toFixed(1)+' s':'-'),
+  'round trip ms: median '+f(s.rt.med)+' min '+f(s.rt.min)+' max '+f(s.rt.max)+' p95 '+f(s.rt.p95)+' (n='+s.rt.n+')',
+  S.role==='guest'?'positions: ~'+s.snapRate+'/s, lost '+s.loss.toFixed(1)+'%, jitter '+f(s.jit)+' ms, longest gap '+f(s.mg)+' ms':'steering in: ~'+s.inRate+'/s',
+  'events received: '+S.evRx+', link drops: '+S.drops,'screen kept on: '+(S.wake?'yes':'no'),'predict: '+(S.predict?'on':'off'),'--- log ---',...S.logs.slice(-25)].join('\n');
+}
+
+/* ---------- going live ---------- */
+function startLive(){
+ clearTimeout(S.tmo);clearErr();S.live=true;show('live');
+ $('ctlHost').classList.toggle('hide',S.role!=='host');$('ctlGuest').classList.toggle('hide',S.role!=='guest');
+ for(const b of document.querySelectorAll('.rate'))b.classList.toggle('on',+b.dataset.hz===S.hz);
+ clearInterval(S.pingT);S.pingT=setInterval(sendPing,500);
+ if(S.role==='host')startHostSim();else{S.inT=setInterval(inputTick,1000/30)}
+ clearInterval(S.uiT);S.uiT=setInterval(paint,250);
+ S.pathT=setInterval(async()=>{if(!S.live){clearInterval(S.pathT);return}try{S.path=await pathInfo()||S.path}catch(e){}},1500);
+ wl(S.wake);
+}
+async function wl(on){try{if(on&&navigator.wakeLock&&!S.wlk){S.wlk=await navigator.wakeLock.request('screen');S.wlk.addEventListener('release',()=>{S.wlk=null})}else if(!on&&S.wlk){await S.wlk.release();S.wlk=null}}catch(e){log('SCREEN LOCK: '+(e.name||e))}}
+document.addEventListener('visibilitychange',()=>{log(document.hidden?'PAGE HIDDEN':'PAGE VISIBLE');if(!document.hidden&&S.live&&S.wake)wl(true)});
+
+/* ---------- buttons ---------- */
+$('bCreate').onclick=create;
+$('bJoin').onclick=join;
+$('code').addEventListener('input',e=>{e.target.value=normCode(e.target.value).slice(0,5)});
+$('code').addEventListener('keydown',e=>{if(e.key==='Enter')join()});
+$('bCancel').onclick=()=>leave();
+$('bLeave').onclick=()=>leave();
+$('bShare').onclick=async()=>{const url=location.origin+location.pathname+'?room='+S.code,txt='Pixel Pigskin link test. Code: '+S.code;try{if(navigator.share)await navigator.share({title:'Pixel Pigskin',text:txt,url});else{await navigator.clipboard.writeText(txt+' '+url);log('COPIED')}}catch(e){}};
+for(const b of document.querySelectorAll('.rate'))b.onclick=()=>{S.hz=+b.dataset.hz;for(const x of document.querySelectorAll('.rate'))x.classList.toggle('on',x===b);if(S.role==='host')startHostSim()};
+$('bPredict').onclick=()=>{S.predict=!S.predict;$('bPredict').textContent='PREDICT MY MOVES: '+(S.predict?'ON':'OFF')};
+$('bWake').onclick=()=>{S.wake=!S.wake;$('bWake').textContent='KEEP SCREEN ON: '+(S.wake?'ON':'OFF');wl(S.wake)};
+$('bReport').onclick=async()=>{const t=report();try{await navigator.clipboard.writeText(t);log('REPORT COPIED')}catch(e){const a=document.createElement('textarea');a.value=t;a.style.cssText='width:100%;height:12em';document.body.appendChild(a);a.select();log('SELECT THE TEXT ABOVE AND COPY IT')}};
+const pre=normCode(qs.get('room'));if(validCode(pre))$('code').value=pre; /* a ?room= link only fills the box; it never joins by itself */
+window.__rtc={S,report,statsNow}; /* test hook */
+</script>
+</body></html>
