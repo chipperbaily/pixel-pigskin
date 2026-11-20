@@ -495,7 +495,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="2.12"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.14"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -3309,25 +3309,115 @@ function pickSix(from){
   if(G.clock<=0){timeUp();return}
   startMyDrive(25)},'#ff6b6b')}
 
+/* ---------- OPPONENT DRIVE REPORT (v2.13): the plays of a simulated opponent drive, and a clock that follows them ----------
+   The OUTCOME of a drive is still rolled by simOpp exactly as before (pTD, pFG, pTO and the punt chance are untouched, so difficulty, ratings,
+   CALL YOUR DEFENSE and the late-clock rule balance exactly as they did). odApply then WRITES the plays that lead to that outcome: down and distance,
+   run or pass, yards, first downs, sacks, incompletions, and the final kick, interception or fumble. The clock cost of the drive is the sum of its plays
+   (a touchdown drive takes longer than a three-and-out) instead of a flat random slice, scaled so the AVERAGE time per drive is what it was.
+   Uses the game's own globals: clamp, ri, rnd. Nothing is stored; the log lives on the returned object. */
+const OD_KT=.070;                       /* game seconds per clock unit, as a share of the quarter length (calibrated: mean drive = .335 of a quarter, as before) */
+const od_g=a=>a[Math.floor(Math.random()*a.length)];
+function odSample(type,ys,hot){          /* one play: {y, res} res = run | comp | inc | sack */
+ if(type==='run'){const r=Math.random();let y=r<.12?ri(-2,0):r<.80?ri(1,5):r<.95?ri(6,11):ri(12,28);if(y>0)y=Math.round(y*ys);return{y,res:'run'}}
+ const r=Math.random();if(r<(hot?.04:.06))return{y:-ri(3,9),res:'sack'};if(r<(hot?.30:.42))return{y:0,res:'inc'};
+ const q=Math.random();let y=q<.45?ri(2,8):q<.85?ri(9,17):ri(18,40);return{y:Math.max(1,Math.round(y*ys)),res:'comp'}}
+function odPassP(down,tg,c){let p=.55+(c.style==='PASS'?.15:c.style==='RUN'?-.15:0);if(c.late&&c.trail)p+=.2;if(c.late&&c.lead)p-=.2;if(down>=3&&tg>=7)p+=.25;if(tg<=2)p-=.3;return clamp(p,.12,.92)}
+const odSpot=x=>x<=50?'OWN '+Math.round(x):'YOUR '+Math.round(100-x);
+function odTry(o){
+ const{start,kind,sub,c}=o,E=kind==='td'?100:o.E,ys=clamp(1+c.edge*.035+.02*c.k,.75,1.35),pl=[];
+ let spot=start,down=1,tg=Math.min(10,100-spot),n=0,short=false;const hot=kind==='td'||sub==='fg'||sub==='fgm';
+ const push=(ty,res,y,extra)=>{const p=Object.assign({dn:down,tg,sp:spot,ty,res,y,u:0},extra||{});pl.push(p);return p};
+ while((kind==='td'?spot<100:spot<E)&&n++<26){
+  const rem=(kind==='td'?100:E)-spot,type=Math.random()<odPassP(down,tg,c)?'pass':'run';
+  if(down===4&&kind!=='td'&&rem<tg){short=true;break}                         /* the drive stops short of the rolled spot: they kick from here */
+  let p=odSample(type,hot?ys*1.3:ys,hot);
+  if(down>=3&&rem>=tg&&p.y<tg)p={y:tg+ri(0,6),res:type==='pass'?'comp':'run'}; /* a drive that goes on converts its 3rd and 4th downs */
+  if(spot+p.y<1)p.y=1-spot;
+  if(kind==='td'){if(spot+p.y>=100)p.y=100-spot}else if(p.y>rem)p.y=rem;
+  if(down===4&&p.y<tg){short=true;break}
+  const fd=p.y>=tg,td=kind==='td'&&spot+p.y>=100;
+  const q=push(type,p.res,p.y,{fd:fd&&!td,td,u:p.res==='inc'?.2:p.res==='sack'?.8:p.res==='comp'?.8:.9});
+  spot+=p.y;if(fd){down=1;tg=Math.min(10,100-spot)}else{down++;tg-=p.y}
+  if(td)return{pl,spot:100,kind,sub}}
+ if(kind==='td')return null;
+ /* the stall: they run out of downs at (about) the rolled spot, or the turnover happens */
+ let stalls=down>=4?0:(kind==='to'?(Math.random()<.7?0:ri(1,Math.max(1,3-down))):4-down);
+ if(kind==='to'&&down>=4)stalls=0;
+ for(let i=0;i<stalls&&down<4;i++){
+  const last=down===3&&kind!=='to',inc=Math.random()<.5,ty=inc||Math.random()<.5?'pass':'run';
+  let y=last?clamp(E-spot,Math.max(-6,1-spot),tg-1):(ty==='pass'&&inc?0:ri(-2,Math.max(-2,Math.min(tg-1,3))));
+  if(y>=tg)y=tg-1;if(spot+y<1)y=1-spot;
+  const res=ty==='run'?'run':inc&&!last?'inc':y===0&&ty==='pass'?'inc':y<0&&ty==='pass'?'sack':'comp';
+  push(ty,res,y,{fd:false,u:res==='inc'?.2:.85});spot+=y;down++;tg-=y}
+ if(pl.length>24)return null;
+ const sc=pl.length;
+ if(kind==='to'){
+  const dn4=down>=4,r=Math.random();
+  if(dn4)push(Math.random()<.5?'pass':'run','down',0,{u:.6});
+  else if(r<.6)push('pass','int',0,{u:.4});else push(Math.random()<.5?'run':'pass','fum',0,{u:.5});
+  return{pl,spot,kind,sub,scr:sc}}
+ if(sub==='punt'){push('punt','punt',0,{u:.3});return{pl,spot,kind,sub,scr:sc}}
+ push('fg','fg',0,{u:.3,dist:Math.max(18,Math.round(117-spot))});return{pl,spot,kind,sub,scr:sc}}
+function odText(p,m){
+ const h=p.dn+'&'+(p.sp>=90?'GOAL':p.tg)+' '+odSpot(p.sp)+': ';
+ if(p.ty==='punt')return h+'PUNT'+(m.land>=100?' - TOUCHBACK':' '+m.pyd+' YDS');
+ if(p.ty==='fg')return h+'FIELD GOAL '+p.dist+' YDS - '+(m.fgok?'GOOD':'NO GOOD');
+ if(p.res==='int')return h+'PASS INTERCEPTED';if(p.res==='fum')return h+'FUMBLE - LOST';if(p.res==='down')return h+'STOPPED ON 4TH DOWN';
+ if(p.td)return h+(p.ty==='run'?'RUN':'PASS')+' '+p.y+' YDS - TOUCHDOWN';
+ if(p.res==='inc')return h+'PASS INCOMPLETE';if(p.res==='sack')return h+'SACK '+p.y;
+ return h+(p.ty==='run'?'RUN ':'PASS ')+(p.y>0?'+':'')+p.y+(p.fd?' - 1ST DOWN':'')}
+/* odApply(out,c): out is simOpp's result (out.sub = 'td' | 'fg' | 'fgm' | 'punt' | 'to'); c = {start,edge,k,late,trail,lead,style}. Rewrites out.plays, out.time, out.yd (drive yards) and adds out.log (one string per play) and out.plt (game seconds per play). */
+function odApply(out,c){
+ const start=clamp(Math.round(c.start),1,99),sub=out.sub;
+ let E;if(out.kind==='td')E=100;else if(sub==='fg')E=Math.max(start,117-out.yd);else if(sub==='fgm')E=Math.min(start+out.yd,85);else if(out.kind==='to')E=Math.min(start+out.yd,95);else E=Math.min(start+out.yd,92);
+ let r=null;for(let i=0;i<30&&!r;i++)r=odTry({start,E,kind:out.kind,sub,c});
+ if(!r)return out;                                                    /* never happens in tests; the old flat numbers stay */
+ const L=r.pl,last=L[L.length-1],spot=r.spot,scr=L.filter(p=>p.ty!=='punt'&&p.ty!=='fg'&&p.res!=='int'&&p.res!=='fum').length;
+ const m={land:0,pyd:0,fgok:out.pts===3};
+ if(sub==='punt'){const line=Math.min(spot,92),land=line+ri(34,46);m.land=land;m.pyd=Math.round(land-line);out.next=land>=100?20:clamp(100-land+ri(0,8),5,60)}
+ else if(sub==='fgm'){out.next=clamp(100-Math.min(spot,85)+7,20,70)}
+ else if(out.kind==='to'){out.next=clamp(100-Math.min(spot,95)+ri(0,10),5,80)}
+ const base=c.late&&c.lead?1.3:c.late&&c.trail?.8:1;let sum=0;
+ L.forEach(p=>{p.t=rnd(.85,1.15)*p.u;sum+=p.t});
+ const sec=clamp(sum*OD_KT*c.qLen*base,c.qLen*.10,c.qLen*.75);      /* floor and cap: no 5-second drives, none longer than three-quarters of a quarter */
+ const fix=sec/(sum*OD_KT*c.qLen*base);out.plt=L.map(p=>+(p.t*OD_KT*c.qLen*base*fix).toFixed(1));
+ out.log=L.map(p=>odText(p,m));out.time=sec;out.plays=Math.max(1,scr);out.yd=Math.max(0,Math.round(Math.min(spot,100)-start));
+ if(out.kind==='td'){const n=out.plays;out.text=n+' PLAYS, '+out.yd+' YDS - TOUCHDOWN! (+'+out.pts+')'}
+ else if(sub==='fg')out.text=out.plays+' PLAYS - FIELD GOAL IS GOOD (+3)';
+ else if(sub==='fgm')out.text=out.plays+' PLAYS - FIELD GOAL MISSED!';
+ else if(out.kind==='to')out.text=out.plays+' PLAYS - TURNOVER! YOUR D DELIVERED';
+ else out.text=out.plays+' PLAYS - PUNT TO YOUR '+out.next+'. YOUR D HELD';
+ return out}
+/* v2.14: UPGRADES MAKE THE OPPONENT'S DRIVES BEHAVE AS IF THE LEVEL WERE HIGHER. upSpent() = the credits spent on the ratings that decide the opponent's drives: RUNNING BK, O-LINE and DEFENSE (S.r.rb, S.r.ol, S.r.def) and the roster's QB arm and accuracy and WR1, WR2, WR3 speed and catching (S.ro, if it exists; it is never created here). TE and kicker are not counted. A rating v has cost the sum of upCost(r) for r = 4 .. v-1 (4 = 0, 5 = 3, 6 = 7, 7 = 12, 8 = 17, 9 = 23, 10 = 30); 4 or less counts 0. Worked out from the current ratings at every drive; nothing is saved. */
+const UPSHIFT=4.5; /* levels of extra difficulty per 100 credits spent */
+const UPCAP=6;     /* the most extra levels the upgrades can add */
+function upSpent(){
+ const one=v=>{let t=0;for(let r=4;r<v;r++)t+=upCost(r);return t},o=S.ro;let t=one(S.r.rb)+one(S.r.ol)+one(S.r.def);
+ if(o){t+=one(o.qb.arm)+one(o.qb.acc);for(let i=0;i<3;i++)t+=one(o.wr[i].spd)+one(o.wr[i].cat)}
+ return t}
 function simOpp(start,call){
  const o=G.opp,edge=o.off-S.r.def,fb=(start-25)*(start>25?.0100:.0075),fbF=(start-25)*(start>25?.0033:.0025); /* v1.59: where the drive starts matters about twice as much for scoring; v1.95: a good start (past their own 25) is worth about a third more (.0100 TD and .0033 FG per yard); a bad start is unchanged */
  const k=DK(); /* v1.53: difficulty also moves the opponent's scoring drives (5 = unchanged) */
  /* v1.55: a better opponent offense: higher base chances, a steeper rating edge, a two-minute drill when it trails late and clock-killing when it leads */
  const late=G.clock<=G.qLen*1.2,trail=G.op<G.me,lead=G.op>G.me;
  const ha=G.home===false?.025:G.home===true?-.025:0; /* v1.56: the opponent scores a little less on your field */
- let pTD=clamp(.32+edge*.052+fb+.03*k+ha+(late&&trail?.06:0),.08,.75),pFG=clamp(.15+edge*.008+.006*k+fbF,.07,.3),pTO=clamp(.095-edge*.012-.008*k,.03,.2);
+ const sh=Math.min(UPCAP,UPSHIFT*upSpent()/100); /* v2.14: upgrades count as extra levels in the opponent's touchdown chance (a default team has sh = 0) */
+ let pTD=clamp(.32+edge*.052+fb+.03*(k+sh)+ha+(late&&trail?.06:0),.08,.75),pFG=clamp(.15+edge*.008+.006*k+fbF,.07,.3),pTO=clamp(.095-edge*.012-.008*k,.03,.2);
  if(call){const f=dcFactors(call.sch,call.style,late&&trail);pTD=clamp(pTD*f[0],.08,.75);pFG=clamp(pFG*f[1],.07,.3);pTO=clamp(pTO*f[2],.03,.2)} /* v1.83: CALL YOUR DEFENSE, only with a called scheme; the same clamps as above */
  /* v1.95: the clock. A scoring drive needs time: with less than TMIN seconds left in the half (or the game) the odds of a touchdown or field goal fall off fast (6 s left is about 1.2% of normal; 0 s is zero). Overtime has its own clock and is not limited. Applied after the clamps above on purpose so the .08 floor cannot bring the odds back. */
  {const left=G.ot?1e9:G.half||G.clock<=G.qLen*2?G.clock:G.clock-G.qLen*2,TMIN=Math.max(18,G.qLen*.176);
   if(left<TMIN){const f=Math.pow(Math.max(0,left)/TMIN,4);pTD*=f;pFG*=f}}
  const r=Math.random(),time=G.qLen*rnd(.22,.45)*(late&&lead?1.3:late&&trail?.8:1),plays=ri(3,9);let out;
- if(r<pTD){const pts=Math.random()<.93?7:6;out={pts,next:25,kind:'td',yd:Math.round(100-start),text:plays+' PLAYS, '+Math.round(100-start)+' YDS - TOUCHDOWN! (+'+pts+')'}}
- else if(r<pTD+pFG){if(Math.random()<.85)out={pts:3,next:25,kind:'fg',yd:ri(30,62),text:plays+' PLAYS - FIELD GOAL IS GOOD (+3)'};else{const yd=ri(20,50),spot=Math.min(start+yd,85);out={pts:0,next:clamp(100-spot+7,20,70),kind:'pt',yd,text:plays+' PLAYS - FIELD GOAL MISSED!'}}}
- else if(r<pTD+pFG+pTO){const yd=ri(5,40),spot=Math.min(start+yd,95);out={pts:0,next:clamp(100-spot+ri(0,10),5,80),kind:'to',yd,text:plays+' PLAYS - TURNOVER! YOUR D DELIVERED'}}
+ if(r<pTD){const pts=Math.random()<.93?7:6;out={pts,next:25,kind:'td',sub:'td',yd:Math.round(100-start),text:plays+' PLAYS, '+Math.round(100-start)+' YDS - TOUCHDOWN! (+'+pts+')'}}
+ else if(r<pTD+pFG){if(Math.random()<.85)out={pts:3,next:25,kind:'fg',sub:'fg',yd:ri(30,62),text:plays+' PLAYS - FIELD GOAL IS GOOD (+3)'};else{const yd=ri(20,50),spot=Math.min(start+yd,85);out={pts:0,next:clamp(100-spot+7,20,70),kind:'pt',sub:'fgm',yd,text:plays+' PLAYS - FIELD GOAL MISSED!'}}}
+ else if(r<pTD+pFG+pTO){const yd=ri(5,40),spot=Math.min(start+yd,95);out={pts:0,next:clamp(100-spot+ri(0,10),5,80),kind:'to',sub:'to',yd,text:plays+' PLAYS - TURNOVER! YOUR D DELIVERED'}}
  else{ /* v1.59: the punt starts from where their drive stalled, so a short field for them means a long way back for you and the reverse */
   const yd=ri(0,22),line=Math.min(start+yd,92),land=line+ri(34,46),next=land>=100?20:clamp(100-land+ri(0,8),5,60);
-  out={pts:0,next,kind:'pt',yd,text:plays+' PLAYS - PUNT TO YOUR '+next+'. YOUR D HELD'}}
- out.time=time;out.plays=plays;out.p=[pTD,pFG,pTO];return out}
+  out={pts:0,next,kind:'pt',sub:'punt',yd,text:plays+' PLAYS - PUNT TO YOUR '+next+'. YOUR D HELD'}}
+ out.time=time;out.plays=plays;out.p=[pTD,pFG,pTO];
+ /* v2.13: the plays behind the roll and a clock that follows them; the outcome above is untouched, and if this throws the old numbers stay */
+ if(!window.__ODOFF)try{odApply(out,{start,edge,k,late,trail,lead,style:call?call.style:null,qLen:G.qLen})}catch(e){window.__oderr=(window.__oderr||[]).concat(String(e&&e.stack||e))}
+ return out}
 function oppPossession(start){
  if(OL.on)return olHand(start); /* v1.99 PLAY A FRIEND: the other phone gets the ball */
  if(G.clock<=0){timeUp();return}
@@ -4304,7 +4394,8 @@ function ghUpdate(){
  else{dd=ORD[Math.min(G.down,4)-1]+' & '+togo();if(G.down>=4)cls='dd hot'}
  ghT('gha1',abbr(S.name));ghT('gha2',abbr(G.opp.name));ghT('ghs1',''+G.me);ghT('ghs2',''+G.op);
  const k1=myC().c,k2=G.oc.c;if(GHC.k1!==k1){GHC.k1=k1;$('ghc1').style.background=k1}if(GHC.k2!==k2){GHC.k2=k2;$('ghc2').style.background=k2}
- ghT('ghq',qLbl(G));ghT('ght',Math.floor(c/60)+':'+String(c%60).padStart(2,'0'));
+ const ql=qLbl(G),qn=/^Q[1-4]$/.test(ql)?+ql[1]:0,cq=qn?Math.ceil(Math.max(0,G.clock-(4-qn)*G.qLen)):c; /* v2.13: the banner clock is the time left IN THE QUARTER (the game clock G.clock still counts the whole game; OT shows its own clock) */
+ ghT('ghq',ql);ghT('ght',Math.floor(cq/60)+':'+String(cq%60).padStart(2,'0'));
  ghC('ghdot','dot'+(run?'':' off'));$('ghdot').title=run?'Clock running':'Clock stopped';
  ghC('ghck','bck u'+u);ghC('gh','gh u'+u);ghT('ghdd',dd);ghC('ghdd',cls);
  /* the corner button */
@@ -4430,6 +4521,6 @@ function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return
 document.addEventListener('pointerup',fsTry,{capture:true});
 UI.ready=true;fit();openMenu();olBoot();
 requestAnimationFrame(frame);
-window.__pp={LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
+window.__pp={upSpent,upSh:()=>Math.min(UPCAP,UPSHIFT*upSpent()/100),LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
 })();
 </script></body></html>
