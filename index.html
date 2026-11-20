@@ -12,6 +12,11 @@
 (function(){var d=document,h=d.head;if(location.hostname==='chipperbaily.github.io'){var s=d.createElement('style');s.textContent="@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/press-start-2p-latin-400-normal.woff2) format('woff2')}";h.appendChild(s)}
 else{var l=d.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap';h.appendChild(l)}})();</script>
 <style>
+/* v2.00 UI step 1: design tokens (claude/pixel-pigskin-ui-rules.md section 1). Menu screens (#app.mn, see fit() in p4.js) read these; the 16:9 game box keeps its own em sizes.
+   Text: --t0 minimum, --t1 body, --t2 buttons, --t3 and --t4 headings. --tp = smallest tap target. --s1..--s5 = spacing steps (4, 8, 12, 16, 24). iPad-sized windows get the larger set. */
+:root{--t0:10px;--t1:12px;--t2:14px;--t3:20px;--t4:28px;--tp:44px;--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--mb:16px;--focus:#fff}
+@media (max-height:359px){:root{--tp:36px}} /* windows under 360 px high (568x320 phones sideways): taps 36 px, so the EXIT panel's three buttons still fit without scrolling (dcs2). The four target sizes are all taller. */
+@media (min-width:800px) and (min-height:700px){:root{--t0:12px;--t1:14px;--t2:16px;--t3:24px;--t4:34px;--tp:52px;--mb:20px}}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background-color:#070a12;color:#fff;font-family:'Press Start 2P',monospace;overflow:hidden;touch-action:manipulation;user-select:none}
 #wrap{height:100%;display:flex;align-items:center;justify-content:center}
@@ -86,23 +91,6 @@ select{font:inherit;font-size:.7em;padding:.4em;background:#16213a;color:#fff;bo
 .me{background:#2e4170}.now{color:#ffd400}
 .win{color:#4ee08a}.lose{color:#ff6b6b}
 /* v1.67 standings look */
-#stand{background:#2b66ff;padding:.9em 1.6em;gap:.7em;justify-content:flex-start}
-#stand .sm,#stand p{color:#dbe6ff}
-.sthd{display:flex;align-items:center;justify-content:center;gap:1.1em;font-size:2.1em;line-height:1;color:#fff;letter-spacing:.06em;text-shadow:.1em .1em 0 #1a3fa8}
-.stars{display:flex;gap:.12em}.stars svg{width:.95em;height:.95em}
-.stbody{flex:1;width:100%;min-height:0;display:flex;flex-direction:column;align-items:center;gap:.7em;overflow:auto}.stbody>:first-child{margin-top:auto}.stbody>:last-child{margin-bottom:auto}
-.sdg{display:grid;grid-template-columns:1fr 1fr;gap:1.5em 1.8em;width:100%;max-width:60em;padding-top:.5em}.sdg.one{grid-template-columns:1fr;max-width:34em}
-.sdb{position:relative;border:.2em solid #9db8ff;border-radius:.5em;padding:1.1em .9em .45em;color:#9db8ff;text-align:left;font-size:1em}
-.sdb.hot{border-color:#fff;color:#fff}
-.sdh{position:absolute;top:-.8em;left:.7em;right:.7em;display:grid;align-items:center}
-.sdh .t,.sdh b{background:#2b66ff;font-weight:normal;text-align:center;line-height:1.5}.sdh .t{justify-self:start;padding:0 .4em 0 .2em;text-align:left}
-.sdr{display:grid;align-items:center;padding:.38em 0}.sdr i{font-style:normal;text-align:center}
-.sdr.me{color:#e3e30c;background:none}
-#stand .lst .up{color:#fff}#stand .up.me{background:none;color:#e3e30c}
-.stbar{display:flex;flex-wrap:wrap;gap:.7em;justify-content:center;width:100%}
-.sbtn{font:inherit;font-size:.7em;background:#2b66ff;color:#fff;border:.25em solid #fff;border-radius:.2em;box-shadow:0 .3em 0 #4d4d4d;padding:.75em 1.3em;cursor:pointer}
-.sbtn.on{background:#d3d30b}.sbtn.sq{padding:.55em .8em;display:flex;align-items:center}.sbtn.sq svg{width:1.6em;height:1.4em}
-.sbtn:active{transform:translateY(.15em)}
 /* v1.74 bigger locker room selectors */
 #lock .czg2{max-width:62em;gap:1em}
 #lock .card.cz{font-size:.95em;padding:.6em .8em}
@@ -174,7 +162,7 @@ html{background:#070a12}
 #bcorner{position:absolute;right:.7em;bottom:.45em;display:flex;gap:.4em}
 #bcorner .btn{padding:.45em .9em;font-size:.8em}
 #bcorner .btn.hide{display:none}
-#olchip{display:none;position:absolute;top:.4em;right:.5em;z-index:60;font-size:.6em;background:#a33;color:#fff;padding:.25em .6em;border-radius:.4em;pointer-events:none}
+#olchip{display:none;position:absolute;top:.4em;right:.5em;z-index:60;font-size:max(var(--t0),.6em);background:#a33;color:#fff;padding:.25em .6em;border-radius:.4em;pointer-events:none}
 #xp{justify-content:flex-start}
 #xp .xpc{background:#0e1830;border:.2em solid #3a4d78;padding:1em 1.4em;display:flex;flex-direction:column;gap:.7em;align-items:center;max-width:26em;width:100%;box-sizing:border-box;margin:auto 0;flex:none}
 #xp .xpc .btn{min-width:14em}
@@ -187,7 +175,7 @@ html{background:#070a12}
 @keyframes turnph{0%,18%{transform:rotate(0)}48%,76%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
 @media (prefers-reduced-motion:reduce){#turn .tph{animation:none;transform:rotate(-90deg)}}
 #turn h1{font-size:clamp(11px,4.2vmin,26px);line-height:1.6;color:#ffd400}
-#turn p{font-size:clamp(7px,2.5vmin,14px);line-height:1.9;max-width:34em;color:#c9d4f0}
+#turn p{font-size:max(var(--t0),clamp(7px,2.5vmin,14px));line-height:1.9;max-width:34em;color:#c9d4f0}
 .hbh{display:flex;align-items:center;justify-content:space-between;gap:1em;width:100%;max-width:40em;border-left:.5em solid #ffd400;background:#16213a;padding:.6em .9em}
 .hbt{font-size:1.1em;color:#ffd400;line-height:1.4}.hbc{text-align:right}.hbc b{display:block;font-weight:normal;font-size:1.4em;color:#ffd400}
 .hbr{font-size:.75em}
@@ -201,6 +189,149 @@ html{background:#070a12}
 .btn.tile .bdg{position:absolute;right:.4em;top:.4em;font-style:normal;background:#ff4040;color:#fff;padding:.1em .4em;font-size:.8em}
 .hbu{margin:.7em 0}.hbl{display:flex;flex-direction:column;gap:.2em;margin-bottom:.15em}.hbl b{font-weight:normal;color:#ffd400;font-size:.8em}.hbu .up{font-size:.8em}
 @media (max-width:540px){.hbg{grid-template-columns:repeat(2,1fr)}}
+/* ===== v2.00 UI step 1: menu screens (only while #app has the class mn, set by fit() when show() put up a menu screen). Sizes come from the tokens, not from the 16:9 box. ===== */
+#app.mn{font-size:var(--mb);box-shadow:none}
+.ovp{font-size:var(--mb)}
+#app.mn #c,#app.mn #ctl,#app.mn #bcorner{visibility:hidden}
+:is(#app.mn .screen,.ovp) *{font-size:var(--t1)}
+:is(#app.mn .screen,.ovp){padding:var(--s4);gap:var(--s3);line-height:1.5}
+:is(#app.mn .screen.top,.ovp.top){padding:var(--s4);gap:var(--s3)}
+:is(#app.mn .screen,.ovp):not(.top){justify-content:flex-start}:is(#app.mn .screen,.ovp):not(.top)>:first-child{margin-top:auto}:is(#app.mn .screen,.ovp):not(.top)>:last-child{margin-bottom:auto} /* centered when it fits, starts at the top (scrollable) when it does not: a plain centered column cuts off the top */
+:is(#app.mn,.ovp) h1{font-size:var(--t4);line-height:1.3}
+:is(#app.mn,.ovp) h1.mh{font-size:var(--t3)}
+:is(#app.mn,.ovp) h3,:is(#app.mn,.ovp) h4,:is(#app.mn,.ovp) .hbt{font-size:var(--t2)}
+:is(#app.mn,.ovp) .hbc b{font-size:var(--t3)}
+:is(#app.mn,.ovp) .btn,:is(#app.mn,.ovp) .tb,:is(#app.mn,.ovp) select,:is(#app.mn,.ovp) input:not([type=color]):not([type=range]):not([type=checkbox]){min-height:var(--tp)}
+:is(#app.mn,.ovp) .btn{font-size:var(--t2);padding:var(--s2) var(--s4);display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);line-height:1.3;min-width:var(--tp)}
+:is(#app.mn,.ovp) .btn.xs{font-size:var(--t1);padding:var(--s2) var(--s3)}
+:is(#app.mn,.ovp) .sm{font-size:var(--t1)!important}
+:is(#app.mn,.ovp) .cp input{width:var(--tp);height:var(--tp)}
+:is(#app.mn .screen,.ovp)>*{max-width:100%}
+:is(#app.mn,.ovp) .czg,:is(#app.mn,.ovp) .czg2,:is(#app.mn,.ovp) .rg,:is(#app.mn,.ovp) .rpg,:is(#app.mn,.ovp) .dvg{grid-template-columns:repeat(auto-fit,minmax(min(100%,18em),1fr))}
+:is(#app.mn,.ovp) .up b{width:auto!important;min-width:6.5em;flex:none}
+:is(#app.mn,.ovp) .hbm{flex-wrap:wrap}:is(#app.mn,.ovp) .hbm1{flex:1 1 14em;min-width:0}
+:is(#app.mn,.ovp) .up{flex-wrap:wrap}
+:is(#app.mn,.ovp) .btn *{font-size:inherit}
+:is(#app.mn,.ovp) select,:is(#app.mn,.ovp) input,:is(#app.mn,.ovp) textarea{font-size:var(--t1)}
+:is(#app.mn,.ovp) .row{gap:var(--s2)}
+:is(#app.mn,.ovp) .dv{overflow-x:auto;min-width:0}
+#xp .xpc>.stg{order:1} /* v2.00: the SETTINGS group sits below the three EXIT-panel buttons, so SAVE AND EXIT, ABANDON GAME and KEEP PLAYING are on screen without scrolling at every size (exit, dcs2) */
+:is(#app.mn,.ovp) button:focus-visible,:is(#app.mn,.ovp) select:focus-visible,:is(#app.mn,.ovp) input:focus-visible,:is(#app.mn,.ovp) textarea:focus-visible,:is(#app.mn,.ovp) [tabindex]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+/* ===== v2.01 UI step 2: the nav shell. #shell (nav + header + sub-tabs + #view) wraps the DESTINATION screens (menu hub stand roster exh coach gset, see SHD in p1.js) and exists only while one of them is up (#app.sh, set by fit()).
+   Nav: bottom bar on a phone upright, 76 px left rail on a phone sideways (under 520 px high), 228 px sidebar with full names on an iPad-sized window. The screens sit inside #view, so the nav never covers them and never scrolls. sh.js draws the nav, header and sub-tabs. ===== */
+#shell{display:none}
+#app.sh #shell{display:flex;flex-direction:column;position:absolute;inset:0;background:#0a0f1d}
+#app.sh{--nbg:#141d36;--nln:#34497a;--nmu:#aebbd8;--ny:#ffd400}
+#nav{order:2;display:flex;flex:none;height:calc(var(--tp) + var(--s4) + var(--pb));padding:0 var(--pr) var(--pb) var(--pl);background:var(--nbg);border-top:2px solid var(--nln)}
+#nav button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s1);font:inherit;font-size:var(--t0);line-height:1.3;color:var(--nmu);background:none;border:0;border-radius:0;position:relative;cursor:pointer;text-align:center;padding:0}
+#nav button.on{color:var(--ny)}
+#nav button.on::before{content:"";position:absolute;top:-2px;left:18%;right:18%;height:4px;background:var(--ny)}
+#nav .ic{width:24px;height:24px;flex:none}#nav .l{display:none}
+#main{order:1;flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;padding:0 var(--pr) 0 var(--pl)}
+#top{flex:none;display:flex;align-items:center;gap:var(--s3);min-height:calc(var(--tp) + var(--s2));padding:var(--pt) var(--s4) 0 var(--s3);border-bottom:2px solid var(--nln);border-left:var(--s2) solid var(--acc,#ffd400);background:linear-gradient(#101a33,#0a0f1d)}
+#top .ttl{min-width:0;flex:1}
+#top b{display:block;font-weight:normal;font-size:var(--t2);color:var(--ny);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+#top small{display:block;font-size:var(--t0);color:var(--nmu);line-height:1.35;white-space:normal;overflow-wrap:anywhere}
+#top .cr{flex:none;font-size:var(--t1);background:#1c2a4d;color:var(--ny);padding:var(--s1) var(--s2);box-shadow:0 -2px 0 var(--nln),0 2px 0 var(--nln),-2px 0 0 var(--nln),2px 0 0 var(--nln)}
+#sub{flex:none;display:flex;margin:var(--s2) var(--s4) 0;overflow-x:auto;background:var(--nbg);box-shadow:0 -2px 0 var(--nln),0 2px 0 var(--nln),-2px 0 0 var(--nln),2px 0 0 var(--nln)}
+#sub:empty{display:none}
+#sub button{flex:1 1 auto;min-width:var(--tp);min-height:var(--tp);padding:0 var(--s2);font:inherit;font-size:var(--t0);line-height:1.25;color:var(--nmu);background:none;border:0;border-radius:0;cursor:pointer;text-align:center}
+#sub button.on{background:var(--ny);color:#111}
+@media (min-width:480px){#sub button{font-size:var(--t1);padding:0 var(--s3)}}
+#view{flex:1;min-height:0;position:relative;background:#080c18}
+#nav button:focus-visible,#sub button:focus-visible{outline:2px solid var(--focus);outline-offset:-4px}
+/* phone sideways: left rail */
+@media (orientation:landscape) and (max-height:520px){
+ #app.sh #shell{flex-direction:row}
+ #nav{order:0;flex-direction:column;width:calc(76px + var(--pl));height:auto;padding:var(--pt) 0 var(--pb) var(--pl);border-top:0;border-right:2px solid var(--nln)}
+ #nav button.on::before{top:16%;bottom:16%;left:-2px;right:auto;width:4px;height:auto}
+ #main{padding:0 var(--pr) var(--pb) 0}
+ #top{padding-top:var(--pt)}
+}
+/* iPad-sized window: sidebar with full names */
+@media (min-width:800px) and (min-height:700px){
+ #app.sh #shell{flex-direction:row}
+ #nav{order:0;flex-direction:column;justify-content:flex-start;gap:var(--s2);width:calc(228px + var(--pl));height:auto;padding:calc(var(--pt) + var(--s4)) var(--s3) var(--pb) calc(var(--s3) + var(--pl));border-top:0;border-right:2px solid var(--nln)}
+ #nav button{flex:none;flex-direction:row;justify-content:flex-start;gap:var(--s3);min-height:calc(var(--tp) + 4px);padding:var(--s1) var(--s3);font-size:var(--t1);text-align:left}
+ #nav button.on{background:#1c2a4d}
+ #nav button.on::before{top:0;bottom:0;left:0;right:auto;width:4px;height:auto}
+ #nav .s{display:none}#nav .l{display:inline}
+ #main{padding:0 var(--pr) var(--pb) 0}
+}
+/* standings opened from the SEASON END screen: no nav, no header, its own BACK button */
+#app.sh.bare #nav,#app.sh.bare #top,#app.sh.bare #sub{display:none}
+#app.sh.bare #main{padding:var(--pt) var(--pr) var(--pb) var(--pl)}
+/* inside the shell the old per-screen headers and the home logo are replaced by #top */
+#app.sh .hbh,#app.sh #menu>h1.mh{display:none}
+/* overlays opened over the shell cover it, so they carry the safe areas themselves */
+#app.sh .screen.ovp{padding:calc(var(--s4) + var(--pt)) calc(var(--s4) + var(--pr)) calc(var(--s4) + var(--pb)) calc(var(--s4) + var(--pl))}
+
+:is(#app.mn,.ovp) .hbu .up>.sm{width:auto!important;min-width:4.4em} /* v2.01: the 4/10 count was 36 px wide and ran under the +3 button */
+#dcs .dcgc{grid-template-columns:repeat(auto-fill,minmax(264px,1fr))}
+#dcs .btn.dcc .dcv{width:240px;height:256px;image-rendering:pixelated;flex:none;display:block}
+@media (orientation:landscape) and (max-height:520px){#dcs .dcgc{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}#dcs .btn.dcc .dcv{width:120px;height:128px}}
+
+/* ===== v2.03 UI step 3: LEAGUE (#stand) and BOOK (#book) as shell screens. They use the game's tokens and the shell's colours; each scrolls inside its own content area while the nav and the sub-tab strip stay put. Table columns appear as the table's CONTAINER gets wider (container queries), not by device. ===== */
+#stand,#book{background:none;align-items:stretch;justify-content:flex-start;text-align:left;gap:var(--s3);padding:var(--s3) var(--s4) 0;overflow:hidden;font-size:var(--t1)}
+#app.sh.bare #stand{padding-top:var(--s3)}
+.sb{font:inherit;font-size:var(--t0);line-height:1.25;color:var(--nmu,#aebbd8);background:var(--nbg,#141d36);border:0;border-radius:0;min-height:var(--tp);min-width:var(--tp);padding:0 var(--s3);cursor:pointer;text-align:center;box-shadow:0 0 0 2px var(--nln,#34497a)}
+.sb.on{background:var(--ny,#ffd400);color:#111}
+.sb:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (min-width:480px){.sb{font-size:var(--t1)}}
+.seg{display:flex;flex-wrap:wrap;gap:var(--s2);margin:2px}
+.stbare{flex:none;display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.stbody{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:var(--s3);padding:2px 2px var(--s4);align-items:stretch;-webkit-overflow-scrolling:touch}
+.sttool{flex:none;display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s2)}.sttool .keyb{margin-left:auto}.sttool .seg{margin:0}
+.sdt{flex:none;border:2px solid var(--nln,#34497a);background:#0d1426}.sdt.hot{border-color:#ffd400}
+.sdt h3{margin:0;padding:var(--s2) var(--s3);font:inherit;font-size:var(--t1);color:#fff;background:#141d36;text-align:left;letter-spacing:.04em}
+.sdt.hot h3{color:#ffd400}
+.sdc{container:dv/inline-size}
+.sdc table{width:100%;border-collapse:collapse;font-size:var(--t1)}
+.sdc th{font-weight:normal;font-size:var(--t0);color:var(--nmu,#aebbd8);text-align:center;padding:var(--s2) var(--s1);white-space:nowrap;border-bottom:2px solid var(--nln,#34497a)}
+.sdc td{text-align:center;padding:var(--s2) var(--s1);white-space:nowrap;color:#fff;border-bottom:1px solid #1d2a4a}
+.sdc tr:last-child td{border-bottom:0}
+.sdc th.nm,.sdc td.nm{text-align:left;width:100%;max-width:0;overflow:hidden}
+.sdc .rk{width:2em;color:var(--nmu,#aebbd8)}
+.sdc .nm .in{display:flex;align-items:center;gap:var(--s2);min-width:0}
+.sdc .tn{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sdc .sw{flex:none;width:1em;height:1em;display:block;box-shadow:0 0 0 2px #fff3}
+.sdc .you{flex:none;width:1em;height:1em;display:block}.sdc .you svg{width:100%;height:100%;display:block}
+.sdc tr.me td{color:#ffd400;background:#1a2340}
+.sdc tr.nx td{background:#1a2340}
+.sdc .win{color:#6ee26e}.sdc .lose{color:#ff8a8a}
+.sdc .rs{text-align:right}
+.sdc .sc{font-size:var(--t2);width:6.5em}.sdc .gmt td.nm{width:50%}
+.sdc .x1,.sdc .x2{display:none}
+@container dv (min-width:330px){.sdc .x1{display:table-cell}}
+@container dv (min-width:450px){.sdc .x2{display:table-cell}}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.stp{margin:var(--s3) 0;color:#dbe6ff;line-height:1.7;text-align:left}.stp.gold{color:#ffd400}
+.lgkey,.dckey{flex:none;margin:0;padding:var(--s3);background:#141d36;border:2px solid var(--nln,#34497a);font-size:var(--t1);line-height:1.7;color:#dbe6ff}
+.lgkey{display:grid;grid-template-columns:auto 1fr;gap:var(--s1) var(--s3)}
+.lgkey dt{color:#ffd400;white-space:nowrap}.lgkey dt .you{display:inline-block;width:1em;height:1em;vertical-align:middle}.lgkey dt .you svg{width:100%;height:100%;display:block}
+.lgkey dd{margin:0}
+.dckey ul{margin:0;padding-left:1.2em}.dckey[hidden]{display:none}
+.dckw{display:flex;justify-content:flex-end;width:100%}
+/* BOOK */
+.bktool{flex:none;display:flex;flex-wrap:wrap;gap:var(--s2);justify-content:flex-end}
+.bktool .btn{min-height:var(--tp);font-size:var(--t1)}.bktool .btn.on{background:#ffd400;color:#111}
+.bkscroll{flex:1;min-height:0;overflow:auto;padding:2px 2px var(--s4);display:flex;flex-direction:column;gap:var(--s3);-webkit-overflow-scrolling:touch}
+.bkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:var(--s2)}
+.bkc{display:flex;flex-direction:column;align-items:center;gap:var(--s1);padding:var(--s2);min-height:var(--tp);min-width:0;border:2px solid #2e4170;box-shadow:none;background:#16213a;font-size:var(--t0);line-height:1.3;word-break:break-word}
+.bkc.on{border-color:#ffd400;background:#22305a}
+.bkc canvas{width:100px;height:76px;image-rendering:pixelated;display:block;flex:none}
+.bkc b{font-weight:normal;color:#fff;font-size:inherit;text-align:center;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bkbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s2) var(--s3);margin:0 -2px;background:#141d36;border-top:2px solid var(--nln,#34497a);min-height:calc(var(--tp) + var(--s3))}
+.bkbar .btn{min-height:var(--tp);font-size:var(--t1);flex:none}
+.bkn{color:#ffd400;font-size:var(--t1);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bkn.dim{color:var(--nmu,#aebbd8)}
+.bkdef h4{margin:var(--s3) 0 var(--s2);font:inherit;font-size:var(--t1);color:#ffd400;letter-spacing:.06em}.bkdef h4:first-child{margin-top:0}
+.bkdg{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}
+.bkd{display:flex;flex-direction:column;align-items:center;gap:var(--s1);padding:var(--s2);background:#16213a;border:2px solid #2e4170;font-size:var(--t0);line-height:1.35;text-align:center;min-width:0;word-break:break-word}
+.bkd b{font-weight:normal;color:#fff;font-size:var(--t1)}.bkd span{color:var(--nmu,#aebbd8)}
+.bkd .dcv{width:120px;height:128px;image-rendering:pixelated;display:block;flex:none}
+@media (min-width:800px) and (min-height:700px){
+ .bkgrid{grid-template-columns:repeat(auto-fill,minmax(216px,1fr))}.bkdg{grid-template-columns:repeat(auto-fill,minmax(264px,1fr))}
+ .bkc canvas{width:200px;height:152px}.bkd .dcv{width:240px;height:256px}}
 </style></head><body>
 <div id="wrap"><div id="app">
 <canvas id="c" width="640" height="360"></canvas>
@@ -216,22 +347,26 @@ html{background:#070a12}
  <button class="btn alt hide" id="b2PT">GO FOR 2 [2]</button>
 </div>
 <div id="bcorner"><button class="btn alt hide" id="bExit" title="EXIT GAME" aria-label="EXIT GAME">EXIT</button><button class="btn alt hide" id="bHelp" title="HELP" aria-label="HELP">?</button></div>
+<div id="shell"><nav id="nav" aria-label="Main"></nav>
+<div id="main"><header id="top"></header><div id="sub" role="tablist" aria-label="Section"></div>
+<div id="view">
 <div class="screen top on" id="menu">
  <h1 class="mh">PIXEL PIGSKIN</h1>
- <div class="row" id="mtabs"></div>
  <div id="mbody"></div>
  <div class="row" id="mrot"></div>
  <div class="row" id="mpwa"></div>
  <span id="mver"></span>
 </div>
 <div class="screen top" id="stand"></div>
-<div class="screen top" id="lock"></div>
-<div class="screen top" id="half"></div>
+<div class="screen top" id="book"></div>
 <div class="screen top" id="roster"></div>
 <div class="screen top" id="exh"></div>
 <div class="screen" id="hub"></div>
 <div class="screen top" id="coach"></div>
 <div class="screen top" id="gset"></div>
+</div></div></div>
+<div class="screen top" id="lock"></div>
+<div class="screen top" id="half"></div>
 <div class="screen" id="post"></div>
 <div class="screen" id="season"></div>
 <div class="screen top" id="pcs"></div>
@@ -245,7 +380,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="1.99"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.03"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -374,7 +509,13 @@ const nextOpp=()=>S.lg?lgNextOpp():S.phase==='reg'?S.sched[S.week]:S.po[S.round]
 const nextLabel=()=>S.lg?lgLabel():S.phase==='reg'?'WEEK '+(S.week+1)+' OF 8':(S.round?'CHAMPIONSHIP':'SEMIFINAL');
 const upCost=r=>Math.ceil(r*.7);
 const pips=(v,n)=>'<span class="pips">'+Array.from({length:n||10},(_,i)=>'<s class="'+(i<Math.round(v)?'f':'')+'"></s>').join('')+'</span>';
-function show(id){['menu','hub','post','season','stand','lock','half','roster','exh','pd','pcs','dcs','coach','gset','ol'].forEach(s=>$(s).classList.toggle('on',s===id));if(id==='menu'||id==='hub')nvBar()}
+/* v2.00 UI step 1: show() is the one place that knows which screen is up. A screen in UIM is a MENU screen: #app fills the window inside the safe areas, menus work upright and there is no turn-sideways prompt.
+   Anything else (show(null) = live play, kicking, banners; 'pd' = the play designer) is a CANVAS screen: the 16:9 game box, as before. fit() (p4.js) reads UI.scr. Dynamic panels (hp, gl, cg, rp, bk, xp, gsq) do not change it: opened from a menu they are in a menu, opened in a game they are in the game. */
+const UIM=new Set(['menu','hub','post','season','stand','book','lock','half','roster','exh','pcs','dcs','coach','gset','ol']);
+/* v2.01 UI step 2: SHD = the DESTINATION screens, the ones that live inside #shell and get the nav and header (sh.js). Flow screens (post season half lock), pcs, dcs, ol, pd and every overlay never do. UI.sh = the shell is up; UI.bare = it is up without nav and header (standings opened from SEASON END, UI.stS, which keeps its own BACK). */
+const SHD=new Set(['menu','hub','stand','book','roster','exh','coach','gset']);
+const UI={scr:'menu',ready:false,sh:true,bare:false,stS:false};
+function show(id){['menu','hub','post','season','stand','book','lock','half','roster','exh','pd','pcs','dcs','coach','gset','ol'].forEach(s=>$(s).classList.toggle('on',s===id));UI.scr=id||'';if(id!=='stand')UI.stS=false;UI.sh=SHD.has(id);UI.bare=UI.sh&&UI.stS;shDraw();if(UI.ready)fit();if(id==='menu'||id==='hub')nvBar()}
 
 function renderHub(){
  if(S.lg)return lgHub();
@@ -392,7 +533,7 @@ function openExh(){
  <div class="card" style="flex:none;width:100%;max-width:40em"><h3>GAME SETTINGS</h3><div class="row"><span class="sm">DRIVE:</span><button class="btn xs ${S.flip!==false?'alt':''}" data-ex="d0">RIGHT &gt;</button><button class="btn xs ${S.flip!==false?'':'alt'}" data-ex="d1">&lt; LEFT</button><span class="sm">QUARTER:</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'':'alt'}" data-ex="q${q}">${q}S</button>`).join('')}</div>
  <div class="row" style="margin-top:.5em"><span class="sm">SITE:</span>${[[true,'HOME'],[false,'AWAY'],[null,'NEUTRAL']].map(([v,t])=>`<button class="btn xs ${EXS.site===v?'':'alt'}" data-ex="s${v}">${t}</button>`).join('')}</div>
  <div class="row" style="margin-top:.5em"><span class="sm">LEVEL:</span><button class="btn xs alt" data-ex="dl-1">-</button><span class="sm">${DIFF()} ${dName()}</span><button class="btn xs alt" data-ex="dl1">+</button></div></div>
- ${gsRow()}<div class="row"><button class="btn" data-ex="go">KICK OFF</button><button class="btn xs alt" data-ex="back">BACK</button></div>`;
+ ${gsRow()}<div class="row"><button class="btn" data-ex="go">KICK OFF</button></div>`; /* v2.01: no BACK, the nav is the way out */
  show('exh')}
 function exhMake(){const x=EXS,L=S.lg;
  if(L){const t=L.teams[x.team];return{name:t.name,off:t.off,def:t.def,col:t.col,uni:lgUni(t),id:t.id}}
@@ -421,7 +562,7 @@ function openRoster(){
  const o=ensureRo();
  $('roster').innerHTML=`<div class="sm">${S.name} - ROSTER - CREDITS ${S.credits}</div>
  <div class="rg">${ROS_DEF().map(c=>`<div class="card"><h3>${c.h} - ${hmEsc(c.who||'')}</h3>${c.st.map(([p,l,d])=>{const v=roGet(o,p),mx=v>=10;return`<div class="up"><b>${l}</b>${pips(v)}<button class="btn xs" data-ru="${p}" ${mx||S.credits<upCost(v)?'disabled':''}>${mx?'MAX':'+'+upCost(v)}</button></div><div class="sm" style="text-align:left;opacity:.7">${d(v)}</div>`}).join('')}</div>`).join('')}</div>
- <div class="row"><button class="btn" data-ra="back">BACK</button></div>`;
+ `;
  show('roster')}
 $('roster').onclick=e=>{const b=e.target.closest('button');if(!b)return;
  if(b.dataset.ru){const p=b.dataset.ru.split('.'),k=p.pop(),t=p.reduce((a,x)=>a[x],ensureRo()),c=upCost(t[k]);if(S.credits>=c&&t[k]<10){S.credits-=c;t[k]++;save();openRoster()}}
@@ -430,7 +571,7 @@ $('hub').onclick=e=>{const b=e.target.closest('button');if(!b)return;
  if(b.dataset.act==='play')gsAsk(()=>S.lg?openLocker():startGame());
  else if(b.dataset.act==='coach')openCoach();
  else if(b.dataset.act==='settings')openSet();
- else if(b.dataset.act==='designer')openDesigner();
+ else if(b.dataset.act==='designer'){DS.bk=false;openDesigner()}
  else if(b.dataset.act==='roster')openRoster();
  else if(b.dataset.act==='stats')glOpen();
  else if(b.dataset.act==='exh')openExh();
@@ -708,47 +849,58 @@ function lgSeasonEnd(){
   missed:['MISSED THE PLAYOFFS',cf.miss+' THE CHAMPION: '+ch.name+'.']}[S.over];
  $('season').innerHTML=`<h1 style="font-size:1.8em">${m[0]}</h1><p>${m[1]}</p><p>${S.name} ${r.w}-${r.l}${r.t?'-'+r.t:''} - TITLES ${S.champs} - CREDITS ${S.credits}</p>
  <div class="row"><button class="btn alt" id="bSeaSt">STANDINGS</button><button class="btn" id="bNext">NEXT SEASON</button></div>`;
- $('bNext').onclick=newSeason;$('bSeaSt').onclick=lgOpenStand;show('season')}
+ $('bNext').onclick=newSeason;$('bSeaSt').onclick=()=>lgOpenStand(true);show('season')}
 
 /* ----- the league hub ----- */
 function lgHub(){$('hub').innerHTML=hbHub();show('hub');bkNag()} /* v1.91: the layout lives in hb.js */
 
-/* ----- standings, schedule, playoffs, scores ----- */
-const ST={tab:'c0'};
-function lgOpenStand(){if(!ST.tab||/^c\d+$/.test(ST.tab))ST.tab='c'+LG().teams[LG().me].conf;lgStand();show('stand')}
+/* v2.03 UI step 3: LEAGUE. Sub-tabs STANDINGS / SCHEDULE / PLAYOFFS / SCORES live in the shell's #sub strip (sh.js); standings opened from SEASON END (UI.stS, no shell) draw the same strip inline next to a BACK button. Tables sit in a container (.sdc) and show more columns as it gets wider (CSS container queries in head.html), so nothing is tied to a device. There is no streak or team-code data, so no STK and no 3-letter names. */
+const ST={tab:'st',cf:0,key:false};
+const lgSubs=()=>{const L=LG();return[['st','STANDINGS'],['sc','SCHEDULE'],['po','PLAYOFFS'],...(L&&L.scores?[['gm','SCORES']]:[])]};
+function lgOpenStand(fromSeason){UI.stS=fromSeason===true;const L=LG();ST.tab='st';ST.cf=L.teams[L.me].conf;lgStand();show('stand')} /* v2.01: fromSeason = opened from SEASON END: no nav shell, keeps its BACK. v2.03: always opens on STANDINGS, in my conference */
+function lgTab(k){ST.tab=k;lgStand();shDraw()}
 /* v1.67: standings look (blue screen, outlined division boxes with W L T, bottom button bar, yellow for my team) */
 const lgR=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}"/>`;
 const lgStar=c=>`<svg viewBox="0 0 7 7" shape-rendering="crispEdges" fill="${c}">${lgR(3,0,1,2)+lgR(0,2,7,1)+lgR(1,3,5,1)+lgR(2,4,3,1)+lgR(1,5,2,1)+lgR(4,5,2,1)+lgR(1,6,1,1)+lgR(5,6,1,1)}</svg>`;
 const lgHouse=`<svg viewBox="0 0 9 8" shape-rendering="crispEdges" fill="#fff">${lgR(4,0,1,1)+lgR(3,1,3,1)+lgR(2,2,5,1)+lgR(1,3,7,1)+lgR(0,4,9,1)+lgR(1,5,7,1)+lgR(1,6,2,2)+lgR(6,6,2,2)}</svg>`;
-function lgBox(title,labels,rows,hot,w){
- const g=`grid-template-columns:1fr repeat(${labels.length},${w||'2.6em'})`;
- return`<div class="sdb${hot?' hot':''}"><div class="sdh" style="${g}"><span class="t">${title}</span>${labels.map(l=>`<b>${l}</b>`).join('')}</div>`+
-  rows.map(r=>`<div class="sdr${r.me?' me':''}" style="${g}"><span>${r.name}</span>${r.cells.map(c=>`<i>${c}</i>`).join('')}</div>`).join('')+'</div>'}
+const LG_KIND={'DIVISION RIVAL':'DIV','CONFERENCE':'CONF','INTERCONFERENCE':'INT','NON-CONFERENCE':'NON'};
+const LG_KEYS={st:[['W-L-T','WINS - LOSSES - TIES'],['DIF','POINTS FOR MINUS POINTS AGAINST'],['PF','POINTS FOR'],['PA','POINTS AGAINST'],['CONF','RECORD AGAINST YOUR OWN CONFERENCE'],['STAR','YOUR TEAM'],['MORE','COLUMNS SHOW UP AS THE SCREEN GETS WIDER']],
+ sc:[['WK','WEEK OF THE SEASON'],['VS / AT','VS = HOME GAME, AT = AWAY GAME'],['DIV','DIVISION RIVAL'],['CONF','SAME CONFERENCE'],['INT','OTHER CONFERENCE (INTERCONFERENCE)'],['NON','NON-CONFERENCE'],['W / L','YOUR RESULT, YOUR SCORE FIRST'],['NEXT','THE GAME YOU PLAY NEXT']],
+ po:[['IN','STILL ALIVE'],['OUT','ELIMINATED, OR MISSED THE PLAYOFFS'],['(CC)','CONFERENCE CHAMPION'],['STAR','YOUR TEAM']],
+ gm:[['STAR','YOUR TEAM'],['SCORE','FIRST TEAM LEFT, SECOND TEAM RIGHT']]};
 function lgStand(){
- const L=LG(),cf=lgCfg(L),col=cf.id==='COL',T=L.teams,rec=x=>x.w+'-'+x.l+(x.t?'-'+x.t:''),myc=T[L.me].conf;
- const tabs=[['gm','VIEW'],...L.conf.map((n,i)=>['c'+i,n]),['sc','SCHEDULE'],['po','PLAYOFFS']];
- if(/^c\d+$/.test(ST.tab)&&+ST.tab.slice(1)>=cf.nc)ST.tab='c0';
- let body='';
- const nm=id=>`<span style="color:${T[id].col.c}">&#9632;</span> ${T[id].name}`,nm0=id=>T[id].name;
- if(/^c\d+$/.test(ST.tab)){
-  const c=+ST.tab.slice(1);
-  body=`<div class="sdg${col?' one':''}">`+Array.from({length:cf.dv},(_,d)=>{const ids=lgOrder(lgDivIds(c,d,cf));
-   const rows=ids.map(id=>{const r=L.rec[id];return{name:nm0(id),me:id===L.me,cells:col?[(r.cw||0)+'-'+(r.cl||0),r.w,r.l,r.t]:[r.w,r.l,r.t]}});
-   return lgBox(L.conf[c]+(cf.dv>1?' '+L.div[d]:''),col?['CONF','W','L','T']:['W','L','T'],rows,ids.includes(L.me),col?'3.4em':'')}).join('')+'</div>'}
+ const L=LG(),cf=lgCfg(L),col=cf.id==='COL',T=L.teams,me=L.me,myc=T[me].conf,sub=lgSubs();
+ if(!sub.some(x=>x[0]===ST.tab))ST.tab='st';
+ if(!(ST.cf>=0&&ST.cf<cf.nc))ST.cf=myc;
+ const wlt=r=>r.w+'-'+r.l+(r.t?'-'+r.t:''),sw=id=>`<i class="sw" style="background:${T[id].col.c}"></i>`,youI=`<span class="you" role="img" aria-label="YOUR TEAM">${lgStar('#ffd400')}</span>`;
+ const who=(id,pre)=>`<td class="nm"><span class="in">${(pre||'')}${id===me?youI:sw(id)}<span class="tn">${T[id].name}</span></span></td>`;
+ let body='',seg='';
+ if(ST.tab==='st'){
+  const c=ST.cf,ds=Array.from({length:cf.dv},(_,d)=>d);
+  if(c===myc)ds.sort((a,b)=>(lgDivIds(c,b,cf).includes(me)?1:0)-(lgDivIds(c,a,cf).includes(me)?1:0)||a-b); /* my division first */
+  seg=cf.nc>1?`<div class="seg" role="group" aria-label="CONFERENCE">${L.conf.slice(0,cf.nc).map((n,i)=>`<button type="button" class="sb${i===c?' on':''}" data-st="c${i}" aria-pressed="${i===c}">${hmEsc(n)}</button>`).join('')}</div>`:'';
+  body=ds.map(d=>{const ids=lgOrder(lgDivIds(c,d,cf)),hot=ids.includes(me);
+   return`<section class="sdt${hot?' hot':''}"><h3>${hmEsc(L.conf[c]+(cf.dv>1?' '+L.div[d]:''))}</h3><div class="sdc"><table><thead><tr><th class="rk"><span class="vh">RANK</span></th><th class="nm">TEAM</th><th>W-L-T</th>${col?'<th>CONF</th>':'<th class="x2">CONF</th>'}<th>DIF</th><th class="x1">PF</th><th class="x1">PA</th></tr></thead><tbody>`+
+    ids.map((id,i)=>{const r=L.rec[id],df=(r.pf||0)-(r.pa||0);
+     return`<tr${id===me?' class="me"':''}><td class="rk">${i+1}</td>${who(id)}<td>${wlt(r)}</td><td${col?'':' class="x2"'}>${(r.cw||0)+'-'+(r.cl||0)}</td><td>${df>0?'+'+df:df}</td><td class="x1">${r.pf||0}</td><td class="x1">${r.pa||0}</td></tr>`}).join('')+'</tbody></table></div></section>'}).join('')}
  else if(ST.tab==='sc'){
-  body='<div class="lst">'+L.sched.map((_,w)=>{const o=lgOpp(w,L.me),r=(L.res||[])[w];
-   return`<div class="up"><b style="width:3.2em">WK ${w+1}</b><span class="sm" style="width:2.2em">${lgHomeWk(w)?'VS':'AT'}</span><span style="flex:1;text-align:left">${nm(o)}</span><span class="sm" style="width:5em">${lgKind(L.me,o).replace('NON-CONFERENCE','NON').slice(0,4)}</span><span class="sm ${r?(r[0]==='W'?'win':r[0]==='L'?'lose':''):''}" style="width:6em;text-align:right">${r||(w===S.week&&S.phase==='reg'&&!S.over?'NEXT':'')}</span></div>`}).join('')+'</div>'}
+  body=`<section class="sdt"><h3>${hmEsc(T[me].name)} - ${cf.games} GAMES</h3><div class="sdc"><table class="sct"><thead><tr><th>WK</th><th></th><th class="nm">OPPONENT</th><th class="x1">TYPE</th><th class="rs">RESULT</th></tr></thead><tbody>`+L.sched.map((_,w)=>{const o=lgOpp(w,me),r=(L.res||[])[w],nx=!r&&w===S.week&&S.phase==='reg'&&!S.over;
+   return`<tr${nx?' class="nx"':''}><td>${w+1}</td><td>${lgHomeWk(w)?'VS':'AT'}</td>${who(o)}<td class="x1">${LG_KIND[lgKind(me,o)]||''}</td><td class="rs ${r?(r[0]==='W'?'win':r[0]==='L'?'lose':''):''}">${r||(nx?'NEXT':'')}</td></tr>`}).join('')+'</tbody></table></div></section>'}
  else if(ST.tab==='po'){
-  if(!L.po)body='<p>THE PLAYOFF SEEDS ARE SET AFTER WEEK '+cf.games+'.<br>'+cf.poTxt+'</p>';
-  else body=`<div class="sdg${col?' one':''}">`+L.po.seeds.map((sd,c)=>lgBox(col?'12 TEAM PLAYOFF':L.conf[c],[''],sd.map((id,i)=>({name:(i+1)+'. '+nm0(id)+(col&&(L.po.cc||[]).includes(id)?' (CC)':''),me:id===L.me,cells:[L.po.alive[c].includes(id)||L.champ===id?'IN':'OUT']})),sd.includes(L.me),'3.2em')).join('')+'</div>'+(L.champ!=null?`<p style="color:#d9d90b">CHAMPION: ${T[L.champ].name}</p>`:`<p>NEXT ROUND: ${L.po.round<4?cf.rnd[L.po.round]:''}</p>`)}
+  if(!L.po)body=`<p class="stp">THE PLAYOFF SEEDS ARE SET AFTER WEEK ${cf.games}.<br>${cf.poTxt}</p>`;
+  else body=L.po.seeds.map((sd,c)=>`<section class="sdt${sd.includes(me)?' hot':''}"><h3>${hmEsc(col?'12 TEAM PLAYOFF':L.conf[c])}</h3><div class="sdc"><table class="pot"><thead><tr><th class="rk"><span class="vh">SEED</span></th><th class="nm">TEAM</th><th>STATUS</th></tr></thead><tbody>`+
+    sd.map((id,i)=>`<tr${id===me?' class="me"':''}><td class="rk">${i+1}</td>${who(id)}<td>${(col&&(L.po.cc||[]).includes(id)?'(CC) ':'')+(L.po.alive[c].includes(id)||L.champ===id?'IN':'OUT')}</td></tr>`).join('')+'</tbody></table></div></section>').join('')+
+    (L.champ!=null?`<p class="stp gold">CHAMPION: ${T[L.champ].name}</p>`:`<p class="stp">NEXT ROUND: ${L.po.round<4?cf.rnd[L.po.round]:''}</p>`)}
  else{
-  if(!L.scores)body='<p>NO GAMES PLAYED YET.</p>';
-  else body=`<div class="sm">WEEK ${L.scores.w} RESULTS</div><div class="lst">`+L.scores.games.map(([a,b,pa,pb])=>`<div class="up ${a===L.me||b===L.me?'me':''}"><span style="flex:1;text-align:left">${nm(a)}</span><b style="width:5em;text-align:center">${pa} - ${pb}</b><span style="flex:1;text-align:right">${nm(b)}</span></div>`).join('')+'</div>'}
- $('stand').innerHTML=`<div class="sthd"><span class="stars">${lgStar('#b3202f')+lgStar('#fff')+lgStar('#3a3a73')}</span><span>LEAGUE</span><span class="stars">${lgStar('#3a3a73')+lgStar('#fff')+lgStar('#b3202f')}</span></div>
- <div class="stbody">${body}</div>
- <div class="stbar"><button class="sbtn sq" data-st="back" aria-label="HOME">${lgHouse}</button>${tabs.map(([k,l])=>`<button class="sbtn${ST.tab===k?' on':''}" data-st="${k}">${l}</button>`).join('')}</div>`}
-$('stand').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.st;
- if(k==='back'){if(S.over&&$('season').innerHTML)showSeasonEnd();else renderHub()}else if(k){ST.tab=k;lgStand()}};
+  body=`<section class="sdt"><h3>WEEK ${L.scores.w} RESULTS</h3><div class="sdc"><table class="gmt"><tbody>`+L.scores.games.map(([a,b,pa,pb])=>`<tr${a===me||b===me?' class="me"':''}>${who(a)}<td class="sc">${pa} - ${pb}</td>${who(b)}</tr>`).join('')+'</tbody></table></div></section>'}
+ const kb=`<button type="button" class="sb keyb${ST.key?' on':''}" data-st="key" aria-expanded="${!!ST.key}">KEY</button>`;
+ const key=ST.key?`<dl class="lgkey">${(LG_KEYS[ST.tab]||[]).map(([a,b])=>`<dt>${a==='STAR'?youI:a}</dt><dd>${b}</dd>`).join('')}</dl>`:'';
+ const bare=UI.stS?`<div class="stbare"><button type="button" class="sb" data-st="back" aria-label="BACK">BACK</button><div class="seg" role="tablist" aria-label="Section">${sub.map(([k,l])=>`<button type="button" role="tab" class="sb${ST.tab===k?' on':''}" aria-selected="${ST.tab===k}" data-st="${k}">${l}</button>`).join('')}</div></div>`:'';
+ $('stand').innerHTML=`${bare}<div class="stbody"><div class="sttool">${seg}${kb}</div>${key}${body}</div>`}
+$('stand').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.st;if(!k)return;
+ if(k==='back'){if(S.over&&$('season').innerHTML)showSeasonEnd();else renderHub();return}
+ if(k==='key')ST.key=!ST.key;else if(/^c\d+$/.test(k))ST.cf=+k.slice(1);else ST.tab=k;
+ lgStand();shDraw();const f=$('stand').querySelector('[data-st="'+k+'"]');if(f)try{f.focus({preventScroll:true})}catch(x){}};
 
 /* ---------- home page (v1.40): saved leagues, new league, customize, how to play ---------- */
 const HOME={tab:'lg',fmt:'NFL',drafts:{},pick:0,cz:{src:'draft',team:0},del:null};
@@ -756,11 +908,11 @@ const hmTabs=[['lg','MY LEAGUES'],['new','NEW LEAGUE'],['ex','EXHIBITION'],['cz'
 const hmEsc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const hmDraft=()=>HOME.drafts[HOME.fmt]||(HOME.drafts[HOME.fmt]=lgMake('PIXEL LEAGUE',HOME.fmt));
 function openMenu(){if(S)save();HOME.ret=null;HOME.tab=rdIdx().length?'lg':'new';HOME.del=null;renderHome();show('menu')}
+function hmTab(k){HOME.tab=k;HOME.del=null;HOME.ret=null;renderHome()} /* v2.01: the five home tabs are drawn by the nav (sh.js) */
 function renderHome(){
- $('mtabs').innerHTML=hmTabs.map(([k,l])=>`<button class="btn xs ${HOME.tab===k?'':'alt'}" data-tab="${k}">${l}</button>`).join('');
  const f={lg:hmLeagues,new:hmNew,ex:hmExh,cz:hmCustom,help:hmHelp}[HOME.tab];$('mbody').innerHTML=f();
  if(HOME.tab==='cz')czDraw()
- mrotUI();pwaUI();cgFoot()}
+ mrotUI();pwaUI();cgFoot();shDraw()}
 /* v1.89: the AUTO / FLIP direction only matters while UPRIGHT PLAY is ON */
 function mrotUI(){const e=$('mrot');if(e)e.innerHTML=coarse()&&upOn()?`<span class="sm">ROTATION:</span><button class="btn xs ${rotPref()===1?'':'alt'}" data-rot="1">AUTO</button><button class="btn xs ${rotPref()===-1?'':'alt'}" data-rot="-1">FLIP</button>`:''}
 
@@ -871,7 +1023,7 @@ $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.
  else if(d.rot)setRotPref(+d.rot)
  else if(d.hp==='open')hpOpen(true)
  else if(d.hn==='reset'){hnReset();HOME.hnDone=true;renderHome();HOME.hnDone=false}
- else if(d.tab){HOME.tab=d.tab;HOME.del=null;HOME.ret=null;renderHome()}
+ else if(d.tab)hmTab(d.tab)
  else if(d.play)hmPlay(d.play);
  else if(d.del){if(HOME.del===d.del){if(S&&S.id===d.del)S=null;delSlot(d.del);HOME.del=null}else HOME.del=d.del;renderHome()}
  else if(d.pick!=null){const n=$('lgn');if(n)hmDraft().name=n.value.toUpperCase();HOME.pick=+d.pick;renderHome()}
@@ -1025,7 +1177,7 @@ function bkMark(ids){try{const ix=rdIdx(),now=Date.now();let ch=false;ix.forEach
 queueMicrotask(()=>{try{if(window.__pp)Object.assign(window.__pp,{exportCode,importCode,decodeCode:bkUnpack})}catch(e){}});
 
 /* ----- panels (shown over whatever screen is open, so they work from the home page and the hub) ----- */
-function bkPanel(html){let e=$('bk');if(!e){e=document.createElement('div');e.id='bk';e.className='screen top';$('app').appendChild(e);e.addEventListener('input',bkInput)}
+function bkPanel(html){let e=$('bk');if(!e){e=document.createElement('div');e.id='bk';e.className='screen top ovp';$('app').appendChild(e);e.addEventListener('input',bkInput)}
  e.style.background='#070a12';e.innerHTML=html;e.classList.add('on');return e}
 function bkClose(){const e=$('bk');if(e)e.classList.remove('on');BK.seq++;BK.code='';BK.items=null;try{if($('menu').classList.contains('on'))renderHome()}catch(x){}}
 const bkSet=(id,t)=>{const e=$(id);if(e)e.textContent=t};
@@ -1185,7 +1337,7 @@ function buildReport(text){
 /* ----- panel (an overlay like the backup panels; it does not touch the game) ----- */
 const RP={msg:''};
 function rpPanel(){let e=$('rp');
- if(!e){e=document.createElement('div');e.id='rp';e.className='screen top';e.style.background='#070a12';$('app').appendChild(e);
+ if(!e){e=document.createElement('div');e.id='rp';e.className='screen top ovp';e.style.background='#070a12';$('app').appendChild(e);
   e.addEventListener('input',()=>rpRebuild());
   for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>x.stopPropagation()); /* typing must never reach the game's key controls */
   e.innerHTML=`<h1 class="mh">REPORT A PROBLEM</h1>
@@ -1258,7 +1410,7 @@ function gsResume(){
 function gsAsk(next){
  let o=null;try{o=gsRead()}catch(e){}
  if(!o)return next();
- let e=$('gsq');if(!e){e=document.createElement('div');e.id='gsq';e.className='screen';e.style.background='#070a12';$('app').appendChild(e)}
+ let e=$('gsq');if(!e){e=document.createElement('div');e.id='gsq';e.className='screen ovp';e.style.background='#070a12';$('app').appendChild(e)}
  e.innerHTML=`<h1 class="mh">ABANDON THE SAVED GAME?</h1><div class="sm">${hmEsc(gsLine(o))}</div><div class="row"><button class="btn" data-gs="no">NO</button><button class="btn alt" data-gs="yes">YES</button></div>`;
  gsAsk.next=next;e.classList.add('on')}
 document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.closest('[data-gs]');if(!b)return;const a=b.dataset.gs,q=$('gsq');
@@ -1373,7 +1525,7 @@ async function cgFetch(code){
 
 /* ---- panel ---- */
 function cgPanel(){let e=$('cg');
- if(!e){e=document.createElement('div');e.id='cg';e.className='screen top';e.style.background='#070a12';$('app').appendChild(e);
+ if(!e){e=document.createElement('div');e.id='cg';e.className='screen top ovp';e.style.background='#070a12';$('app').appendChild(e);
   for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Enter'&&x.target&&x.target.id==='cgin'){x.preventDefault();cgFind()}}); /* typing never reaches the game keys */
   e.addEventListener('input',x=>{if(x.target&&x.target.id==='cgin')cgMsg('')})}
  return e}
@@ -1566,7 +1718,7 @@ const HP_TEXT=`<div class="hpt"><h1 class="mh">HOW TO PLAY</h1>
 <h4>KEYS</h4><p>P PASS SNAP - R RUN - 1-5 QUICK THROW - B BULLET - C PLAY CALL - K PUNT - F FIELD GOAL - UP/DOWN OR W/S STEER - SPACE OR SHIFT JUKE - 1 / 2 EXTRA POINT / GO FOR 2 - M MUTE</p></div>
 <div class="hpbar"><button class="btn" data-hp="close">CLOSE</button></div>`;
 function hpPanel(){let e=$('hp');
- if(!e){e=document.createElement('div');e.id='hp';e.className='screen top';e.style.background='#070a12';$('app').appendChild(e);
+ if(!e){e=document.createElement('div');e.id='hp';e.className='screen top ovp';e.style.background='#070a12';$('app').appendChild(e);
   for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Escape'){x.preventDefault();hpClose()}}); /* keys typed here never reach the game */
   e.addEventListener('click',x=>{if(x.target.closest&&x.target.closest('[data-hp=close]'))hpClose()});
   e.innerHTML=HP_TEXT.replace('<!--SPD-->',stGroup())}
@@ -1581,7 +1733,7 @@ $('bHelp').onclick=()=>{$('bHelp').blur();hpOpen()};
 const XP={on:false,v:'main'};
 function xpQ(g){return(g.ot?'OT':'Q'+clamp(Math.ceil((g.qLen*4-g.clock)/g.qLen+.0001),1,4))+' '+Math.floor(Math.ceil(g.clock)/60)+':'+String(Math.ceil(g.clock)%60).padStart(2,'0')}
 function xpPanel(){let e=$('xp');
- if(!e){e=document.createElement('div');e.id='xp';e.className='screen';e.style.background='rgba(4,7,16,.9)';$('app').appendChild(e);
+ if(!e){e=document.createElement('div');e.id='xp';e.className='screen ovp';e.style.background='rgba(4,7,16,.9)';$('app').appendChild(e);
   for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Escape'){x.preventDefault();xpEsc()}}); /* keys typed here never reach the game */
   e.addEventListener('click',x=>{if(x.target===e){xpEsc();return} /* a tap outside the panel */
    const b=x.target.closest&&x.target.closest('[data-xp]');if(!b)return;const a=b.dataset.xp;
@@ -1749,7 +1901,7 @@ async function glCopy(text,btn){
   if(done){o.style.display='none';ok()}else glSay('COPY WAS BLOCKED. THE TEXT IS SELECTED BELOW: PRESS AND HOLD, THEN COPY.')
  }catch(e){}}
 function glPanel(){let e=$('gl');
- if(!e){e=document.createElement('div');e.id='gl';e.className='screen top';e.style.background='#070a12';$('app').appendChild(e);
+ if(!e){e=document.createElement('div');e.id='gl';e.className='screen top ovp';e.style.background='#070a12';$('app').appendChild(e);
   for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Escape'){x.preventDefault();glEsc()}else if(ev==='keydown'&&x.key==='Tab')glTab(x)}); /* keys typed here never reach the game; Tab stays inside the panel */
   e.addEventListener('click',x=>{const b=x.target.closest&&x.target.closest('[data-gl]');if(!b||b.disabled)return;const a=b.dataset.gl,ss=glSeasons();
    if(a==='back')glClose();
@@ -1801,19 +1953,77 @@ function dcTags(id){
  const a=dcFactors(id,'PASS')[0],b=dcFactors(id,'RUN')[0];
  return a<=b?['PASS','RUN']:['RUN','PASS']}
 const dcName=id=>{const d=DEFD.find(x=>x.id===id);return d?d.name:'AUTO'};
+/* ----- v2.02: defense cards. drawDefCard(ctx,def) draws one DEFD scheme on a 120x128 canvas (whole pixels only): the line alignment comes from FM (p2.js), the defenders from def.lb / def.db
+   (al is evaluated with the line at 0 and the receivers at their FM spots; as is null, {m:i} or {z:[depth,y,halfWidth]}). Nothing is copied from the data, so the cards follow any change to DEFD.
+   Square = lineman, circle = linebacker, triangle = back; ring = zone; dashed line and box = man; arrow = extra rusher. The base scheme only: a linebacker may still pick up the RB or TE at the snap. ----- */
+const DD_W=120,DD_H=128,DD_MIN=10;
+const ddX=x=>Math.round(124-(x+7)*3),ddY=y=>Math.round(y*3);
+function ddR(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,h)}
+function ddLine(c,x0,y0,x1,y1,col,t,dash){const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0),1);c.fillStyle=col;for(let i=0;i<=n;i++){if(dash&&(i%(dash[0]+dash[1]))>=dash[0])continue;c.fillRect(Math.round(x0+(x1-x0)*i/n)-(t>>1),Math.round(y0+(y1-y0)*i/n)-(t>>1),t,t)}}
+function ddBase(c){c.imageSmoothingEnabled=false;ddR(c,0,0,DD_W,DD_H,PAL.turf0);
+ for(let k=0;k<8;k++){if(k&1)ddR(c,0,ddX(5*k)-15,DD_W,15,PAL.turf1)}
+ for(let x=5;x<=30;x+=5)ddR(c,0,ddX(x),DD_W,1,'rgba(255,255,255,.5)');
+ ddR(c,0,ddX(0),DD_W,2,PAL.los)}
+function ddZone(c,cx,cy,r){
+ for(let y=Math.max(0,cy-r-2);y<=Math.min(DD_H-1,cy+r+2);y++)for(let x=Math.max(0,cx-r-2);x<=Math.min(DD_W-1,cx+r+2);x++){
+  const d=Math.hypot(x-cx,y-cy);let col=null;
+  if(d<=r-2.5)col='rgba(255,255,255,.16)';else if(d<=r-1.5)col=PAL.dark;else if(d<=r+.5)col=PAL.red;else if(d<=r+1.5)col=PAL.dark;
+  if(col){c.fillStyle=col;c.fillRect(x,y,1,1)}}}
+const DD_SH={sq:['#####','#####','#####','#####','#####'],ci:['.###.','#####','#####','#####','.###.'],tr:['..#..','.###.','.###.','#####','#####']};
+function ddDef(c,x,y,kind){const bm=DD_SH[kind],px=x-2,py=y-2,on=(i,j)=>j>=0&&j<5&&i>=0&&i<5&&bm[j][i]==='#';
+ for(let j=-1;j<=5;j++)for(let i=-1;i<=5;i++){let near=false;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)if(on(i+di,j+dj))near=true;if(near&&!on(i,j)){c.fillStyle=PAL.gold;c.fillRect(px+i,py+j,1,1)}}
+ for(let j=0;j<5;j++)for(let i=0;i<5;i++)if(on(i,j)){c.fillStyle=(i+j<=1)?PAL.redHi:(i+j>=7?PAL.redLo:PAL.red);c.fillRect(px+i,py+j,1,1)}}
+/* nudge the movable defenders apart so no two shapes overlap (the four linemen and the zone rings stay put) */
+function ddSpread(items){for(let it=0;it<200;it++){let moved=false;
+  for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++){const p=items[i],q=items[j];if(p.fix&&q.fix)continue;let dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy);if(d>=DD_MIN)continue;moved=true;
+   if(d<.01){dx=(j%2?1:-1);dy=.3;d=Math.hypot(dx,dy)}const k=(DD_MIN-d)/d,w=p.fix||q.fix?1:.5;if(!p.fix){p.x-=dx*k*w;p.y-=dy*k*w}if(!q.fix){q.x+=dx*k*w;q.y+=dy*k*w}}
+  items.forEach(p=>{p.x=Math.min(DD_W-6,Math.max(6,p.x));p.y=Math.min(DD_H-6,Math.max(6,p.y))});if(!moved)break}
+ items.forEach(p=>{p.x=Math.round(p.x);p.y=Math.round(p.y)})}
+function ddOff(c,x,y,col){ddR(c,x-3,y-3,7,7,PAL.dark);ddR(c,x-2,y-2,5,5,col||'#fff')}
+function ddArrow(c,x0,y0,x1,y1,t){{const L0=Math.hypot(x1-x0,y1-y0)||1;x0=Math.round(x0+(x1-x0)/L0*6);y0=Math.round(y0+(y1-y0)/L0*6)}
+ ddLine(c,x0,y0,x1,y1,PAL.dark,t+2);ddLine(c,x0,y0,x1,y1,PAL.rush,t);
+ const a=Math.atan2(y1-y0,x1-x0),L=9,p=[[x1,y1],[x1-L*Math.cos(a-.55),y1-L*Math.sin(a-.55)],[x1-L*Math.cos(a+.55),y1-L*Math.sin(a+.55)]].map(q=>[Math.round(q[0]),Math.round(q[1])]);
+ ddLine(c,p[1][0],p[1][1],p[0][0],p[0][1],PAL.dark,5);ddLine(c,p[2][0],p[2][1],p[0][0],p[0][1],PAL.dark,5);
+ ddLine(c,p[1][0],p[1][1],p[0][0],p[0][1],PAL.rush,3);ddLine(c,p[2][0],p[2][1],p[0][0],p[0][1],PAL.rush,3)}
+/* the layout of one card: every defender's pixel spot and what is drawn for it. Pure (no drawing, no randomness), so the tests can check it. */
+function ddLayout(def){
+ const R=FM.rc.map(q=>({x:q[0],y:q[1]})),line=[],zones=[],men=[],arrows=[];
+ const dl=FM.dl.map(y=>({x:ddY(y),y:ddX(FM.dlx),fix:1,k:'sq'}));
+ const mv=[...def.lb.map(q=>({q,k:'ci'})),...def.db.map(q=>({q,k:'tr'}))].map(o=>{const a=o.q.al(0,R);return{x:ddY(a.y),y:ddX(a.x),k:o.k,as:o.q.as}});
+ ddSpread([...dl,...mv]);
+ mv.forEach(o=>{const a=o.as;if(a&&a.z)zones.push({cx:ddY(a.z[1]),cy:ddX(a.z[0]),r:Math.round(a.z[2]*3),o});else if(a&&a.m!=null){const t=R[a.m]||R[0];men.push({o,tx:ddY(t.y),ty:ddX(t.x)})}else if(!a)arrows.push(o)});
+ return{R,dl,mv,zones,men,arrows,all:[...dl,...mv]}}
+function drawDefCard(c,def){const L=ddLayout(def);ddBase(c);
+ L.zones.forEach(z=>ddZone(c,z.cx,z.cy,z.r));
+ L.zones.forEach(z=>{const o=z.o;if(Math.hypot(z.cx-o.x,z.cy-o.y)>8){ddLine(c,o.x,o.y,z.cx,z.cy,'rgba(11,15,26,.7)',3,[2,2]);ddLine(c,o.x,o.y,z.cx,z.cy,PAL.redHi,1,[2,2])}});
+ FM.ol.forEach(y=>ddOff(c,ddY(y),ddX(FM.olx)));L.R.forEach(q=>ddOff(c,ddY(q.y),ddX(q.x)));ddOff(c,ddY(FM.qb[1]),ddX(FM.qb[0]),PAL.man);
+ L.men.forEach(m=>{const o=m.o;ddLine(c,o.x,o.y,m.tx,m.ty,PAL.dark,4);ddLine(c,o.x,o.y,m.tx,m.ty,PAL.man,2,[4,2]);
+  ddR(c,m.tx-5,m.ty-5,11,1,PAL.man);ddR(c,m.tx-5,m.ty+5,11,1,PAL.man);ddR(c,m.tx-5,m.ty-5,1,11,PAL.man);ddR(c,m.tx+5,m.ty-5,1,11,PAL.man)});
+ L.all.forEach(o=>ddDef(c,o.x,o.y,o.k));
+ L.arrows.forEach(o=>ddArrow(c,o.x,o.y,ddY(FM.qb[1]),ddX(FM.qb[0]+1.5),3));
+ return L}
+/* one off-screen canvas per scheme, drawn once; dropped with the sprites when the team colors change (resetSprites) */
+const dcCache={};
+function dcCacheClear(){for(const k in dcCache)delete dcCache[k]}
+function dcCardCanvas(id){if(dcCache[id])return dcCache[id];const d=DEFD.find(x=>x.id===id);if(!d)return null;
+ const cv=document.createElement('canvas');cv.width=DD_W;cv.height=DD_H;drawDefCard(cv.getContext('2d'),d);return dcCache[id]=cv}
+function dcPaintCards(e){e.querySelectorAll('canvas[data-dcv]').forEach(cv=>{const src=dcCardCanvas(cv.dataset.dcv);if(!src)return;const c=cv.getContext('2d');c.imageSmoothingEnabled=false;c.clearRect(0,0,DD_W,DD_H);c.drawImage(src,0,0)})}
+/* v2.03: the legend for the defense pictures, shared by the BOOK gallery and the pick screen's KEY button */
+const dcKeyHtml=()=>'<ul><li>SQUARE = LINEMAN, CIRCLE = LINEBACKER, TRIANGLE = BACK</li><li>RING = ZONE</li><li>DASHED LINE AND BOX = MAN</li><li>ARROW = EXTRA RUSHER</li><li>RED WITH GOLD OUTLINE = DEFENSE, WHITE SQUARE = OFFENSE, YELLOW = QB</li><li>A LINEBACKER MAY PICK UP THE RB OR TE</li></ul>';
 /* ----- the pick screen ----- */
 const DC={on:false,sel:'auto',start:25};
 function dcCard(d){const t=dcTags(d.id),on=DC.sel===d.id;
- return`<button class="btn alt dcc${on?' on':''}" data-dc="${d.id}" aria-pressed="${on}"><b>${d.name}</b><span>BEST VS: ${t[0]}</span><span>WEAK VS: ${t[1]}</span></button>`}
+ return`<button class="btn alt dcc${on?' on':''}" data-dc="${d.id}" aria-pressed="${on}"><canvas class="dcv" data-dcv="${d.id}" width="120" height="128" aria-hidden="true"></canvas><b>${d.name}</b><span>BEST VS: ${t[0]}</span><span>WEAK VS: ${t[1]}</span></button>`}
 function dcPaint(){const e=$('dcs');if(!e)return;
  const sd=G.dcStyles||[];
  e.innerHTML=`<h1 class="mh">CALL YOUR DEFENSE</h1>
 <div class="sm">${hmEsc(S.name.slice(0,12))} ${G.me} - ${G.op} ${hmEsc(G.opp.name.slice(0,12))} - ${xpQ(G)}</div>
 <div class="sm" style="color:#ffd400">${OL.on?hmEsc(olDown(OL.room.st)):'THEIR BALL AT OWN '+Math.round(DC.start)}</div>
 <div class="sm">${OL.on?'<span id="olcd">PICK IN '+OL_PICK+'</span> - NO PICK = THE HIGHLIGHTED ONE':'LAST DRIVES: '+(sd.length?sd.join(', '):'NONE YET')}</div>
+<div class="dckw"><button type="button" class="btn alt xs" data-dckey aria-expanded="false">KEY</button></div><div class="dckey" hidden>${dcKeyHtml()}</div>
 <div class="dcl"><div class="dcg"><button class="btn alt dcc${DC.sel==='auto'?' on':''}" data-dc="auto" aria-pressed="${DC.sel==='auto'}"><b>AUTO</b><span>THE GAME PICKS, RANDOMLY, AS BEFORE</span></button></div>${
- DC_GRP.map(g=>{const L=DEFD.filter(d=>g[1].includes(DC_FAM[d.id]||'?'));return L.length?`<h4>${g[0]}</h4><div class="dcg">${L.map(dcCard).join('')}</div>`:''}).join('')}</div>
-<div class="dcbar"><button class="btn dcgo" data-dc="go">CALL IT: ${DC.sel==='auto'?'AUTO':dcName(DC.sel)}</button>${OL.on?olLeaveBtn:''}</div>`}
+ DC_GRP.map(g=>{const L=DEFD.filter(d=>g[1].includes(DC_FAM[d.id]||'?'));return L.length?`<h4>${g[0]}</h4><div class="dcg dcgc">${L.map(dcCard).join('')}</div>`:''}).join('')}</div>
+<div class="dcbar"><button class="btn dcgo" data-dc="go">CALL IT: ${DC.sel==='auto'?'AUTO':dcName(DC.sel)}</button>${OL.on?olLeaveBtn:''}</div>`;dcPaintCards(e)}
 function dcAsk(start){
  G.poss='opp';G.mode='dcall';DC.on=true;DC.start=start;DC.sel=G.dcLast&&DEFD.some(d=>d.id===G.dcLast)?G.dcLast:'auto';
  updCtl();dcPaint();show('dcs');const e=$('dcs');e.scrollTop=0;
@@ -1828,7 +2038,7 @@ function dcGo(){
  oppDrive(DC.start,sch?{sch,style}:null)}
 function dcEsc(){if(!DC.on)return;DC.sel='auto';dcGo()}
 const dcLine=c=>'YOU CALLED '+dcName(c.sch)+' - THEY '+(c.style==='RUN'?'RAN':'PASSED')+' IT';
-document.addEventListener('click',e=>{try{if(!DC.on)return;const b=e.target.closest&&e.target.closest('#dcs [data-dc]');if(!b)return;
+document.addEventListener('click',e=>{try{if(!DC.on)return;const kb=e.target.closest&&e.target.closest('#dcs [data-dckey]');if(kb){const k=$('dcs').querySelector('.dckey');k.hidden=!k.hidden;kb.setAttribute('aria-expanded',!k.hidden);return}const b=e.target.closest&&e.target.closest('#dcs [data-dc]');if(!b)return;
  if(b.dataset.dc==='go')dcGo();else dcSelect(b.dataset.dc)}catch(x){}});
 (function(){const e=document.getElementById('dcs');if(e)for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Escape'){x.preventDefault();dcEsc()}})})(); /* keys typed here never reach the game; Escape means AUTO */
 /* ---------- v1.91: the screens between games. The HUB is the main screen: team header with credits, the next game with a you-vs-them matchup, PLAY / SIM, and a menu of tiles.
@@ -1866,7 +2076,7 @@ function openCoach(){
  $('coach').innerHTML=`<div class="hbh" style="border-color:${myC().c}"><div style="text-align:left"><div class="hbt">COACH ROOM</div><div class="sm">${hmEsc(S.name)} - SPEND CREDITS ON YOUR TEAM</div></div><div class="hbc"><span class="sm">CREDITS</span><b>${S.credits}</b></div></div>
  <div class="card hbw"><h3>TEAM RATINGS</h3>${RK.map(k=>{const v=S.r[k],mx=v>=10,c=upCost(v);return`<div class="hbu"><div class="hbl"><b>${HB_BL[k][0]}</b><span class="sm">${HB_BL[k][1]}</span></div><div class="up"><b>${RL[k]}</b>${pips(v)}<span class="sm" style="width:3em;text-align:right">${v}/10</span><button class="btn xs" data-up="${k}" ${mx||S.credits<c?'disabled':''}>${mx?'MAX':'+'+c}</button></div></div>`}).join('')}</div>
  <div class="sm">${n?n+' UPGRADE'+(n>1?'S':'')+' YOU CAN AFFORD.':S.credits?'NOT ENOUGH CREDITS FOR ANOTHER TEAM UPGRADE.':'NO CREDITS LEFT.'} EARN MORE AFTER EVERY GAME.<br>COST IS YOUR RATING x 0.7, ROUNDED UP.</div>
- <div class="row"><button class="btn" data-hb="roster">ROSTER - PLAYER UPGRADES</button><button class="btn alt" data-hb="back">BACK</button></div>`;
+ <div class="row"><button class="btn" data-hb="roster">ROSTER - PLAYER UPGRADES</button></div>`; /* v2.01: no BACK, the nav is the way out */
  show('coach')}
 $('coach').onclick=e=>{const b=e.target.closest('button');if(!b)return;
  if(b.dataset.up){const k=b.dataset.up,c=upCost(S.r[k]);if(S.credits>=c&&S.r[k]<10){S.credits-=c;S.r[k]++;save();openCoach()}}
@@ -1880,13 +2090,83 @@ function openSet(){
  <div class="stw"><div class="row"><span class="sm">LEVEL</span><button class="btn xs alt" data-dl="-1">-</button><span class="sm">${DIFF()} ${dName()}</span><button class="btn xs alt" data-dl="1">+</button></div><div class="sm spdn">HOW HARD THE OPPONENT PLAYS. IT COUNTS FOR THE RECORD.</div></div>
  <div class="stw"><div class="row"><span class="sm">QUARTER</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'':'alt'}" data-q="${q}">${q}S</button>`).join('')}</div><div class="sm spdn">HOW LONG EACH QUARTER RUNS.</div></div></div>
  <div class="card hbw"><h3>THIS DEVICE</h3>${stGroup()}</div>
- <div class="row"><button class="btn" data-hb="back">BACK</button></div>`;
+ `;
  show('gset')}
 $('gset').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
  if(d.dl){S.diff=clamp(DIFF()+ +d.dl,1,10);save();openSet()}
  else if(d.dir!=null){S.flip=d.dir==='1';save();openSet()}
  else if(d.q){S.qLen=+d.q;save();openSet()}
  else if(d.hb==='back')renderHub()};
+/* ---------- v2.01 UI step 2: the nav shell. One function (shDraw) draws the nav, the header and the sub-tab strip for every DESTINATION screen (SHD in p1.js); the CSS is the "nav shell" block at the end of head.html.
+   Which tab is lit is a pure function of UI.scr (and HOME.tab on the home screen), so a tile, the nav and a test all go through the same openers (renderHub, lgOpenStand, openCoach, openRoster, glOpen, openDesigner, openSet, openExh, openMenu) and nothing has to be kept in sync. ---------- */
+const SHL={tm:'coach',mo:'gset'}; /* the last TEAM and MORE screen, for the tab */
+const SH_IC={ball:['..####..','.#.##.#.','#.####.#','#..##..#','#.####.#','.#.##.#.','..####..','........'],trophy:['########','#.####.#','#.####.#','.######.','..####..','...##...','...##...','.######.'],
+helmet:['..####..','.######.','########','###..###','###..###','#######.','.#####..','..###...'],book:['########','#......#','#.####.#','#......#','#.####.#','#......#','########','........'],
+gear:['..#..#..','.######.','########','###..###','###..###','########','.######.','..#..#..'],list:['########','........','########','........','########','........','########','........'],
+plus:['...##...','...##...','...##...','########','########','...##...','...##...','...##...'],vs:['#.....#.','##...##.','.##.##..','..###...','..###...','.##.##..','##...##.','#.....#.'],
+shirt:['##....##','########','.######.','.######.','.######.','.######.','.######.','........'],q:['.#####..','##...##.','.....##.','...###..','..##....','........','..##....','..##....']};
+const shIc=n=>`<svg class="ic" viewBox="0 0 8 8" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true">${SH_IC[n].map((r,y)=>[...r].map((c,x)=>c==='#'?`<rect x="${x}" y="${y}" width="1" height="1"/>`:'').join('')).join('')}</svg>`;
+const SH_HOME={lg:['LEAGUES','list'],new:['NEW','plus'],ex:['EXHIB','vs'],cz:['LOOK','shirt'],help:['HELP','q']}; /* short label, icon; the long names are hmTabs' */
+const SH_LG=[['game','GAME','NEXT GAME','ball'],['league','LEAGUE','LEAGUE','trophy'],['team','TEAM','MY TEAM','helmet'],['book','BOOK','PLAYBOOK','book'],['more','MORE','MORE','gear']];
+const SH_ON={hub:'game',stand:'league',book:'book',coach:'team',roster:'team',gset:'more',exh:'more'};
+const SH_TT={hub:'NEXT GAME',stand:'LEAGUE',book:'PLAYBOOK',coach:'UPGRADES',roster:'PLAYERS',gset:'SETTINGS',exh:'EXHIBITION'};
+const SH_SUB={team:[['coach','UPGRADES'],['roster','PLAYERS'],['stats','STATS']],more:[['gset','SETTINGS'],['exh','EXHIBITION'],['menu','ALL LEAGUES']]};
+/* v2.03: LEAGUE and BOOK have sub-tabs of their own (lgSubs in lg.js, boSubs in bo.js) whose lit tab is the screen's own state (ST.tab, BK.sub) */
+const shSubs=on=>on==='league'?lgSubs():on==='book'?boSubs():SH_SUB[on];
+const shSubOn=(on,k)=>on==='league'?ST.tab===k:on==='book'?BOK.sub===k:k===UI.scr;
+function shDraw(){
+ const nv=$('nav');if(!nv||!UI.sh||UI.bare)return; /* the nav and header exist only for destination screens (and not for standings opened from SEASON END) */
+ const home=UI.scr==='menu';
+ if(UI.scr==='coach'||UI.scr==='roster')SHL.tm=UI.scr;if(UI.scr==='gset'||UI.scr==='exh')SHL.mo=UI.scr;
+ const items=home?hmTabs.map(([k,l])=>[k,SH_HOME[k][0],l,SH_HOME[k][1]]):SH_LG.filter(x=>x[0]!=='league'||(S&&S.lg)); /* a classic game has no standings: four tabs */
+ const on=home?HOME.tab:SH_ON[UI.scr];
+ nv.innerHTML=items.map(([k,s,l,i])=>`<button type="button" class="${k===on?'on':''}" data-shn="${k}"${home?` data-tab="${k}"`:''}${k===on?' aria-current="page"':''}>${shIc(i)}<span class="s">${s}</span><span class="l">${l}</span></button>`).join('');
+ let t,sm='',cr='';
+ if(home){t=(hmTabs.find(x=>x[0]===HOME.tab)||['','PIXEL PIGSKIN'])[1];sm='PIXEL PIGSKIN'}
+ else{t=SH_TT[UI.scr]||'';
+  if(S){try{const L=S.lg?LG():null;sm=S.name+' - '+hbRec(L?L.rec[L.me]:S)+' - '+(L?lgLabel():'SEASON '+S.season)}catch(e){sm=S.name||''}cr=S.credits==null?'':S.credits}}
+ const tp=$('top');tp.innerHTML=`<div class="ttl"><b>${hmEsc(t)}</b>${sm?`<small>${hmEsc(sm)}</small>`:''}</div>${cr!==''?`<span class="cr" aria-label="${cr} credits">CR ${cr}</span>`:''}`;
+ let ac='#ffd400';if(!home&&S){try{ac=myC().c}catch(e){}}tp.style.setProperty('--acc',ac);
+ const sub=home?null:shSubs(on);
+ $('sub').innerHTML=sub?sub.map(([k,l])=>`<button type="button" role="tab" class="${shSubOn(on,k)?'on':''}" aria-selected="${shSubOn(on,k)}" data-shs="${k}">${l}</button>`).join(''):''}
+/* after a tab change the page is redrawn, so the focus goes back to the tab that was used (a keyboard user stays where they were) */
+function shFocus(sel){if(!UI.sh||UI.bare)return;const b=document.querySelector(sel+' button.on');if(b)try{b.focus({preventScroll:true})}catch(e){}}
+function shGo(k){const c=UI.scr; /* LEAGUE-set tabs: each opens an existing screen; nothing is rebuilt */
+ if(k==='game'){if(c!=='hub')renderHub()}
+ else if(k==='league'){if(c!=='stand'){lgOpenStand();shFocus('#sub');return true}} /* v2.03: a new screen with sub-tabs puts the focus on its first sub-tab */
+ else if(k==='team'){if(c!=='coach'&&c!=='roster')(SHL.tm==='roster'?openRoster:openCoach)()}
+ else if(k==='book'){if(c!=='book'){BOK.sub='bo';openBook();shFocus('#sub');return true}} /* v2.03: BOOK is a screen; the designer is one tap away from it */
+ else if(k==='more'){if(c!=='gset'&&c!=='exh')(SHL.mo==='exh'?openExh:openSet)()}
+ shFocus('#nav')}
+$('nav').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.shn==null)return;
+ if(UI.scr==='menu'){hmTab(b.dataset.shn);shFocus('#nav')}else if(!shGo(b.dataset.shn))shFocus('#nav')};
+$('sub').onclick=e=>{const b=e.target.closest('button'),k=b&&b.dataset.shs;if(!k)return;
+ if(UI.scr==='stand'){lgTab(k);shFocus('#sub');return}if(UI.scr==='book'){boTab(k);shFocus('#sub');return}
+ if(k==='coach'){if(UI.scr!=='coach')openCoach()}else if(k==='roster'){if(UI.scr!=='roster')openRoster()}else if(k==='stats'){glOpen();return}
+ else if(k==='gset'){if(UI.scr!=='gset')openSet()}else if(k==='exh'){if(UI.scr!=='exh')openExh()}else if(k==='menu'){openMenu();shFocus('#nav');return}
+ shFocus('#sub')};
+/* ---------- v2.03 UI step 3: the BOOK screen. A real screen inside the nav shell (SHD in p1.js): sub-tabs OFFENSE and DEFENSE, a card gallery for each, and the designer one tap away. Offense cards are the game's own thumb() pictures of S.plays (the same pictures CALL A PLAY shows); defense cards are the v2.02 cached card pictures (dcCardCanvas) and are display only. The designer is unchanged and still leaves the shell; DS.bk makes its BACK come back here (closeDesigner in pd.js). Pictures are 1x (100x76 and 120x128 canvas pixels); an iPad-sized window shows them at 2x. ---------- */
+const BOK={sub:'bo',sel:-1,key:false};
+const boSubs=()=>[['bo','OFFENSE'],['bd','DEFENSE']];
+function openBook(){if(!S)return;callPlay();BOK.sel=BOK.sel>=S.plays.length?-1:BOK.sel;boDraw();show('book')}
+function boTab(k){if(k!=='bo'&&k!=='bd')return;BOK.sub=k;boDraw();shDraw()}
+function boBar(){const b=$('book').querySelector('.bkbar');if(!b)return;const p=BOK.sel>=0?S.plays[BOK.sel]:null;
+ b.innerHTML=p?`<span class="bkn">${hmEsc(p.name)}</span><button type="button" class="btn" data-bk="edit">EDIT IN DESIGNER</button>`:'<span class="bkn dim">TAP A PLAY TO SELECT IT</span>'}
+function boSel(i){BOK.sel=i;$('book').querySelectorAll('[data-bp]').forEach(b=>{const on=+b.dataset.bp===i;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});boBar()}
+function boDraw(){const e=$('book');if(!e||!S)return;
+ const off=BOK.sub==='bo',tool=`<div class="bktool"><button type="button" class="btn alt" data-bk="open">OPEN DESIGNER</button>${off?'':`<button type="button" class="btn alt${BOK.key?' on':''}" data-bk="key" aria-expanded="${!!BOK.key}">KEY</button>`}</div>`;
+ if(off){
+  e.innerHTML=`${tool}<div class="bkscroll" tabindex="0" role="region" aria-label="OFFENSIVE PLAYS"><div class="bkgrid">${S.plays.map((p,i)=>`<button type="button" class="btn alt bkc${i===BOK.sel?' on':''}" data-bp="${i}" aria-pressed="${i===BOK.sel}"><canvas width="100" height="76" aria-hidden="true"></canvas><b>${hmEsc(p.name)}</b></button>`).join('')}</div></div><div class="bkbar"></div>`;
+  e.querySelectorAll('.bkc canvas').forEach((c,k)=>thumb(c,S.plays[k]));boBar()}
+ else{
+  e.innerHTML=`${tool}<div class="bkscroll" tabindex="0" role="region" aria-label="DEFENSES">${BOK.key?`<div class="dckey">${dcKeyHtml()}</div>`:''}<div class="bkdef">${DC_GRP.map(g=>{const L=DEFD.filter(d=>g[1].includes(DC_FAM[d.id]||'?'));return L.length?`<h4>${g[0]}</h4><div class="bkgrid bkdg">${L.map(d=>{const t=dcTags(d.id);return`<div class="bkd"><canvas class="dcv" data-dcv="${d.id}" width="120" height="128" role="img" aria-label="${hmEsc(d.name)}"></canvas><b>${hmEsc(d.name)}</b><span>BEST VS: ${t[0]}</span><span>WEAK VS: ${t[1]}</span></div>`}).join('')}</div>`:''}).join('')}</div></div>`;
+  dcPaintCards(e)}}
+$('book').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.bp!=null){boSel(+b.dataset.bp);return}
+ const a=b.dataset.bk;
+ if(a==='open'){DS.bk=true;openDesigner()}
+ else if(a==='edit'&&BOK.sel>=0){DS.i=BOK.sel;DS.bk=true;openDesigner()}
+ else if(a==='key'){BOK.key=!BOK.key;const y=$('book').querySelector('.bkscroll');const t=y?y.scrollTop:0;boDraw();const s=$('book').querySelector('.bkscroll');if(s)s.scrollTop=t;const k=$('book').querySelector('[data-bk=key]');if(k)try{k.focus({preventScroll:true})}catch(x){}}};
 /* ---------- v1.92: EXHIBITION tab on the home screen. Pick a league (one of your saved leagues, or a brand new NFL / COLLEGE one), then your team and the opponent from it, and play one game.
    The game runs on a throwaway copy of the league (S.sbx=1): nothing is saved, no record, no credits, no game log, no saved-game snapshot, and your real leagues are not touched.
    Only the picker's own settings are remembered, under pixelPigskin.exh. The exhibition inside a league (EXHIBITION on the hub) is unchanged. ---------- */
@@ -2259,13 +2539,15 @@ function startGame(){
  if(S.lg){const _t=S.lg.teams[S.lg.me];S.uni=lgUni(_t)||defaultUni(_t.col)}else if(!S.uni)S.uni=defaultUni(myC());G.opp.uni=G.opp.uni||defaultUni(G.oc,true);resetSprites();
  FLIP=S.flip!==false; /* v1.54: drive left is the default */show(null);formation();cam.x=camTarget();
  showBanner(G.label+' - '+siteTxt(home),(home===false?'AT ':'VS ')+o.name,1.6,()=>G.first==='me'?showBanner('COIN TOSS','YOU RECEIVE THE OPENING KICK',1.4,()=>showBanner('YOUR BALL','OWN 25',.9,setPresnap),'#ffd400'):showBanner('COIN TOSS',o.name+' RECEIVE THE OPENING KICK',1.8,()=>oppPossession(25),G.oc.c))}
+/* v2.02: the pre-snap line alignment in one table (yards from the line of scrimmage, field y 0-40), read by formation() and by the defense cards (dc.js). Same numbers as before. */
+const FM={ol:[14,17,20,23,26],olx:-1,qb:[-5,20],dl:[12,18,22,28],dlx:1.3,rc:[[-1,5],[-1,35],[-1.2,28],[-5,15.5],[-1,11]]};
 function formation(){
  const l=G.los,cl=x=>Math.min(x,109);G.hold=false;
- G.ol=[14,17,20,23,26].map(y=>mk('OL',l-1,y));
- G.qb=mk('QB',l-5,20);
- G.recs=[mk('WR',l-1,5,{n:1,nm:S.names.wr[0]}),mk('WR',l-1,35,{n:2,nm:S.names.wr[1]}),mk('WR',l-1.2,28,{n:3,nm:S.names.wr[2]}),mk('RB',l-5,15.5,{n:4,nm:S.names.rb}),mk('TE',l-1,11,{n:5,nm:S.names.te||(S.names.te=nmMore())})];
+ G.ol=FM.ol.map(y=>mk('OL',l+FM.olx,y));
+ G.qb=mk('QB',l+FM.qb[0],FM.qb[1]);
+ G.recs=[mk('WR',l+FM.rc[0][0],FM.rc[0][1],{n:1,nm:S.names.wr[0]}),mk('WR',l+FM.rc[1][0],FM.rc[1][1],{n:2,nm:S.names.wr[1]}),mk('WR',l+FM.rc[2][0],FM.rc[2][1],{n:3,nm:S.names.wr[2]}),mk('RB',l+FM.rc[3][0],FM.rc[3][1],{n:4,nm:S.names.rb}),mk('TE',l+FM.rc[4][0],FM.rc[4][1],{n:5,nm:S.names.te||(S.names.te=nmMore())})];
  setRoutes();
- G.dl=[12,18,22,28].map(y=>mk('DL',cl(l+1.3),y));
+ G.dl=FM.dl.map(y=>mk('DL',cl(l+FM.dlx),y));
  G.lb=[11,20,26].map(y=>mk('LB',cl(l+4.5),y));
  G.db=[mk('DB',cl(l+6),6),mk('DB',cl(l+6),34),mk('DB',cl(l+6),30),mk('DB',cl(l+14),20)];
  G.ol.forEach((e,i)=>dress(e,'me',i));dress(G.qb,'me',0);G.recs.forEach((e,i)=>dress(e,'me',i));[G.dl,G.lb,G.db].forEach(a=>a.forEach((e,i)=>dress(e,'op',i)));
@@ -2843,6 +3125,8 @@ function showHalf(cont){
    To customize later, change a field and call resetSprites().
    uniform = { helmet:{shell,stripe,mask,logo}, jersey:{main,trim,number},
                pants:{main,stripe}, socks:{main,stripe}, shoes, gloves, outline } */
+/* v2.02: shared colors for the defense cards (dc.js drawDefCard); the card colors do not follow the team colors */
+const PAL={dark:'#0b0f1a',light:'#f4f4f8',red:'#ff6b6b',redHi:'#ffa3a3',redLo:'#c23b3b',gold:'#ffe14d',man:'#ffd400',rush:'#c79bff',turf0:'#2a6034',turf1:'#2f6b3a',los:'#8cbcff'};
 const SW=12,SH=18;let ANIM_DT=0; /* v1.59: frame time for the run cycle */
 const SK=[['#f1c9a0','#d9a97c'],['#c68c5f','#a96f45'],['#8a5a3b','#6e4429']];
 const DIG={'0':['11','10','11'],'1':['01','01','01'],'2':['11','01','10'],'3':['11','01','11'],'4':['10','11','01'],'5':['11','10','01'],'6':['10','11','11'],'7':['11','01','01'],'8':['11','11','11'],'9':['11','11','01']};
@@ -2860,7 +3144,7 @@ function defaultUni(c,away){
 function dress(e,side,i){
  const n=NUMS[e.k]||[0];e.side=side;e.num=n[i%n.length];e.tone=(e.k.charCodeAt(0)+i*5+(side==='me'?1:2))%3}
 const spriteCache={};
-function resetSprites(){for(const k in spriteCache)delete spriteCache[k]}
+function resetSprites(){for(const k in spriteCache)delete spriteCache[k];dcCacheClear()}
 function spriteGrid(u,tone,frame,num,kind){
  const P=1,w=SW+2,h=SH+2,g=Array.from({length:h},()=>Array(w).fill(null)),sk=SK[tone%3];
  const put=(x,y,c)=>{if(c&&x>=0&&x<SW&&y>=0&&y<SH)g[y+P][x+P]=c};
@@ -3022,7 +3306,7 @@ function openDesigner(){
  const e=DS.ents={qb:mk('QB',-5,20),ol:[14,17,20,23,26].map(y=>mk('OL',-1,y)),recs:['WR','WR','WR','RB','TE'].map(k=>mk(k,0,0))};
  dress(e.qb,'me',0);e.ol.forEach((o,i)=>dress(o,'me',i));e.recs.forEach((r,i)=>dress(r,'me',i));
  resetSprites();DS.on=true;show('pd');dsPanel()}
-function closeDesigner(){DS.on=false;DS.drag=null;DS.prev=null;renderHub()}
+function closeDesigner(){const bk=DS.bk;DS.bk=false;DS.on=false;DS.drag=null;DS.prev=null;if(bk&&S)openBook();else renderHub()} /* v2.03: opened from BOOK (DS.bk) -> BACK returns to BOOK; the hub PLAYBOOK tile still returns to the hub */
 
 function legal(i,x,y){
  if(x>-2.5&&Math.abs(y-20)<7.5)return false;            /* the O-line box */
@@ -3623,8 +3907,16 @@ function setInsets(o){INS_OVR=o?{t:Math.max(0,+o.t||0),r:Math.max(0,+o.r||0),b:M
 function fit(){
  const W0=innerWidth,H0=innerHeight,wr=$('wrap'),a=$('app');let w;
  const up=coarse()&&H0>W0; /* a touch screen held upright */
- ROT=up&&upOn()?rotPref():0;turnSet(up&&!upOn());
+ const mn=UIM.has(UI.scr); /* v2.00: a menu screen is showing (UI.scr is set by show() in p1.js) */
+ ROT=!mn&&up&&upOn()?rotPref():0;turnSet(!mn&&up&&!upOn());
+ a.classList.toggle('mn',mn);a.classList.toggle('sh',mn&&UI.sh);a.classList.toggle('bare',mn&&UI.sh&&UI.bare); /* v2.01: sh = the nav shell is up (destination screens), bare = without nav and header */
  const I=insets(),mg=v=>Math.max(8,v+4);
+ if(mn){ /* menus: the whole window inside the safe areas, never rotated, never 16:9; their text comes from the CSS tokens, not from the 16:9 box */
+  for(const k of['position','width','height','left','top','transform','transformOrigin'])wr.style[k]='';
+  /* v2.01: with the nav shell up the safe areas go to the nav, header and view (--pt --pr --pb --pl, so the nav bar paints under the home bar and the rail under the notch); without it #wrap carries them as before */
+  wr.style.padding=UI.sh?'0':I.t+'px '+I.r+'px '+I.b+'px '+I.l+'px';
+  a.style.setProperty('--pt',I.t+'px');a.style.setProperty('--pr',I.r+'px');a.style.setProperty('--pb',I.b+'px');a.style.setProperty('--pl',I.l+'px');
+  a.style.width='100%';a.style.height='100%';a.style.fontSize='';return}
  const M=ROT===1?{t:mg(I.r),r:mg(I.b),b:mg(I.l),l:mg(I.t)}:ROT===-1?{t:mg(I.l),r:mg(I.t),b:mg(I.r),l:mg(I.b)}:{t:mg(I.t),r:mg(I.r),b:mg(I.b),l:mg(I.l)};
  const GW=ROT?H0:W0,GH=ROT?W0:H0; /* the game's own width and height (swapped when rotated) */
  w=Math.max(40,Math.min(GW-M.l-M.r,(GH-M.t-M.b)*16/9,1280));
@@ -3653,8 +3945,8 @@ let fsTried=false;
 function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return;if(isIOS()&&!upOn())return;
  fsTried=true;try{const p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(p&&p.then)p.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
 document.addEventListener('pointerup',fsTry,{capture:true});
-fit();openMenu();olBoot();
+UI.ready=true;fit();openMenu();olBoot();
 requestAnimationFrame(frame);
-window.__pp={OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
+window.__pp={BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openRoster,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
 })();
 </script></body></html>

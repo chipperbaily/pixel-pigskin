@@ -62,7 +62,6 @@ input{font:inherit;min-height:44px;padding:8px 10px;border-radius:8px;border:2px
  </div>
  <div class="row">
   <button class="alt" id="bWake">KEEP SCREEN ON: ON</button>
-  <button class="alt" id="bReport">COPY REPORT</button>
   <button class="alt" id="bLeave">LEAVE</button>
  </div>
  <div class="card"><div class="stat" id="stats"></div></div>
@@ -70,10 +69,11 @@ input{font:inherit;min-height:44px;padding:8px 10px;border-radius:8px;border:2px
 
 <div id="err" class="card bad hide"></div>
 <div id="log"></div>
+<div class="row"><button class="alt" id="bReport">COPY REPORT</button><span class="sub">WORKS AT ANY POINT, EVEN IF IT FAILED</span></div>
 
 <script type="module">
 /* ---------- constants ---------- */
-const VERSION='rtc-test 1';
+const VERSION='rtc-test 2';
 const CFG={apiKey:"AIzaSyAp3vPyxdsRs7LRcc_iPQRQVNDXJ9W6GUI",authDomain:"pixel-pigskin.firebaseapp.com",projectId:"pixel-pigskin",storageBucket:"pixel-pigskin.firebasestorage.app",messagingSenderId:"1094292197633",appId:"1:1094292197633:web:bb836df9bd720f33140b00"}; /* public web config, same as the game; the Firestore rules protect the data */
 const SDK='10.14.1', COLL='rtctest';
 const NP=22, YOU=16, SPD=9, BUFMS=100, PLAYLEN=7.5;
@@ -115,8 +115,20 @@ function makePC(){
  ev.onmessage=e=>onEv(e.data);
  pc.onconnectionstatechange=()=>log('CONNECTION '+pc.connectionState);
  pc.oniceconnectionstatechange=()=>log('ICE '+pc.iceConnectionState);
+ pc.onicecandidate=e=>{if(e.candidate){S.cands.push(candInfo(e.candidate.candidate))}};
+ pc.onicecandidateerror=e=>{const m=(e.errorCode||'')+' '+(e.url||'')+' '+String(e.errorText||'').slice(0,50);if(S.icerrs.length<8)S.icerrs.push(m.trim());log('STUN/TURN ERROR '+m)};
+ S.cands=[];S.icerrs=[];
  S.pc=pc;S.st=st;S.ev=ev;return pc;
 }
+
+/* what kind of address a candidate is (no full addresses are ever shown) */
+function candInfo(line){const f=String(line).replace(/^a=/,'').split(/\s+/),a=f[4]||'',ty=f[7]||'?',pr=(f[2]||'?').toLowerCase();let c='public';
+ if(/\.local$/i.test(a))c='mdns';else if(a.includes(':'))c=/^fe80/i.test(a)?'ipv6-linklocal':'ipv6';else if(/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(a))c='private';else if(/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(a))c='cgnat';else if(/^169\.254\./.test(a))c='linklocal';
+ return ty+'/'+pr+'/'+c}
+function sdpCands(d){return d&&d.sdp?(d.sdp.match(/a=candidate:[^\r\n]*/g)||[]).map(candInfo):[]}
+function diag(){const pc=S.pc;if(!pc)return S.lastDiag||'no connection was started';
+ const cnt=a=>{const m={};for(const x of a)m[x]=(m[x]||0)+1;return Object.entries(m).map(([k,v])=>k+(v>1?' x'+v:'')).join(', ')||'none'};
+ return ['ice: '+pc.iceConnectionState+', gathering: '+pc.iceGatheringState+', connection: '+pc.connectionState,'local candidates: '+cnt(sdpCands(pc.localDescription)),'remote candidates: '+cnt(sdpCands(pc.remoteDescription)),'gathered while running: '+cnt(S.cands||[]),'stun/turn errors: '+((S.icerrs||[]).join(' | ')||'none')].join('\n')}
 
 /* ---------- Firebase (only for the handshake: two writes per game) ---------- */
 async function fb(){
@@ -164,8 +176,9 @@ async function join(){
  }catch(e){fail(cloudMsg(e));leave(true)}
  $('bJoin').disabled=false;
 }
-function armTimeout(){clearTimeout(S.tmo);S.tmo=setTimeout(async()=>{if(S.live)return;const p=await pathInfo().catch(()=>null);fail('COULD NOT CONNECT DIRECTLY. TRY ONE PHONE ON WI-FI AND THE OTHER ON CELLULAR, OR SWAP THEM. (STATE: '+(S.pc?S.pc.iceConnectionState:'?')+')');log('NO LINK. PATH '+JSON.stringify(p&&{l:p.lt,r:p.rt}))},25000)}
+function armTimeout(){clearTimeout(S.tmo);S.tmo=setTimeout(async()=>{if(S.live)return;const p=await pathInfo().catch(()=>null);fail('COULD NOT CONNECT DIRECTLY. TAP COPY REPORT BELOW AND SEND IT TO CLAUDE. (STATE: '+(S.pc?S.pc.iceConnectionState:'?')+')');log('NO LINK. PATH '+JSON.stringify(p&&{l:p.lt,r:p.rt}))},25000)}
 function leave(quiet){
+ try{S.lastDiag=S.pc?diag():S.lastDiag}catch(e){}
  clearTimeout(S.tmo);clearInterval(S.simT);clearInterval(S.inT);clearInterval(S.pingT);clearInterval(S.uiT);
  try{S.unsub&&S.unsub()}catch(e){} S.unsub=null;
  try{S.st&&(S.st.onclose=null);S.st&&S.st.close();S.ev&&S.ev.close();S.pc&&S.pc.close()}catch(e){}
@@ -343,10 +356,10 @@ function report(){
  return ['PIXEL PIGSKIN LIVE LINK TEST ('+VERSION+')','role: '+(S.role||'-'),'device: '+navigator.userAgent,'installed app (standalone): '+(standalone?'yes':'no'),
   'network type: '+((navigator.connection&&navigator.connection.effectiveType)||'unknown'),
   'path: '+(s.path?(s.path.relay?'RELAY':'DIRECT')+' local='+s.path.lt+' remote='+s.path.rt:'unknown')+(qs.get('relay')==='1'?' (relay forced)':''),
-  'connect time: '+(S.tOpen&&S.tStart?((S.tOpen-S.tStart)/1000).toFixed(1)+' s':'-'),
+  'connect time: '+(S.tOpen&&S.tStart?((S.tOpen-S.tStart)/1000).toFixed(1)+' s':'-'),'live link reached: '+(S.tOpen?'yes':'NO'),
   'round trip ms: median '+f(s.rt.med)+' min '+f(s.rt.min)+' max '+f(s.rt.max)+' p95 '+f(s.rt.p95)+' (n='+s.rt.n+')',
   S.role==='guest'?'positions: ~'+s.snapRate+'/s, lost '+s.loss.toFixed(1)+'%, jitter '+f(s.jit)+' ms, longest gap '+f(s.mg)+' ms':'steering in: ~'+s.inRate+'/s',
-  'events received: '+S.evRx+', link drops: '+S.drops,'screen kept on: '+(S.wake?'yes':'no'),'predict: '+(S.predict?'on':'off'),'--- log ---',...S.logs.slice(-25)].join('\n');
+  'events received: '+S.evRx+', link drops: '+S.drops,'screen kept on: '+(S.wake?'yes':'no'),'predict: '+(S.predict?'on':'off'),'--- connection details ---',diag(),'--- log ---',...S.logs.slice(-25)].join('\n');
 }
 
 /* ---------- going live ---------- */
