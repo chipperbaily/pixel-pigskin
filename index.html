@@ -519,7 +519,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="2.20"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.22"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -742,15 +742,16 @@ function showSeasonEnd(){
  const m={champ:['CHAMPIONS!','YOU WON THE TITLE! SEASON '+S.season+' GOES IN THE BOOKS.'],elim:['ELIMINATED','YOUR PLAYOFF RUN ENDS HERE. UPGRADE AND GO AGAIN.'],missed:['MISSED PLAYOFFS','YOU NEEDED 5 WINS TO MAKE THE PLAYOFFS. SPEND YOUR CREDITS WISELY.']}[S.over];
  $('season').innerHTML=`<h1 style="font-size:1.8em">${m[0]}</h1><p>${sc(`${m[1]}`)}</p><p>${sc(`RECORD ${S.w}-${S.l}${S.t?'-'+S.t:''} - TITLES ${S.champs} - CREDITS ${S.credits}`)}</p><button class="btn" id="bNext">NEXT SEASON</button>`;
  $('bNext').onclick=newSeason;show('season')}
-
-/* ---------- NFL-format leagues (v1.40) ----------
-   A league (S.lg) has 32 teams, 2 conferences and 8 divisions (4 teams each), a 17-game season, and
-   a 14-team playoff (7 per conference). Teams are ids 0..31: id = conf*16 + div*4 + slot.
-   The other 15 games of every week are simulated from team ratings; your own game is played by hand
-   or simulated. Season: 6 division games (each rival twice), 6 games against the other 3 divisions in
-   your conference (one team each from 6 of the 12), and 5 against the other conference. */
-const LG_CITY=['HARBOR','PRAIRIE','GRANITE','MESA','LAKESIDE','SUMMIT','BAYOU','REDWOOD','NEON','IRON','COASTAL','CANYON','TIMBER','DESERT','AMBER','BLUFF','CEDAR','DELTA','EMBER','FROST','GLACIER','HIGHLAND','ISLAND','JADE','MARSH','NORTHERN','ORCHARD','PINE','QUARRY','RIDGE','SILVER','SUNSET','THUNDER','VALLEY','WILLOW','COPPER','CRIMSON','DUSTY','MAPLE','OAK'];
-const LG_MASC=['HAWKS','FOXES','GIANTS','SCORPIONS','LOONS','YETIS','BARONS','RANGERS','KNIGHTS','OXEN','COMETS','COBRAS','BADGERS','DRAGONS','WOLVES','BISON','OTTERS','LYNX','MARLINS','MOOSE','PIRATES','ROCKETS','SHARKS','STAGS','VIPERS','WARDENS','COUGARS','HORNETS','MUSTANGS','STORM','BANDITS','PILOTS','MINERS','SPARKS','OWLS','PUMAS','HERONS','CRANES','GATORS','IBEX','WASPS','CROWS','MAMMOTHS','SABERS','PHANTOMS','WRANGLERS','MARAUDERS'];
+/* lg-engine.js (v2.22): THE SHARED LEAGUE ENGINE. Pure: no S, G, DOM, localStorage or window, no UI function. Everything comes in as arguments
+   (the league object L, the season, a function rt(id) that returns a team's {off,def}, the human result(s) of the week).
+   The game build includes this text inside its IIFE before lg.js; Node, the league tool and HQ load the same text with require() (the guard at the end).
+   Every random draw that decides a league game comes from ONE stream per game: lgMulberry32(lgSeedFor(leagueSeed, season, week, gameIndex)).
+   One game's draws depend ONLY on those four numbers (never on call order, on how many games ran before it, or on the human's result).
+   gameIndex = the pair's position in L.sched[week]; playoffs: week = 100 + round, gameIndex = the game's position in lgPoGames(L).
+   leagueSeed = lgLeagueSeed(L): a numeric L.seed if there is one, otherwise a hash of this season's schedule (nothing is saved).
+   League CREATION (names, ratings, colors, the schedule) is not here: it keeps Math.random in the game's lg.js. */
+const LGE=(function(){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 /* v1.63: two league formats. NFL = 32 teams / 2 conferences / 8 divisions / 17 games / 14-team playoff.
    COLLEGE = 60 teams / 6 conferences of 10 / 12 games (9 conference + 3 non-conference) / 12-team playoff
    (6 conference champions + 6 at-large, the 4 best champions get a bye, reseeded each round). L.fmt picks the format (old saves have none = NFL).
@@ -768,12 +769,101 @@ const LGF={
   info:'6 CONFERENCES OF 10 - 12 GAMES (9 CONFERENCE + 3 NON-CONFERENCE) - 12 TEAM PLAYOFF.',
   poTxt:'12 TEAMS: THE 6 CONFERENCE CHAMPIONS (BEST CONFERENCE RECORD) + 6 AT-LARGE TEAMS. THE 4 BEST CHAMPIONS GET A BYE.',miss:'ONLY 12 OF THE 60 TEAMS GET IN.',
   help:'12 GAMES - 9 IN YOUR CONFERENCE, 3 NON-CONFERENCE. THE 6 CONFERENCE CHAMPIONS + 6 AT-LARGE TEAMS MAKE THE 12-TEAM PLAYOFF, THE 4 BEST CHAMPIONS GET A BYE. WIN THE NATIONAL TITLE.'}};
-const lgCfg=L=>LGF[(L&&L.fmt)||'NFL'],LGC=()=>lgCfg(S.lg),lgN=c=>c.nc*c.dv*c.per;
+const lgCfg=L=>LGF[(L&&L.fmt)||'NFL'],lgN=c=>c.nc*c.dv*c.per;
+
+/* ----- the seeded generator and the per-game seed ----- */
+/* mulberry32: a 32-bit seed in, a function out that returns numbers in [0,1) */
+function lgMulberry32(seed){let a=seed>>>0;return function(){a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+/* seedFor: four numbers in, one 32-bit seed out (a murmur-style mix; the same on every device) */
+function lgSeedFor(leagueSeed,season,week,gameIndex){
+ let h=(leagueSeed>>>0)^0x9E3779B9;
+ for(const v of[season,week,gameIndex]){h^=(v|0)+0x7F4A7C15;h=Math.imul(h^(h>>>16),0x85EBCA6B);h=Math.imul(h^(h>>>13),0xC2B2AE35);h^=h>>>16}
+ return h>>>0}
+/* the league's seed number: a numeric L.seed if the league has one (the game's L.seed is the playoff seed MAP, an object, so it never counts), else an FNV-1a hash of the team count and this season's schedule. Never saved. */
+function lgLeagueSeed(L){
+ if(typeof L.seed==='number'&&isFinite(L.seed))return L.seed>>>0;
+ let h=0x811C9DC5;const add=v=>{v|=0;h=Math.imul(h^(v&255),0x01000193);h=Math.imul(h^((v>>>8)&255),0x01000193)};
+ add(L.teams.length);const S=L.sched||[];for(const rd of S){add(1000+rd.length);for(const g of rd){add(g[0]);add(g[1])}}
+ return h>>>0}
+
+/* ----- the game ----- */
+const lgGauss=rng=>(rng()+rng()+rng()-1.5)*2;     /* about N(0,1), fed by a stream; as the game always had it */
+/* A, B = {off,def}; noTie = playoffs or a no-tie format; hfa: true = A is the home team, false = B is, null/undefined = neutral (v1.56) */
+function lgSim(A,B,noTie,hfa,rng){
+ const mu=(o,d)=>clamp(22+(o-d)*2.4,6,40),h=hfa===true?1.2:hfa===false?-1.2:0;
+ let pa=clamp(Math.round(mu(A.off,B.def)+h+lgGauss(rng)*6),0,56),pb=clamp(Math.round(mu(B.off,A.def)-h+lgGauss(rng)*6),0,56);
+ if(noTie&&pa===pb){if(rng()<.5)pa+=3;else pb+=3}
+ return[pa,pb]}
+/* one league game with its own stream (a = first team of the pair, b = second) */
+function lgGame(L,ls,season,week,gi,rt,a,b,po,hfa){
+ return lgSim(rt(a),rt(b),!!(po||lgCfg(L).noTie),hfa,lgMulberry32(lgSeedFor(ls,season,week,gi)))}
+
+/* ----- records and standings ----- */
+function lgRecGame(L,a,b,pa,pb){const R=L.rec;R[a].pf+=pa;R[a].pa+=pb;R[b].pf+=pb;R[b].pa+=pa;
+ if(pa>pb){R[a].w++;R[b].l++}else if(pb>pa){R[b].w++;R[a].l++}else{R[a].t++;R[b].t++}
+ if(L.teams[a].conf===L.teams[b].conf){if(pa>pb){R[a].cw=(R[a].cw||0)+1;R[b].cl=(R[b].cl||0)+1}else if(pb>pa){R[b].cw=(R[b].cw||0)+1;R[a].cl=(R[a].cl||0)+1}}}
+const lgPct=r=>{const g=r.w+r.l+r.t;return g?(r.w+r.t/2)/g:0};
+const lgCP=r=>{const g=(r.cw||0)+(r.cl||0);return g?(r.cw||0)/g:0};
+function lgOrder(L,ids,ov){const R=L.rec,cf=!ov&&lgCfg(L).id==='COL';return ids.slice().sort((a,b)=>(cf?lgCP(R[b])-lgCP(R[a]):0)||lgPct(R[b])-lgPct(R[a])||(R[b].pf-R[b].pa)-(R[a].pf-R[a].pa)||R[b].pf-R[a].pf||a-b)}
+const lgDivIds=(cf,c,d)=>Array.from({length:cf.per},(_,i)=>c*cf.per*cf.dv+d*cf.per+i);
+
+/* ----- a regular-season week ----- */
+/* hum = the human results of the week as a list of [a,b,pa,pb] (empty, one, or several). They are recorded as given; every other game of L.sched[week] is simulated from its own stream. Returns the week's games, human games first, then the others in schedule order. rt(id) returns {off,def}. */
+function lgPlayWeek(L,w,season,rt,hum){
+ hum=hum||[];const games=[],busy=new Set(),ls=lgLeagueSeed(L);
+ for(const[a,b,pa,pb]of hum){lgRecGame(L,a,b,pa,pb);games.push([a,b,pa,pb]);busy.add(a);busy.add(b)}
+ L.sched[w].forEach(([a,b],i)=>{if(busy.has(a)||busy.has(b))return;const[pa,pb]=lgGame(L,ls,season,w,i,rt,a,b,false,true);lgRecGame(L,a,b,pa,pb);games.push([a,b,pa,pb])});
+ return games}
+
+/* ----- playoffs: 7 seeds per conference, seed 1 gets a bye (college: 12 teams) ----- */
+function lgSeedPO(L){
+ const cf=lgCfg(L),seeds=[[],[]];L.seed={};
+ if(cf.id==='COL'){
+  const champs=lgOrder(L,Array.from({length:cf.nc},(_,k)=>lgOrder(L,lgDivIds(cf,k,0))[0]),true);
+  const rest=lgOrder(L,L.teams.map(t=>t.id).filter(i=>!champs.includes(i)),true).slice(0,12-cf.nc);
+  const sd=[...champs.slice(0,cf.byes),...lgOrder(L,[...champs.slice(cf.byes),...rest],true)];
+  sd.forEach((id,i)=>L.seed[id]=i+1);L.po={seeds:[sd],alive:[sd.slice()],round:0,cc:champs};return}
+ for(let c=0;c<2;c++){
+  const win=[0,1,2,3].map(d=>lgOrder(L,lgDivIds(cf,c,d))[0]),ws=lgOrder(L,win);
+  const rest=lgOrder(L,Array.from({length:16},(_,i)=>c*16+i).filter(i=>!win.includes(i)));
+  seeds[c]=[...ws,...rest.slice(0,3)];seeds[c].forEach((id,i)=>L.seed[id]=i+1)}
+ L.po={seeds,alive:[seeds[0].slice(),seeds[1].slice()],round:0}}
+function lgPoGames(L){
+ const P=L.po,r=P.round,a=P.alive,o=[];
+ if(lgCfg(L).id==='COL'){const x=a[0],n=x.length,k=r===0?4:n/2;for(let i=0;i<k;i++)o.push(r===0?[x[4+i],x[11-i]]:[x[i],x[n-1-i]]);return o}
+ if(r===3)o.push([a[0][0],a[1][0]]);
+ else for(let c=0;c<2;c++){const x=a[c];if(r===0)o.push([x[1],x[6]],[x[2],x[5]],[x[3],x[4]]);else if(r===1)o.push([x[0],x[3]],[x[1],x[2]]);else o.push([x[0],x[1]])}
+ return o}
+/* play one whole round. hum = the human decisions as a list of {id,win}: a game with a human team is decided by that entry (win = the human team wins); every other game is simulated from its own stream (week key 100+round). */
+function lgPoRound(L,season,rt,hum){
+ const P=L.po,cf=lgCfg(L),win=new Set(),ls=lgLeagueSeed(L);hum=hum||[];
+ lgPoGames(L).forEach(([a,b],i)=>{const h=hum.find(x=>x.id===a||x.id===b);
+  if(h)win.add(h.win?h.id:(h.id===a?b:a));
+  else{const[pa,pb]=lgGame(L,ls,season,100+P.round,i,rt,a,b,true,P.round<cf.homeRds?true:null);win.add(pa>pb?a:b)}});
+ if(P.round===3){L.champ=[...win][0];L.hist.push({s:season,id:L.champ})}
+ else for(let c=0;c<P.alive.length;c++)P.alive[c]=P.alive[c].filter((i,ix)=>win.has(i)||(P.round===0&&ix<cf.byes)).sort((x,y)=>L.seed[x]-L.seed[y])
+ P.round++}
+function lgSimRestPo(L,season,rt,hum){while(L.po.round<=3)lgPoRound(L,season,rt,hum)}
+
+return{LGF,cfg:lgCfg,n:lgN,mulberry32:lgMulberry32,seedFor:lgSeedFor,leagueSeed:lgLeagueSeed,gauss:lgGauss,sim:lgSim,game:lgGame,recGame:lgRecGame,pct:lgPct,cp:lgCP,order:lgOrder,divIds:lgDivIds,playWeek:lgPlayWeek,seedPO:lgSeedPO,poGames:lgPoGames,poRound:lgPoRound,simRestPo:lgSimRestPo}})();
+if(typeof module!=='undefined'&&module.exports)module.exports=LGE;   /* Node, the league tool and HQ load this same text; inside the game's IIFE `module` does not exist and this line does nothing */
+
+/* ---------- NFL-format leagues (v1.40) ----------
+   A league (S.lg) has 32 teams, 2 conferences and 8 divisions (4 teams each), a 17-game season, and
+   a 14-team playoff (7 per conference). Teams are ids 0..31: id = conf*16 + div*4 + slot.
+   The other 15 games of every week are simulated from team ratings; your own game is played by hand
+   or simulated. Season: 6 division games (each rival twice), 6 games against the other 3 divisions in
+   your conference (one team each from 6 of the 12), and 5 against the other conference. */
+const LG_CITY=['HARBOR','PRAIRIE','GRANITE','MESA','LAKESIDE','SUMMIT','BAYOU','REDWOOD','NEON','IRON','COASTAL','CANYON','TIMBER','DESERT','AMBER','BLUFF','CEDAR','DELTA','EMBER','FROST','GLACIER','HIGHLAND','ISLAND','JADE','MARSH','NORTHERN','ORCHARD','PINE','QUARRY','RIDGE','SILVER','SUNSET','THUNDER','VALLEY','WILLOW','COPPER','CRIMSON','DUSTY','MAPLE','OAK'];
+const LG_MASC=['HAWKS','FOXES','GIANTS','SCORPIONS','LOONS','YETIS','BARONS','RANGERS','KNIGHTS','OXEN','COMETS','COBRAS','BADGERS','DRAGONS','WOLVES','BISON','OTTERS','LYNX','MARLINS','MOOSE','PIRATES','ROCKETS','SHARKS','STAGS','VIPERS','WARDENS','COUGARS','HORNETS','MUSTANGS','STORM','BANDITS','PILOTS','MINERS','SPARKS','OWLS','PUMAS','HERONS','CRANES','GATORS','IBEX','WASPS','CROWS','MAMMOTHS','SABERS','PHANTOMS','WRANGLERS','MARAUDERS'];
+/* v2.22: the league formats (LGF), lgCfg and the pure league engine (the seeded sim, standings, a week, the playoffs) live in lg-engine.js, which the build includes right before this file as LGE. This file keeps the glue: S, the screens, saving, the schedule BUILDERS (creation, Math.random) and the league's creation.   v1.63: two league formats. L.fmt picks the format (old saves have none = NFL); the details are in lg-engine.js. Team ids: id = conf*perConf + div*per + slot. */
+const LGF=LGE.LGF;
+const lgCfg=LGE.cfg,LGC=()=>lgCfg(S.lg),lgN=LGE.n;
 const lgGrp=(L,t)=>lgCfg(L).dv>1?L.div[t.div]:L.conf[t.conf];     /* "division" name shown for a team */
 const LG=()=>S.lg;
 /* a team's uniform = the selected helmet, jersey, pants and socks from its wardrobe (t.wd), or an old single uniform */
 const lgUni=t=>{const w=t.wd;if(!w)return t.uni||null;const g=k=>w[k][Math.min(w.sel[k],w[k].length-1)];return{helmet:g('helmet'),jersey:g('jersey'),pants:g('pants'),socks:g('socks'),gloves:w.gloves,shoes:w.shoes,outline:'#0b0b12'}};
-const lgGauss=()=>(Math.random()+Math.random()+Math.random()-1.5)*2;     /* about N(0,1) */
+const lgGauss=()=>LGE.gauss(Math.random);     /* about N(0,1); v2.22: for league CREATION and the yearly rating drift (Math.random); the league SIM uses seeded streams from LGE */
 function lgHex(h,s,l){s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1))))};return'#'+[f(0),f(8),f(4)].map(v=>v.toString(16).padStart(2,'0')).join('')}
 const lgCol=h=>({c:lgHex(h,72,52),d:lgHex(h,72,26)});
 function lgRollNames(n){const out=new Set();let g=0;while(out.size<n&&g++<8000){const s=pick(LG_CITY)+' '+pick(LG_MASC);if(s.length<=15)out.add(s)}return[...out]}
@@ -904,56 +994,27 @@ const lgKind=(a,b)=>{const L=LG(),t=L.teams,c=lgCfg(L);return t[a].conf!==t[b].c
 
 /* ----- ratings, games and standings ----- */
 function lgRt(id){const L=LG(),R=S.r;if(id!==L.me)return L.teams[id];const o=RO(),q=(o.qb.arm+o.qb.acc)/2,rc=[...o.wr,o.te].reduce((a,x)=>a+x.spd+x.cat,0)/8;return{off:(q+rc+R.rb+R.ol)/4,def:R.def}}
-function lgSim(a,b,po,hfa){ /* hfa: true = a is the home team, false = b is, null/undefined = neutral (v1.56) */
- const A=lgRt(a),B=lgRt(b),mu=(o,d)=>clamp(22+(o-d)*2.4,6,40),h=hfa===true?1.2:hfa===false?-1.2:0;
- let pa=clamp(Math.round(mu(A.off,B.def)+h+lgGauss()*6),0,56),pb=clamp(Math.round(mu(B.off,A.def)-h+lgGauss()*6),0,56);
- if((po||lgCfg(LG()).noTie)&&pa===pb){if(Math.random()<.5)pa+=3;else pb+=3}
- return[pa,pb]}
-function lgRecGame(a,b,pa,pb){const L=LG(),R=L.rec;R[a].pf+=pa;R[a].pa+=pb;R[b].pf+=pb;R[b].pa+=pa;
- if(pa>pb){R[a].w++;R[b].l++}else if(pb>pa){R[b].w++;R[a].l++}else{R[a].t++;R[b].t++}
- if(L.teams[a].conf===L.teams[b].conf){if(pa>pb){R[a].cw=(R[a].cw||0)+1;R[b].cl=(R[b].cl||0)+1}else if(pb>pa){R[b].cw=(R[b].cw||0)+1;R[a].cl=(R[a].cl||0)+1}}}
-const lgPct=r=>{const g=r.w+r.l+r.t;return g?(r.w+r.t/2)/g:0};
-const lgCP=r=>{const g=(r.cw||0)+(r.cl||0);return g?(r.cw||0)/g:0};
-function lgOrder(ids,ov){const R=LG().rec,cf=!ov&&lgCfg(LG()).id==='COL';return ids.slice().sort((a,b)=>(cf?lgCP(R[b])-lgCP(R[a]):0)||lgPct(R[b])-lgPct(R[a])||(R[b].pf-R[b].pa)-(R[a].pf-R[a].pa)||R[b].pf-R[a].pf||a-b)}
-const lgDivIds=(c,d,cf)=>{cf=cf||LGC();return Array.from({length:cf.per},(_,i)=>c*cf.per*cf.dv+d*cf.per+i)};
+/* v2.22: one game of the league sim = lgGameKey (which game of which week) + the engine's seeded stream. lgRecGame, lgOrder, lgDivIds, lgPct, lgCP are thin wrappers on the engine for the open league. */
+const lgRecGame=(a,b,pa,pb)=>LGE.recGame(LG(),a,b,pa,pb);
+const lgPct=LGE.pct,lgCP=LGE.cp;
+const lgOrder=(ids,ov)=>LGE.order(LG(),ids,ov);
+const lgDivIds=(c,d,cf)=>LGE.divIds(cf||LGC(),c,d);
 function lgSync(){const r=LG().rec[LG().me];S.w=r.w;S.l=r.l;S.t=r.t}
 function lgRank(id){const t=LG().teams[id],o=lgOrder(lgDivIds(t.conf,t.div)).indexOf(id)+1;return o+['TH','ST','ND','RD','TH'][o>3?0:o]}
 /* record my game, simulate the other 15 of the week, move on */
 function lgFinishWeek(w,mp,op){
- const L=LG(),opp=lgOpp(w,L.me),games=[[L.me,opp,mp,op]];
- lgRecGame(L.me,opp,mp,op);(L.res=L.res||[])[w]=(mp>op?'W ':mp<op?'L ':'T ')+mp+'-'+op;
- for(const[a,b]of L.sched[w]){if(a===L.me||b===L.me)continue;const[pa,pb]=lgSim(a,b,false,true);lgRecGame(a,b,pa,pb);games.push([a,b,pa,pb])}
+ const L=LG(),opp=lgOpp(w,L.me);
+ const games=LGE.playWeek(L,w,S.season,lgRt,[[L.me,opp,mp,op]]); /* v2.22: my result as a list of one; every other game from its own seeded stream */
+ (L.res=L.res||[])[w]=(mp>op?'W ':mp<op?'L ':'T ')+mp+'-'+op;
  L.scores={w:w+1,games};S.week=w+1;lgSync()}
 
 /* ----- playoffs: 7 seeds per conference, seed 1 gets a bye ----- */
-function lgSeedPO(){
- const L=LG(),cf=lgCfg(L),seeds=[[],[]];L.seed={};
- if(cf.id==='COL'){
-  const champs=lgOrder(Array.from({length:cf.nc},(_,k)=>lgOrder(lgDivIds(k,0,cf))[0]),true);
-  const rest=lgOrder(L.teams.map(t=>t.id).filter(i=>!champs.includes(i)),true).slice(0,12-cf.nc);
-  const sd=[...champs.slice(0,cf.byes),...lgOrder([...champs.slice(cf.byes),...rest],true)];
-  sd.forEach((id,i)=>L.seed[id]=i+1);L.po={seeds:[sd],alive:[sd.slice()],round:0,cc:champs};return}
- for(let c=0;c<2;c++){
-  const win=[0,1,2,3].map(d=>lgOrder(lgDivIds(c,d))[0]),ws=lgOrder(win);
-  const rest=lgOrder(Array.from({length:16},(_,i)=>c*16+i).filter(i=>!win.includes(i)));
-  seeds[c]=[...ws,...rest.slice(0,3)];seeds[c].forEach((id,i)=>L.seed[id]=i+1)}
- L.po={seeds,alive:[seeds[0].slice(),seeds[1].slice()],round:0}}
-function lgPoGames(){
- const L=LG(),P=L.po,r=P.round,a=P.alive,o=[];
- if(lgCfg(L).id==='COL'){const x=a[0],n=x.length,k=r===0?4:n/2;for(let i=0;i<k;i++)o.push(r===0?[x[4+i],x[11-i]]:[x[i],x[n-1-i]]);return o}
- if(r===3)o.push([a[0][0],a[1][0]]);
- else for(let c=0;c<2;c++){const x=a[c];if(r===0)o.push([x[1],x[6]],[x[2],x[5]],[x[3],x[4]]);else if(r===1)o.push([x[0],x[3]],[x[1],x[2]]);else o.push([x[0],x[1]])}
- return o}
+const lgSeedPO=()=>LGE.seedPO(LG());
+const lgPoGames=()=>LGE.poGames(LG());
+const lgHum=win=>[{id:LG().me,win:!!win}];   /* the one human of this game, as the engine's list */
 /* play one whole round; myWin decides my game if I am in it */
-function lgPoRound(myWin){
- const L=LG(),P=L.po,cf=lgCfg(L),win=new Set();
- for(const[a,b]of lgPoGames()){
-  if(a===L.me||b===L.me)win.add(myWin?L.me:(a===L.me?b:a));
-  else{const[pa,pb]=lgSim(a,b,true,P.round<cf.homeRds?true:null);win.add(pa>pb?a:b)}}
- if(P.round===3){L.champ=[...win][0];L.hist.push({s:S.season,id:L.champ})}
- else for(let c=0;c<P.alive.length;c++)P.alive[c]=P.alive[c].filter((i,ix)=>win.has(i)||(P.round===0&&ix<cf.byes)).sort((x,y)=>L.seed[x]-L.seed[y])
- P.round++}
-function lgSimRestPo(){while(LG().po.round<=3)lgPoRound(false)}
+const lgPoRound=myWin=>LGE.poRound(LG(),S.season,lgRt,lgHum(myWin));
+const lgSimRestPo=()=>LGE.simRestPo(LG(),S.season,lgRt,lgHum(false));
 function lgEndRegular(){
  const L=LG();lgSeedPO();
  if(!L.po.seeds.some(s=>s.includes(L.me))){lgSimRestPo();S.over='missed';return}
@@ -978,9 +1039,15 @@ function lgAfterGame(win,tie,cr,mp,op){
   if(win){if(final){S.over='champ';S.champs++;cr+=4}else S.round=L.po.round}
   else{S.over='elim';lgSimRestPo()}}
  S.credits+=cr;save();return cr}
+/* v2.22: SIM GAME of my own game: the same seeded stream and the same pair order (first team = the pair's first team) as any other device would use for this game, so the result is the same everywhere. Returns [my score, their score]. */
+function lgSimMy(po){
+ const L=LG(),reg=S.phase==='reg',pairs=reg?L.sched[S.week]:lgPoGames(),gi=pairs.findIndex(g=>g[0]===L.me||g[1]===L.me),g=pairs[gi];
+ const hfa=reg?true:(L.po.round<lgCfg(L).homeRds?true:null);          /* the pair's first team is the home team (playoff: the higher seed, until the neutral rounds) */
+ const[pa,pb]=LGE.game(L,LGE.leagueSeed(L),S.season,reg?S.week:100+L.po.round,gi,lgRt,g[0],g[1],po,hfa);
+ return g[0]===L.me?[pa,pb]:[pb,pa]}
 function lgSimMine(){
  const L=LG(),po=S.phase==='playoff',o=lgNextOpp(),lbl=lgLabel();
- const[mp,op]=lgSim(L.me,o.id,po,o.home===true?true:o.home===false?false:null),win=mp>op,tie=mp===op&&!po;
+ const[mp,op]=lgSimMy(po),win=mp>op,tie=mp===op&&!po;
  let cr=win?3:tie?2:1;if(po&&win)cr+=2;
  cr=lgAfterGame(win,tie,cr,mp,op);
  S.last=(win?'W ':tie?'T ':'L ')+mp+'-'+op+' VS '+o.name+' (SIM)';save();
@@ -3504,6 +3571,26 @@ function odApply(out,c){
  else if(out.kind==='to')out.text=out.plays+' PLAYS - TURNOVER! YOUR D DELIVERED';
  else out.text=out.plays+' PLAYS - PUNT TO YOUR '+out.next+'. YOUR D HELD';
  return out}
+/* v2.21 odCut(out): AN OPPONENT DRIVE ENDS WHEN THE HALF OR THE GAME RUNS OUT. Called by oppDrive right after simOpp, before the drive's stats, score or clock are touched, so the report screen and the banner both get it.
+   timeLeft = the seconds to the next hard stop: first half = G.clock minus the halftime line (qLen*2), second half = G.clock (the end of the game); the quarter lines are not stops. Overtime is not limited (as before).
+   If the drive's plays (out.plt) fit in timeLeft nothing changes. Otherwise: play i starts at S_i = the sum of plt before it. The first play is always played in full. If the LAST play (the kick, the touchdown, the turnover) starts with time left (S_last < timeLeft) the drive counts as rolled and its clock cost is capped at timeLeft.
+   Else the drive is CUT after the first play whose end S_i+plt_i reaches timeLeft: later plays are dropped (log, plt, pl, plays, yd, spEnd), the rolled result does not happen (out.pts=0, out.kind/sub 'cut': no touchdown, kick or turnover counted) and the clock cost is exactly timeLeft.
+   out.stop = the clock value the drive ends on (the halftime line, or 0), so oppDrive lands on it exactly (no float drift) and the existing halfDue()/timeUp() paths take over. out.cut = 1 and out.endOf = 'half'|'game' only for a cut drive. */
+function odCut(out){
+ if(!G||G.ot||!Array.isArray(out.plt)||!Array.isArray(out.pl)||!out.pl.length||out.plt.length!==out.pl.length)return out; /* no plays (the __ODOFF switch, or odApply failed): the old numbers stay */
+ const h=G.qLen*2,line=G.half||G.clock<=h?0:h,left=G.clock-line,P=out.plt,n=P.length;
+ if(!(left>0))return out;
+ let sum=0;for(let i=0;i<n;i++)sum+=P[i];
+ if(sum<left)return out;                                            /* plenty of time: identical to before */
+ const Sl=sum-P[n-1];
+ if(Sl<left){P[n-1]=+(left-Sl).toFixed(2);out.time=left;out.stop=line;return out} /* the last play starts with time left: the drive counts, its clock cost is capped */
+ let S=0,i=0;for(;i<n-1;i++){if(S+P[i]>=left)break;S+=P[i]}         /* the first play whose end reaches timeLeft */
+ const pl0=out.pl[0].sp,spE=clamp(Math.round(out.pl[i+1].sp),0,100);
+ out.log=out.log.slice(0,i+1);out.plt=P.slice(0,i+1);out.plt[i]=+(left-S).toFixed(2);out.pl=out.pl.slice(0,i+1);
+ out.spEnd=spE;out.yd=Math.max(0,Math.round(Math.min(spE,100)-pl0));out.plays=Math.max(1,i+1);
+ out.pts=0;out.kind='cut';out.sub='cut';out.next=25;out.time=left;out.stop=line;out.cut=1;out.endOf=line>0?'half':'game';
+ out.text=out.plays+(out.plays===1?' PLAY':' PLAYS')+' - TIME EXPIRES. THE '+(line>0?'HALF':'GAME')+' IS OVER.';
+ return out}
 /* v2.14: UPGRADES MAKE THE OPPONENT'S DRIVES BEHAVE AS IF THE LEVEL WERE HIGHER. upSpent() = the credits spent on the ratings that decide the opponent's drives: RUNNING BK, O-LINE and DEFENSE (S.r.rb, S.r.ol, S.r.def) and the roster's QB arm and accuracy and WR1, WR2, WR3 speed and catching (S.ro, if it exists; it is never created here). TE and kicker are not counted. A rating v has cost the sum of upCost(r) for r = 4 .. v-1 (4 = 0, 5 = 3, 6 = 7, 7 = 12, 8 = 17, 9 = 23, 10 = 30); 4 or less counts 0. Worked out from the current ratings at every drive; nothing is saved. */
 const UPSHIFT=4.5; /* levels of extra difficulty per 100 credits spent */
 const UPCAP=6;     /* the most extra levels the upgrades can add */
@@ -3541,11 +3628,13 @@ function oppPossession(start){
  if(dcIsOn()){dcAsk(start);return} /* v1.83: CALL YOUR DEFENSE (setting ON) asks first, then oppDrive rolls the drive */
  oppDrive(start,null)}
 function oppDrive(start,call){
- G.poss='opp';const pk0=PS.openG===G;PS.openG=null;const s=simOpp(start,call);{const o2=G.ost;o2.dr++;o2.pl+=s.plays;o2.yd+=s.yd;if(s.kind==='td')o2.td++;else if(s.kind==='fg')o2.fg++;else if(s.kind==='to')o2.to++;else if(s.kind==='pt')o2.pt++}
+ G.poss='opp';const pk0=PS.openG===G;PS.openG=null;const s=simOpp(start,call);try{odCut(s)}catch(e){window.__oderr=(window.__oderr||[]).concat(String(e&&e.stack||e))} /* v2.21: the drive ends when the half or the game runs out */
+ {const o2=G.ost;o2.dr++;o2.pl+=s.plays;o2.yd+=s.yd;if(s.kind==='td')o2.td++;else if(s.kind==='fg')o2.fg++;else if(s.kind==='to')o2.to++;else if(s.kind==='pt')o2.pt++}
  const after=()=>{
-  G.clock=Math.max(0,G.clock-s.time);if(s.pts)addSc('op',s.pts);if(s.pts)sfx('bad');
+  G.clock=s.stop!=null?s.stop:Math.max(0,G.clock-s.time);if(s.pts)addSc('op',s.pts);if(s.pts)sfx('bad'); /* v2.21: s.stop = the halftime line or 0 when the drive ran into it (set by odCut) */
   if(G.ot&&s.pts>0){endGame();return}
   if(G.clock<=0){timeUp();return}
+  if(halfDue())return showHalf(secondHalf); /* v2.21: the same call oppPossession and setPresnap make when the clock is on the halftime line */
   startMyDrive(s.next)};
  /* v2.15: with PLAY DETAIL ON the drive is shown as a quick play-by-play (about 2 s); otherwise, and if anything goes wrong, the 2.7 s banner as before. Either way `after` does exactly what it did. */
  let shown=false;if(pbpWant(s)){try{shown=pbpShow(s,after)}catch(e){try{pbpClear()}catch(x){}}}
@@ -3554,10 +3643,10 @@ function oppDrive(start,call){
   if(pk0)go();else parkRun(go)}}
 /* ---------- v2.15 PLAY-BY-PLAY: the opponent's drive as a quick list (a DOM overlay over the game screen; the numbers are simOpp's, it only shows them) ----------
    Shown only with PLAY DETAIL ON (hp.js), never online (olHand does not come here), never with window.__PBPOFF. PBP_MS = the whole screen in ms.
-   Timing: n lines, one every step = clamp(PBP_MS*.75/n, 90, 300) ms, then the result stays max(300, PBP_MS-step*n) ms. SKIP or a tap jumps to the end (0.4 s hold);
-   reduced motion shows the end at once for 1.2 s. Leaving the game, or the page going hidden, never leaves the overlay stuck. Nothing here is saved. */
+   Timing: n lines, one every step = clamp(PBP_MS*.75/n, 90, 300) ms, then the result stays until the player goes on. SKIP or a tap jumps to the end;
+   reduced motion shows the end at once. v2.21: NOTHING goes on by itself: the screen stays on the result bar with CONTINUE until the player taps CONTINUE (or anywhere), also on a hidden page. Leaving the game removes it and clears the timers. Nothing here is saved. */
 const PBP_MS=2000;
-const PBP={on:0,g:null,s:null,done:null,i:0,fin:0,tm:0,wd:0,cum:0,n:0};
+const PBP={on:0,g:null,s:null,done:null,i:0,fin:0,tm:0,wd:0,cum:0,n:0,dn:0};
 const pbpWant=s=>!window.__PBPOFF&&!OL.on&&!!G&&!!GMD&&dtIsOn()&&!!s&&Array.isArray(s.pl)&&s.pl.length>0;
 const pbpT=x=>{x=Math.max(0,Math.round(x));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0')};
 const pbpPl=n=>n+(n===1?' play':' plays');
@@ -3578,8 +3667,8 @@ function pbpShow(s,done){
  try{$('pbGo').focus({preventScroll:true})}catch(x){}
  PBP.wd=setInterval(pbpWatch,100);
  const rm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
- if(rm){pbpAll();PBP.tm=setTimeout(pbpGo,1200)}
- else{const n=L.length,step=clamp(PBP_MS*.75/n,90,300);PBP.step=step;PBP.hold=Math.max(300,PBP_MS-step*n);PBP.tm=setTimeout(pbpLine,step)}
+ if(rm)pbpAll(); /* v2.21: reduced motion shows the final state at once and waits for CONTINUE (no timer) */
+ else{const n=L.length,step=clamp(PBP_MS*.75/n,90,300);PBP.step=step;PBP.tm=setTimeout(pbpLine,step)}
  return true}
 function pbpRow(p,i,last){
  const chip=p.dn+'&'+(100-p.sp<=p.tg?'GOAL':p.tg),spot=p.sp<=50?'Own '+Math.round(p.sp):'Your '+Math.round(100-p.sp);
@@ -3595,6 +3684,7 @@ function pbpBar(){
  const k=s.sub,t=pbpT(s.time),n=pbpPl(s.plays);let tag,col,line;
  if(k==='td'){tag='TOUCHDOWN +'+s.pts;col='g';line=n+', '+s.yd+' yds, drive time '+t}
  else if(k==='fg'){tag='FIELD GOAL +'+s.pts;col='g';line=n+', '+s.yd+' yds, drive time '+t}
+ else if(k==='cut'){tag='TIME EXPIRES';col='a';line=n+', drive time '+t+'. '+(s.endOf==='half'?'The half is over.':'The game is over.')} /* v2.21: the drive ran out of clock; nothing scored */
  else if(k==='fgm'){tag='NO GOOD';col='a';line=n+', kick missed, your ball at your '+s.next+', drive time '+t}
  else if(k==='punt'){tag='YOUR D HELD';col='a';line=n+', punt to your '+s.next+', drive time '+t}
  else{tag='TURNOVER';col='a';line=n+', ball to you at your '+s.next+', drive time '+t}
@@ -3605,7 +3695,7 @@ function pbpLine(){
  l.insertAdjacentHTML('beforeend',pbpRow(L[i],i,true));while(l.children.length>60)l.removeChild(l.firstChild);
  PBP.cum+=(s.plt&&s.plt[i])||0;PBP.i=i+1;pbpBall(i);
  if(PBP.i<L.length){pbpBar();PBP.tm=setTimeout(pbpLine,PBP.step)}
- else{pbpFinal();PBP.tm=setTimeout(pbpGo,PBP.hold)}}
+ else pbpFinal()} /* v2.21: the last line is in: stay, result bar and CONTINUE, until the player taps */
 function pbpFinal(){
  PBP.fin=1;const l=$('pbL');if(l){const o=l.querySelector('.new');if(o)o.classList.remove('new')}
  const b=$('pbGo');if(b)b.textContent='CONTINUE';
@@ -3613,7 +3703,7 @@ function pbpFinal(){
 function pbpAll(){ /* every line, the strip and the result at once */
  clearTimeout(PBP.tm);const s=PBP.s,L=s.pl,l=$('pbL');if(!l)return;
  l.innerHTML=L.map((p,i)=>pbpRow(p,i,false)).join('');PBP.i=L.length;PBP.cum=s.time;pbpBall(L.length-1);pbpFinal()}
-function pbpSkip(){if(!PBP.on||PBP.fin)return;pbpAll();PBP.tm=setTimeout(pbpGo,400)}
+function pbpSkip(){if(!PBP.on||PBP.fin)return;pbpAll()} /* v2.21: jumps to the final state and waits there */
 function pbpGo(){
  if(!PBP.on)return;const fn=PBP.done,g=PBP.g;pbpClear();
  if(g!==G||!G)return;try{fn&&fn()}catch(e){window.__pbperr=(window.__pbperr||[]).concat(String(e&&e.stack||e));if(G&&G.mode==='pbp')G.mode='banner'}}
@@ -3622,10 +3712,11 @@ function pbpWatch(){ /* left the game, or something else took over: remove the s
  if(!PBP.on)return;const ap=document.getElementById('app');
  if(G!==PBP.g||!G||G.mode!=='pbp'||!ap||!ap.classList.contains('gm'))pbpClear()}
 (function(){const e=document.getElementById('pbp');if(!e)return;
- e.addEventListener('pointerdown',x=>{if(x.target.closest&&x.target.closest('button'))return;pbpSkip()});
- e.addEventListener('click',x=>{if(x.target.closest&&x.target.closest('#pbGo'))pbpBtn()});
+ /* v2.21: a tap anywhere: while lines come it jumps to the end (on pointerdown); once the result shows, a tap (on click) goes on. The click that follows a skipping pointerdown is ignored, so one tap never does both. */
+ e.addEventListener('pointerdown',x=>{PBP.dn=0;if(x.target.closest&&x.target.closest('button'))return;if(PBP.on&&!PBP.fin){PBP.dn=1;pbpSkip()}});
+ e.addEventListener('click',x=>{if(x.target.closest&&x.target.closest('#pbGo')){pbpBtn();return}if(PBP.dn){PBP.dn=0;return}if(PBP.on&&PBP.fin)pbpGo()});
  document.addEventListener('keydown',x=>{if(!PBP.on)return;if(x.key==='Escape'||x.key==='Enter'||x.key===' '){x.preventDefault();x.stopImmediatePropagation();pbpBtn()}},true);
- document.addEventListener('visibilitychange',()=>{if(document.hidden&&PBP.on)pbpGo()})})(); /* a hidden page: carry on at once (timers can be throttled), never stuck */
+})(); /* v2.21: no visibilitychange handler any more: a hidden page no longer goes on by itself, the report is still there when the player comes back */
 function startMyDrive(x){
  G.los=x;G.down=1;G.fd=Math.min(100,x+10);formation();G.poss='me';
  parkRun(()=>showBanner('YOUR BALL','OWN '+x,.9,setPresnap))} /* v2.20: the park shot, then the banner */
@@ -5120,6 +5211,6 @@ function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return
 document.addEventListener('pointerup',fsTry,{capture:true});
 UI.ready=true;fit();openMenu();olBoot();
 requestAnimationFrame(frame);
-window.__pp={startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:()=>Math.min(UPCAP,UPSHIFT*upSpent()/100),LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
+window.__pp={LGE,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:()=>Math.min(UPCAP,UPSHIFT*upSpent()/100),LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
 })();
 </script></body></html>
