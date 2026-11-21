@@ -519,7 +519,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="2.22"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.24"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -587,8 +587,8 @@ let S=null,G=null,ci=0,FLIP=false;
 const newId=()=>'L'+Date.now().toString(36)+ri(0,46655).toString(36);
 /* ---- v1.63 save hardening. Keys are unchanged: pixelPigskin.idx, pixelPigskin.s.<id> and the old pixelPigskin.v1 migration.
    New side keys per slot: <key>.bak (the previous good value) and <key>.next (staging, removed after use). ---- */
-const SAVE_VERSION=1,SAVE_GAP=1000;
-const MIGRATIONS=[d=>d];                      /* MIGRATIONS[v] upgrades a version-v save to v+1; v0 -> v1 only adds `sv`, every field is kept */
+const SAVE_VERSION=2,SAVE_GAP=1000;
+const MIGRATIONS=[d=>d,d=>d];                 /* MIGRATIONS[v] upgrades a version-v save to v+1; v0 -> v1 only adds `sv`, every field is kept; v2.23: v1 -> v2 (the Standard league type, S.std and S.stm) also only adds `sv`: no existing save changes */
 function migrate(d){if(!d||typeof d!=='object')return d;let v=+d.sv||0;
  while(v<SAVE_VERSION){const f=MIGRATIONS[v];if(f)d=f(d)||d;v++;d.sv=v}
  return d}
@@ -609,7 +609,7 @@ function rebuildIdx(){const out=[];try{for(let i=0;i<localStorage.length;i++){co
  out.sort((a,b)=>(b.upd||0)-(a.upd||0));wrIdx(out);return out}
 const rdIdx=()=>{const t=lsGet(IDX);if(t==null)return[];try{const a=JSON.parse(t);if(Array.isArray(a))return a}catch(e){}return rebuildIdx()};
 const wrIdx=a=>lsSet(IDX,JSON.stringify(a));
-const slotInfo=s=>({id:s.id,name:s.lg?s.lg.name:s.name,team:s.name,fmt:s.lg?lgCfg(s.lg).tag:'CLASSIC 8 GAMES',season:s.season,w:s.w,l:s.l,t:s.t,champs:s.champs||0,upd:Date.now()});
+const slotInfo=s=>{const L=s.lg||(s.std?stdView(s):null);return{id:s.id,name:L?L.name:s.name,team:s.name,fmt:L?lgCfg(L).tag:'CLASSIC 8 GAMES',season:s.season,w:s.w,l:s.l,t:s.t,champs:s.champs||0,upd:Date.now()}}; /* v2.23: a Standard league (S.std) is read through its adapter */
 /* write one slot safely: stage in .next and read it back, then rotate the old good value into .bak, then write the real key */
 function writeSlot(o){
  const key=SLOT+o.id,nx=key+'.next';let json;
@@ -642,7 +642,7 @@ function loadSlot(id){
  const key=SLOT+id;let raw=lsGet(key),d=parseSave(raw),restored=false;
  if(!d){const b=lsGet(key+'.bak'),bd=parseSave(b);if(bd){d=bd;raw=b;restored=true}}
  if(!d)return null;
- try{d=migrate(d)}catch(e){return null}
+ try{d=migrate(d);stdAttach(d)}catch(e){return null}   /* v2.23: a Standard league gets its read-only S.lg adapter (never saved) and its derived S.r, S.ro, S.names */
  if(restored){lsSet(key,raw);notice('RESTORED FROM BACKUP')}
  return d}
 function delSlot(id){delete PEND[id];[SLOT+id,SLOT+id+'.bak',SLOT+id+'.next',GSK+id].forEach(lsDel);wrIdx(rdIdx().filter(e=>e.id!==id));try{cgDrop(id)}catch(e){}try{sqDrop(id)}catch(e){}} /* v1.96: the league's entry in pixelPigskin.cloud goes too (the cloud copy itself is not touched) */
@@ -715,7 +715,7 @@ $('exh').onclick=e=>{const b=e.target.closest('button');if(!b)return;const v=b.d
   openExh()}};
 /* ---------- roster (v1.46): upgrade individual players ---------- */
 const ROS_DEF=()=>{const n=S.names;return[
- {h:'QUARTERBACK',who:n.qb,st:[['qb.arm','ARM STRENGTH',v=>'THROWS UP TO '+(28+3*v)+' YDS, FASTER BALL'],['qb.acc','ACCURACY',v=>'CATCH RING '+(1.02+.12*v).toFixed(1)+' YD RADIUS']]},
+ {h:'QUARTERBACK',who:n.qb,st:[['qb.arm','ARM STRENGTH',v=>'THROWS UP TO '+stdR1(28+3*v)+' YDS, FASTER BALL'],['qb.acc','ACCURACY',v=>'CATCH RING '+(1.02+.12*v).toFixed(1)+' YD RADIUS']]},
  {h:'WR 1 (TOP)',who:n.wr[0],st:[['wr.0.spd','SPEED',v=>'RUNS '+(7.6+.34*v).toFixed(1)+' YD/S'],['wr.0.cat','CATCHING',v=>'BETTER ODDS ON TIGHT CATCHES']]},
  {h:'WR 2 (BOTTOM)',who:n.wr[1],st:[['wr.1.spd','SPEED',v=>'RUNS '+(7.6+.34*v).toFixed(1)+' YD/S'],['wr.1.cat','CATCHING',v=>'BETTER ODDS ON TIGHT CATCHES']]},
  {h:'WR 3 (SLOT)',who:n.wr[2],st:[['wr.2.spd','SPEED',v=>'RUNS '+(7.6+.34*v).toFixed(1)+' YD/S'],['wr.2.cat','CATCHING',v=>'BETTER ODDS ON TIGHT CATCHES']]},
@@ -847,6 +847,330 @@ function lgSimRestPo(L,season,rt,hum){while(L.po.round<=3)lgPoRound(L,season,rt,
 
 return{LGF,cfg:lgCfg,n:lgN,mulberry32:lgMulberry32,seedFor:lgSeedFor,leagueSeed:lgLeagueSeed,gauss:lgGauss,sim:lgSim,game:lgGame,recGame:lgRecGame,pct:lgPct,cp:lgCP,order:lgOrder,divIds:lgDivIds,playWeek:lgPlayWeek,seedPO:lgSeedPO,poGames:lgPoGames,poRound:lgPoRound,simRestPo:lgSimRestPo}})();
 if(typeof module!=='undefined'&&module.exports)module.exports=LGE;   /* Node, the league tool and HQ load this same text; inside the game's IIFE `module` does not exist and this line does nothing */
+// =============================================================================
+// lg-std.js  -  the rules of the 8-team STANDARD league, in one file.   (round 3)
+//
+// What is in here: the league maker (with its 10 hidden burn-in seasons), a
+// team's strength worked out from its starters (the game's lgRt formula) plus
+// the team edge, the 14-week schedule, standings, the top-four playoff, and
+// the offseason (aging, growth toward potential, XP, retirement, rookies, edge).
+// Plus the checks that need no files.
+//
+// Rules of this file:
+//  * Pure and seeded. Every random number comes from a stream made with the
+//    game's engine (mulberry32 + seedFor). No Math.random, Math.log or Math.cos.
+//  * Nothing Node-only (no fs, process, require), so a browser page can load it.
+//  * The rules object (rules.json) and the engine are handed in; this file
+//    reads no files. The command line (pigskin-league.mjs) does that.
+//  * A game's SCORE is made by the engine's own lgGame (E.game): it gets the rating
+//    function rt(team) -> {off, def} and makes its own stream from
+//    E.seedFor(rs, season, week, gameIndex). The team edge is added HERE, to the
+//    strength numbers the rating function returns, before the engine sees them.
+//
+// How to use:   const STD = LGSTD.make(LGE);      // LGE = the game's engine
+//               const L = STD.makeLeague(918273, rules);
+//               STD.playSeason(L); STD.offseason(L, STD.newCtx());
+// =============================================================================
+const LGSTD = (function () {
+  const VERSION = 'lg-std 1.0 (round 3)';
+
+  // ------------------------------------------------------------ small helpers
+  const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  const mean = (a) => a.reduce((s, x) => s + x, 0) / (a.length || 1);
+  const round3 = (x) => Math.round(x * 1000) / 1000;
+  const overall = (p) => { const v = Object.values(p.rt); return v.reduce((s, x) => s + x, 0) / v.length; };
+
+  // Conventions copied from the game's engine (claude/pixel-pigskin-updates-v222.md):
+  //  regular season: week = the week's position in the schedule list (0, 1, 2 ...), gameIndex = the pair's position in that week
+  //  playoffs:       week = 100 + round, gameIndex = the game's position in that round's list
+  // ASSUMPTION (could not check, the real engine file was not available): rounds count from 0.
+  const PO_WEEK_BASE = 100, PO_FIRST_ROUND = 0;
+  // Reserved "week" numbers for everything that is NOT a game (names, growth, retirement ...).
+  // Real game weeks are below 200, so these streams can never collide with a game's stream.
+  const K = { MAKER: 1001, SCHED: 1002, GROWTH: 1003, RETIRE: 1004, EDGE: 1005, TIEBREAK: 1006, ID: 1007 };
+
+  // The engine's lgGame only looks at the league object to ask lgCfg(L).noTie. The REAL engine knows only the game's own
+  // formats (NFL, COL) and fails for our "p8", so every game call is given this stub: NFL = ties allowed in the regular
+  // season (the playoff games say so themselves with po = true).
+  const GAME_STUB = { fmt: 'NFL' };
+  // The small ADAPTER: a Standard league seen in the game's own league shape (L.teams, L.sched, L.rec, numeric L.seed),
+  // so the engine's own playWeek can run it. The league seed is our rs. (Used by the tests and by whoever glues this into the game.)
+  function engineLeague(L) {
+    return { fmt: 'NFL', seed: L.rs, teams: L.teams.map((t) => ({ id: t.id, conf: t.cf })), sched: L.sch,
+      rec: L.teams.map(() => ({ w: 0, l: 0, t: 0, pf: 0, pa: 0 })), hist: [] };
+  }
+
+  // ------------------------------------------------------------ names, teams
+  const SURNAMES = ('ADAMS AIKEN ALVAREZ ARCHER BAILEY BANKS BARNES BELL BENSON BISHOP BLAKE BOYD BRADY BROOKS BRYANT BURKE CALLOWAY CAMPOS CARTER CHASE CLARK COLE CONWAY COOPER CRUZ DALTON DAVIS DEAN DIAZ DIXON DUNN EASTON ELLIS EVANS FARRELL FIELDS FLYNN FORD FOSTER FOWLER FRANK GALLO GARCIA GIBBS GRANT GREEN HALE HAMMOND HARPER HART HAYES HENDRIX HOLT HOWARD HUDSON HUNT IVES JACOBS JENSEN JONES KANE KELLER KING KNOX LAMB LANE LEWIS LOGAN LOWE MACK MARSH MASON MEYER MILES MOORE MORAN NASH NOLAN OAKES OWENS PAGE PARKER PAYNE PIERCE PRICE QUINN RAMOS REED RILEY ROSS RUSSO SANDERS SHAW SIMMS SMITH SPENCER STONE TATE TODD TRAVIS VANCE WADE WARD WEBB WELLS WEST WOLFE WOOD YOUNG ZIMMER').split(' ');
+  const TEAM_DEFS = [
+    ['HARBOR HAWKS', '#cc3333', '#222222'], ['RIVER KINGS', '#2255cc', '#dddddd'], ['DESERT VIPERS', '#cc8822', '#331100'], ['PINE BARONS', '#1f7a3a', '#e8e8d0'],
+    ['LAKE STORM', '#2a9bd6', '#102040'], ['CEDAR WOLVES', '#7a4a2a', '#f0e6d0'], ['PRAIRIE FOXES', '#d8651a', '#ffffff'], ['SUMMIT ROCKETS', '#7a2fb0', '#ffd400'],
+  ];
+  const B36 = '0123456789abcdefghijklmnopqrstuvwxyz';
+
+  // ------------------------------------------------------------ pieces that need no engine
+  // A new 8-character id, never one that is live or on the retired list.
+  function mintId(rng, used, ctx) {
+    for (;;) {
+      let id = ''; for (let i = 0; i < 8; i++) id += B36[Math.floor(rng() * 36)];
+      if (used.has(id)) continue;
+      used.add(id);
+      if (ctx) { ctx.minted++; if (ctx.ever.has(id)) ctx.reused++; ctx.ever.add(id); }   // the soak tracks every id ever made
+      return id;
+    }
+  }
+  function makeName(rng, taken) {
+    for (let n = 0; ; n++) {
+      const nm = String.fromCharCode(65 + Math.floor(rng() * 26)) + '. ' + rng.pick(SURNAMES);
+      if (!taken.has(nm) || n > 200) { taken.add(nm); return nm; }
+    }
+  }
+  // round to one decimal, but randomly up or down in proportion, so small yearly changes are not lost
+  function stochRound(x, rng) { const t = x * 10, f = Math.floor(t); return (f + (rng() < t - f ? 1 : 0)) / 10; }
+
+  // potential (the ceiling): most players about 4 to 6.5, a few stars 7.5 to 9.4
+  function drawPotential(rng, rules, pos) {
+    const P = rules.potential;
+    if (rng() < P.star.chance[pos]) return Math.round((P.star.min + (P.star.max - P.star.min) * Math.pow(rng(), P.star.curve)) * 10) / 10;
+    const v = P.mean + (P.posShift[pos] || 0) + P.sd * (P.posSdMult[pos] ?? 1) * rng.gauss();
+    return Math.round(clamp(v, P.min, P.max) * 10) / 10;
+  }
+  // a young player's starting ratings: low, a little higher when the potential is high
+  function rookieRatings(rng, rules, pos, pt) {
+    const R = rules.rookie, base = R.ratingMin + (R.ratingMax - R.ratingMin) * rng() + R.potentialPull * (pt - 5);
+    const rt = {};
+    for (const k of rules.ratingKeys[pos]) rt[k] = clamp(stochRound(base + R.jitter * (rng() * 2 - 1), rng), Math.min(R.floor, pt), pt);
+    return rt;
+  }
+  function newRookie(rng, rules, pos, sl, used, taken, ctx) {
+    const pt = drawPotential(rng, rules, pos);
+    return { id: mintId(rng, used, ctx), nm: makeName(rng, taken), ps: pos, sl, rt: rookieRatings(rng, rules, pos, pt),
+      ag: rng.int(rules.rookie.ageMin, rules.rookie.ageMax), pt, xp: 0, st: 0, cr: [] };
+  }
+
+  // ONE offseason of change for one player (his age is already +1).
+  // Before the peak age: each rating closes a share of the gap to potential; XP makes the share bigger.
+  // After the peak: it falls by the decline table. Small seeded noise. Never above potential.
+  function applyYear(p, rules, xpEarned, rng) {
+    const G = rules.growth, eff = p.ag - (G.lateShift[p.ps] || 0);
+    let share = 0;
+    if (eff < G.peakAge) {
+      share = eff <= G.startAge ? G.maxShare : G.maxShare * clamp((G.peakAge - eff) / (G.peakAge - G.startAge), 0, 1);
+      share *= 1 + G.ptLift * Math.max(0, p.pt - G.ptLiftFrom);        // high-potential players close the gap faster
+      const boost = clamp(xpEarned / 100 * rules.xp.boostPer100, 0, rules.xp.maxBoost);
+      share = Math.min(G.shareCap, share * (1 + boost));
+    }
+    const dec = rules.decline.perYearPastPeak, k = eff - G.peakAge;
+    for (const key of Object.keys(p.rt)) {
+      const r = p.rt[key];
+      let d = eff < G.peakAge ? share * (p.pt - r) : (k <= 0 ? 0 : -dec[Math.min(k, dec.length - 1)]);
+      d += rng.gauss() * G.noiseSd;
+      p.rt[key] = clamp(stochRound(r + d, rng), Math.min(rules.decline.floor, p.pt), p.pt);
+    }
+  }
+
+  // A team's offense and defense from its starters: the game's own formula (lgRt).
+  // Not stored in the file, worked out when needed.
+  function derive(team) {
+    const by = {};
+    for (const p of team.ro) (by[p.ps] = by[p.ps] || []).push(p);
+    for (const k in by) by[k].sort((a, b) => a.sl - b.sl);
+    const qb = by.QB[0], rb = by.RB[0], te = by.TE[0], wr = by.WR.slice(0, 3);
+    const q = (qb.rt.arm + qb.rt.acc) / 2;
+    const rc = (wr.reduce((s, w) => s + w.rt.spd + w.rt.cat, 0) + te.rt.spd + te.rt.cat) / 8;
+    const ol = mean(by.OL.slice(0, 5).map((p) => p.rt.blk));
+    const off = (q + rc + rb.rt.run + ol) / 4;
+    const def = mean([...by.DL.slice(0, 4), ...by.LB.slice(0, 3), ...by.DB.slice(0, 4)].map((p) => p.rt.def));
+    return { off, def };
+  }
+  // THE EDGE STEP (kept here, not in the engine): the team edge (times edge.scale) is added to both.
+  // This is the pair of numbers the engine's sim is given.
+  function effective(team, rules) {
+    const d = derive(team), e = (team.ed || 0) * rules.edge.scale;
+    return { off: d.off + e, def: d.def + e };
+  }
+
+  // 14 weeks: everyone plays everyone twice, 7 home and 7 away (circle method, then the same weeks with home and away swapped)
+  function makeSchedule(rng) {
+    const order = rng.shuffle([0, 1, 2, 3, 4, 5, 6, 7]), weeks = [];
+    let rest = order.slice(1);
+    for (let r = 0; r < 7; r++) {
+      const row = [order[0], ...rest], games = [];
+      for (let i = 0; i < 4; i++) { const a = row[i], b = row[7 - i]; games.push((i + r) % 2 === 0 ? [a, b] : [b, a]); }
+      weeks.push(games);
+      rest = [rest[rest.length - 1], ...rest.slice(0, -1)];
+    }
+    return [...weeks, ...weeks.map((g) => g.map(([h, a]) => [a, h]))];
+  }
+
+  const newCtx = () => ({ ever: new Set(), minted: 0, reused: 0 });
+  const usedIds = (L) => { const s = new Set(); for (const t of L.teams) for (const p of t.ro) s.add(p.id); for (const [, id] of L.rtd) s.add(id); return s; };
+
+  // The checks that need no files. Returns a list of problems (empty = fine).
+  function checkLeague(L) {
+    const bad = [], rules = L.rules, ids = new Set();
+    for (const t of L.teams) {
+      if (t.ro.length !== 23) bad.push(`${t.nm} has ${t.ro.length} players`);
+      for (const [pos, n] of rules.positions) {
+        const ps = t.ro.filter((p) => p.ps === pos).sort((a, b) => a.sl - b.sl);
+        if (ps.length !== n || ps.some((p, i) => p.sl !== i)) bad.push(`${t.nm} ${pos} slots wrong`);
+      }
+      for (const p of t.ro) {
+        if (ids.has(p.id)) bad.push('duplicate id ' + p.id); ids.add(p.id);
+        for (const [k, v] of Object.entries(p.rt)) {
+          if (!(v >= 1 && v <= 10)) bad.push(`${p.id} ${k} ${v} outside 1 to 10`);
+          if (v > p.pt + 1e-9) bad.push(`${p.id} ${k} ${v} above potential ${p.pt}`);
+          if (Math.abs(v * 10 - Math.round(v * 10)) > 1e-6) bad.push(`${p.id} ${k} ${v} not one decimal`);
+        }
+      }
+    }
+    for (const [, id] of L.rtd) if (ids.has(id)) bad.push('retired id is live: ' + id);
+    return bad;
+  }
+
+  // ------------------------------------------------------------ everything that needs the engine
+  function make(E) {
+    if (!E || !E.mulberry32 || !E.seedFor || !E.gauss || !E.game) throw new Error('lg-std: the engine is missing mulberry32, seedFor, gauss or game');
+
+    // A random stream for one purpose: always E.mulberry32(E.seedFor(rs, season, kind, n)).
+    // The normal draw is the engine's gauss, fed by the same stream.
+    function stream(rs, season, kind, n = 0) {
+      const r = E.mulberry32(E.seedFor(rs, season, kind, n));
+      r.gauss = () => E.gauss(r);
+      r.int = (a, b) => a + Math.floor(r() * (b - a + 1));
+      r.pick = (arr) => arr[Math.floor(r() * arr.length)];
+      r.shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+      return r;
+    }
+
+    // ---- one game. The ONLY place a score is made: the engine's lgGame. Draws depend only on rs, season, week, gameIndex.
+    // The home team is first (hfa true = home advantage for it); playoff = no ties (the engine adds 3 for a random side).
+    // The engine is handed a small stub in place of the league record (see GAME_STUB); the seed is passed as rs.
+    function scoreGame(L, rt, week, gi, h, a, playoff) {
+      return E.game(GAME_STUB, L.rs, L.ssn, week, gi, rt, h, a, playoff, true);
+    }
+    // the rating function handed to the engine: team id -> { off, def } with the edge already added
+    function ratingFn(L) { const eff = L.teams.map((t) => effective(t, L.rules)); return (id) => eff[id]; }
+
+    // ---- standings
+    function record(L, wk, h, a, sc, playoff) {
+      L.res.push({ wk, h, a, sc, src: 'sim' });
+      if (playoff) return;
+      const H = L.teams[h].rc, A = L.teams[a].rc;
+      H[3] += sc[0]; H[4] += sc[1]; A[3] += sc[1]; A[4] += sc[0];
+      if (sc[0] > sc[1]) { H[0]++; A[1]++; } else if (sc[0] < sc[1]) { H[1]++; A[0]++; } else { H[2]++; A[2]++; }
+    }
+    // team ids, best first: win share (ties count half), then points difference, then a seeded draw
+    function rank(L, tag) {
+      const rng = stream(L.rs, L.ssn, K.TIEBREAK, tag), draw = L.teams.map(() => rng());
+      const key = (t, i) => [(t.rc[0] + 0.5 * t.rc[2]) / Math.max(1, t.rc[0] + t.rc[1] + t.rc[2]), t.rc[3] - t.rc[4], draw[i]];
+      return L.teams.map((t, i) => [i, key(t, i)]).sort((a, b) => b[1][0] - a[1][0] || b[1][1] - a[1][1] || b[1][2] - a[1][2]).map((x) => x[0]);
+    }
+
+    // ---- play: one regular-season week, the playoffs, a whole season
+    function playWeek(L, w) {
+      const rt = ratingFn(L);
+      L.sch[w].forEach(([h, a], g) => record(L, w, h, a, scoreGame(L, rt, w, g, h, a, false), false));
+      L.wk = w + 1; L.ph = 'reg';
+    }
+    // the score of one regular-season game on its own (for tests): same as inside playWeek
+    function gameAt(L, w, g) { const [h, a] = L.sch[w][g]; return scoreGame(L, ratingFn(L), w, g, h, a, false); }
+
+    // top four by record; 1 v 4 and 2 v 3 (round 0), then the winners (round 1), played at the better seed
+    function playPlayoffs(L) {
+      const rt = ratingFn(L), seeds = rank(L, 0).slice(0, L.rules.league.playoffTeams), wkP = L.sch.length;
+      const play = (x, y, round, g) => {
+        const [h, a] = seeds.indexOf(x) < seeds.indexOf(y) ? [x, y] : [y, x];
+        const sc = scoreGame(L, rt, PO_WEEK_BASE + PO_FIRST_ROUND + round, g, h, a, true);
+        record(L, wkP + round, h, a, sc, true);
+        return sc[0] > sc[1] ? h : a;
+      };
+      const w1 = play(seeds[0], seeds[3], 0, 0), w2 = play(seeds[1], seeds[2], 0, 1), ch = play(w1, w2, 1, 0);
+      L.po = { seeds, ch, ru: ch === w1 ? w2 : w1 };
+      L.ph = 'done'; L.wk = wkP + 2;
+    }
+    function playSeason(L) {
+      L.res = []; L.teams.forEach((t) => { t.rc = [0, 0, 0, 0, 0]; });
+      for (let w = 0; w < L.sch.length; w++) playWeek(L, w);
+      playPlayoffs(L);
+    }
+
+    // ---- the offseason
+    function offseason(L, ctx) {
+      const rules = L.rules, s = L.ssn, R = rules.retire;
+      // 1. this season's games and wins per team (regular season and playoffs), from the results
+      const games = L.teams.map(() => 0), wins = L.teams.map(() => 0);
+      for (const r of L.res) { games[r.h]++; games[r.a]++; if (r.sc[0] > r.sc[1]) wins[r.h]++; else if (r.sc[0] < r.sc[1]) wins[r.a]++; }
+      L.hist.push({ s, ch: L.po.ch, ru: L.po.ru, st: L.teams.map((t) => t.rc.slice()) });
+      // 2. fold career lines, age +1, yearly change (XP speeds up growth)
+      const rngG = stream(L.rs, s, K.GROWTH);
+      L.teams.forEach((t, ti) => t.ro.forEach((p) => {
+        p.cr.push([s, games[ti]]); p.ag++;
+        applyYear(p, rules, rules.xp.perGame * games[ti] + rules.xp.perWin * wins[ti], rngG);
+      }));
+      // 3. retire: age-based chance, higher if below the league median at his position; sure at 36 (QB, K 39)
+      const med = {};
+      for (const [pos] of rules.positions) { const v = L.teams.flatMap((t) => t.ro.filter((p) => p.ps === pos).map(overall)).sort((a, b) => a - b); med[pos] = v[Math.floor(v.length / 2)]; }
+      const rngR = stream(L.rs, s, K.RETIRE), used = usedIds(L);
+      let retired = 0;
+      const taken = L.teams.map((t) => new Set(t.ro.map((p) => p.nm)));
+      L.teams.forEach((t, ti) => t.ro.forEach((p, i) => {
+        const late = R.lateShift[p.ps] || 0, eff = p.ag - late;
+        let chance = p.ag >= (late ? R.forceAgeLate : R.forceAge) ? 1 : (R.chanceByAge[eff] || 0);
+        if (chance < 1 && overall(p) < med[p.ps]) chance = Math.min(1, chance * R.belowMedianMultiplier);
+        if (rngR() < chance) {
+          // 4. the starter's slot is filled at once by a new rookie (there are no backups yet)
+          L.rtd.push([s, p.id]); taken[ti].delete(p.nm);
+          t.ro[i] = newRookie(rngR, rules, p.ps, p.sl, used, taken[ti], ctx);
+          retired++;
+        }
+      }));
+      L.rtd = L.rtd.filter(([rs]) => rs > s - 10);
+      // 5. team edge: pulled back toward 0, plus noise
+      const rngE = stream(L.rs, s, K.EDGE), E_ = rules.edge;
+      for (const t of L.teams) t.ed = round3(clamp(E_.keep * t.ed + E_.sd * rngE.gauss(), -E_.clamp, E_.clamp));
+      // 6. next season
+      L.ssn = s + 1; L.wk = 0; L.ph = 'reg'; L.po = null; L.res = [];
+      L.teams.forEach((t) => { t.rc = [0, 0, 0, 0, 0]; });
+      L.sch = makeSchedule(stream(L.rs, L.ssn, K.SCHED));
+      return { retired };
+    }
+
+    // ---- the league maker
+    // Makes the league, then runs `burnIn` hidden seasons so ages and retirements are steady
+    // before season 1 is handed back. The season counter starts at 1 (hidden seasons are -9 to 0).
+    // `rs` is the league's random seed (a number). It is NOT the game's L.seed (that is the playoff seed map).
+    function makeLeague(rs, rules, ctx = newCtx()) {
+      rules = clone(rules);
+      const rng = stream(rs, 0, K.MAKER), used = new Set();
+      const L = { v: 2, dp: 'std', fmt: 'p8', nm: 'PROOF 8', id: 'L' + E.seedFor(rs, 0, K.ID, 0).toString(36).slice(0, 5), cmr: null,
+        ssn: 1 - rules.league.burnIn, wk: 0, ph: 'reg', burn: rules.league.burnIn, sch: [], po: null, hist: [], res: [], rs, rules, rtd: [], teams: [] };
+      TEAM_DEFS.forEach(([nm, c, d], i) => {
+        const taken = new Set(), ro = [];
+        for (const [pos, n] of rules.positions) for (let sl = 0; sl < n; sl++) {
+          // start as a rookie, then live through the same yearly change up to a random age 21 to 34
+          const p = newRookie(rng, rules, pos, sl, used, taken, ctx), target = rng.int(21, 34);
+          while (p.ag < target) { p.ag++; applyYear(p, rules, 35, rng); }
+          ro.push(p);
+        }
+        L.teams.push({ id: i, nm, cf: 0, dv: i < 4 ? 0 : 1, ow: 'ai', lk: { c, d }, cr: 0, ed: 0, rc: [0, 0, 0, 0, 0], ro });
+      });
+      L.sch = makeSchedule(stream(rs, L.ssn, K.SCHED));
+      for (let k = 0; k < rules.league.burnIn; k++) { playSeason(L); offseason(L, ctx); }
+      // hand back season 1: no history, no career lines from the hidden seasons
+      L.ssn = 1; L.hist = []; L.res = [];
+      for (const t of L.teams) for (const p of t.ro) p.cr = [];
+      return L;
+    }
+
+    return { stream, makeLeague, playWeek, gameAt, playPlayoffs, playSeason, offseason, applyYear, rank,
+      derive, effective, overall, checkLeague, newCtx, engineLeague, engine: E, version: VERSION };
+  }
+
+  return { make, derive, effective, overall, checkLeague, newCtx, engineLeague, version: VERSION };
+})();
+if (typeof module !== 'undefined' && module.exports) module.exports = LGSTD;
 
 /* ---------- NFL-format leagues (v1.40) ----------
    A league (S.lg) has 32 teams, 2 conferences and 8 divisions (4 teams each), a 17-game season, and
@@ -858,7 +1182,7 @@ const LG_CITY=['HARBOR','PRAIRIE','GRANITE','MESA','LAKESIDE','SUMMIT','BAYOU','
 const LG_MASC=['HAWKS','FOXES','GIANTS','SCORPIONS','LOONS','YETIS','BARONS','RANGERS','KNIGHTS','OXEN','COMETS','COBRAS','BADGERS','DRAGONS','WOLVES','BISON','OTTERS','LYNX','MARLINS','MOOSE','PIRATES','ROCKETS','SHARKS','STAGS','VIPERS','WARDENS','COUGARS','HORNETS','MUSTANGS','STORM','BANDITS','PILOTS','MINERS','SPARKS','OWLS','PUMAS','HERONS','CRANES','GATORS','IBEX','WASPS','CROWS','MAMMOTHS','SABERS','PHANTOMS','WRANGLERS','MARAUDERS'];
 /* v2.22: the league formats (LGF), lgCfg and the pure league engine (the seeded sim, standings, a week, the playoffs) live in lg-engine.js, which the build includes right before this file as LGE. This file keeps the glue: S, the screens, saving, the schedule BUILDERS (creation, Math.random) and the league's creation.   v1.63: two league formats. L.fmt picks the format (old saves have none = NFL); the details are in lg-engine.js. Team ids: id = conf*perConf + div*per + slot. */
 const LGF=LGE.LGF;
-const lgCfg=LGE.cfg,LGC=()=>lgCfg(S.lg),lgN=LGE.n;
+const lgCfg=L=>L&&L.fmt==='STD'?STD_CFG:LGE.cfg(L),LGC=()=>lgCfg(S.lg),lgN=LGE.n; /* v2.23: the adapter of a Standard league (fmt STD) has its own format record in std.js */
 const lgGrp=(L,t)=>lgCfg(L).dv>1?L.div[t.div]:L.conf[t.conf];     /* "division" name shown for a team */
 const LG=()=>S.lg;
 /* a team's uniform = the selected helmet, jersey, pants and socks from its wardrobe (t.wd), or an old single uniform */
@@ -997,12 +1321,13 @@ function lgRt(id){const L=LG(),R=S.r;if(id!==L.me)return L.teams[id];const o=RO(
 /* v2.22: one game of the league sim = lgGameKey (which game of which week) + the engine's seeded stream. lgRecGame, lgOrder, lgDivIds, lgPct, lgCP are thin wrappers on the engine for the open league. */
 const lgRecGame=(a,b,pa,pb)=>LGE.recGame(LG(),a,b,pa,pb);
 const lgPct=LGE.pct,lgCP=LGE.cp;
-const lgOrder=(ids,ov)=>LGE.order(LG(),ids,ov);
+const lgOrder=(ids,ov)=>S.std?stdOrder(ids):LGE.order(LG(),ids,ov);
 const lgDivIds=(c,d,cf)=>LGE.divIds(cf||LGC(),c,d);
 function lgSync(){const r=LG().rec[LG().me];S.w=r.w;S.l=r.l;S.t=r.t}
 function lgRank(id){const t=LG().teams[id],o=lgOrder(lgDivIds(t.conf,t.div)).indexOf(id)+1;return o+['TH','ST','ND','RD','TH'][o>3?0:o]}
 /* record my game, simulate the other 15 of the week, move on */
-function lgFinishWeek(w,mp,op){
+function lgFinishWeek(w,mp,op,src){
+ if(S.std)return stdFinishWeek(w,mp,op,src);   /* v2.23: Standard league */
  const L=LG(),opp=lgOpp(w,L.me);
  const games=LGE.playWeek(L,w,S.season,lgRt,[[L.me,opp,mp,op]]); /* v2.22: my result as a list of one; every other game from its own seeded stream */
  (L.res=L.res||[])[w]=(mp>op?'W ':mp<op?'L ':'T ')+mp+'-'+op;
@@ -1010,12 +1335,13 @@ function lgFinishWeek(w,mp,op){
 
 /* ----- playoffs: 7 seeds per conference, seed 1 gets a bye ----- */
 const lgSeedPO=()=>LGE.seedPO(LG());
-const lgPoGames=()=>LGE.poGames(LG());
+const lgPoGames=()=>S.std?stdPoPairs(S.std):LGE.poGames(LG());
 const lgHum=win=>[{id:LG().me,win:!!win}];   /* the one human of this game, as the engine's list */
 /* play one whole round; myWin decides my game if I am in it */
-const lgPoRound=myWin=>LGE.poRound(LG(),S.season,lgRt,lgHum(myWin));
-const lgSimRestPo=()=>LGE.simRestPo(LG(),S.season,lgRt,lgHum(false));
+const lgPoRound=(myWin,mp,op,src)=>S.std?stdPoRound({mp,op,src}):LGE.poRound(LG(),S.season,lgRt,lgHum(myWin));
+const lgSimRestPo=()=>S.std?stdSimRestPo():LGE.simRestPo(LG(),S.season,lgRt,lgHum(false));
 function lgEndRegular(){
+ if(S.std)return stdEndRegular();
  const L=LG();lgSeedPO();
  if(!L.po.seeds.some(s=>s.includes(L.me))){lgSimRestPo();S.over='missed';return}
  S.phase='playoff';
@@ -1031,16 +1357,17 @@ function lgNextOpp(){
  if(S.phase==='reg')home=lgHomeWk(S.week);else{const g=lgPoGames().find(g=>g.includes(L.me));home=L.po.round>=lgCfg(L).homeRds?null:g[0]===L.me}
  return{name:t.name,off:t.off,def:t.def,col:t.col,uni:lgUni(t),id,home}}
 const lgLabel=()=>S.phase==='reg'?'WEEK '+(S.week+1)+' OF '+LGC().games:LGC().rnd[LG().po.round];
-function lgAfterGame(win,tie,cr,mp,op){
+function lgAfterGame(win,tie,cr,mp,op,src){
  const L=LG();
- if(S.phase==='reg'){lgFinishWeek(S.week,mp,op);if(S.week>=LGC().games)lgEndRegular()}
+ if(S.phase==='reg'){lgFinishWeek(S.week,mp,op,src);if(S.week>=LGC().games)lgEndRegular()}
  else{
-  const final=L.po.round===3;lgPoRound(win);
+  const final=L.po.round===LGC().rnd.length-1;lgPoRound(win,mp,op,src);   /* v2.23: the last round is the format's own (3 for NFL and college, 1 for Standard) */
   if(win){if(final){S.over='champ';S.champs++;cr+=4}else S.round=L.po.round}
   else{S.over='elim';lgSimRestPo()}}
  S.credits+=cr;save();return cr}
 /* v2.22: SIM GAME of my own game: the same seeded stream and the same pair order (first team = the pair's first team) as any other device would use for this game, so the result is the same everywhere. Returns [my score, their score]. */
 function lgSimMy(po){
+ if(S.std)return stdSimMy(po);
  const L=LG(),reg=S.phase==='reg',pairs=reg?L.sched[S.week]:lgPoGames(),gi=pairs.findIndex(g=>g[0]===L.me||g[1]===L.me),g=pairs[gi];
  const hfa=reg?true:(L.po.round<lgCfg(L).homeRds?true:null);          /* the pair's first team is the home team (playoff: the higher seed, until the neutral rounds) */
  const[pa,pb]=LGE.game(L,LGE.leagueSeed(L),S.season,reg?S.week:100+L.po.round,gi,lgRt,g[0],g[1],po,hfa);
@@ -1049,12 +1376,13 @@ function lgSimMine(){
  const L=LG(),po=S.phase==='playoff',o=lgNextOpp(),lbl=lgLabel();
  const[mp,op]=lgSimMy(po),win=mp>op,tie=mp===op&&!po;
  let cr=win?3:tie?2:1;if(po&&win)cr+=2;
- cr=lgAfterGame(win,tie,cr,mp,op);
+ cr=lgAfterGame(win,tie,cr,mp,op,'sim');
  S.last=(win?'W ':tie?'T ':'L ')+mp+'-'+op+' VS '+o.name+' (SIM)';save();
  $('post').innerHTML=`<div class="sm">${sc(`${lbl} - SIMULATED`)}</div><h1 style="font-size:2em;${win?'color:#4ee08a;text-shadow:none':''}" class="${win?'win':tie?'':'lose'}">${win?'VICTORY!':tie?'TIE GAME':'DEFEAT'}</h1>
  <div style="font-size:1.4em">${S.name} ${mp} - ${op} ${o.name}</div><p style="color:#ffd400">${sc(`+${cr} COACH CREDITS EARNED`)}</p><button class="btn" id="bPostGo">CONTINUE</button>`;
  $('bPostGo').onclick=()=>{if(S.over)showSeasonEnd();else renderHub()};show('post')}
 function lgNewSeason(){
+ if(S.std)return stdNewSeason();
  const L=LG();S.season++;
  for(const t of L.teams){const m=3.7+.25*(S.season-1);t.off=clamp(Math.round((t.off*.8+m*.2+lgGauss()*.5)*10)/10,2,9.4);t.def=clamp(Math.round((t.def*.8+m*.2+lgGauss()*.5)*10)/10,2,9.4)}
  L.ho=1;L.res=[];L.rec=lgBlank(L);L.sched=lgSchedule(L);L.scores=null;L.po=null;L.seed={};L.champ=null;
@@ -1119,15 +1447,166 @@ $('stand').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b
  if(k==='key')ST.key=!ST.key;else if(/^c\d+$/.test(k))ST.cf=+k.slice(1);else ST.tab=k;
  lgStand();shDraw();const f=$('stand').querySelector('[data-st="'+k+'"]');if(f)try{f.focus({preventScroll:true})}catch(x){}};
 
+/* ---------- v2.23: STANDARD 8-TEAM league (the glue). The rules live in lg-std.js (the league tool's file, copied unchanged) and the seeded engine in lg-engine.js.
+   A Standard league is its own record in the save: S.std (the league tool's record: 8 teams, 23 real starters each, rs, rules, schedule, results, history) and S.stm (my team's index 0..7).
+   It is NOT handed to the game's league code (five field names clash: fmt, po, res, hist, teams). Every screen that reads S.lg reads a read-only ADAPTER built from S.std (stdView): a plain object in the game's own league shape,
+   kept as S.lg but NON-ENUMERABLE, so it is never saved, never in a backup code or cloud copy, and rebuilt (in place) after every change (stdSync). Simple leagues (S.lg is a real saved object) never go through here.
+   S.r, S.ro and S.names (what live play, the upgrade screen and STATS read) are DERIVED from my team's starters whenever the roster changes (stdDerive): the game's own team strength formula.
+   A game's score = LGE.game(stub, rs, season, week, gameIndex, rt, home, away, playoff, true) with rt = the team strength plus its edge (STD.effective): the same call and the same numbering as the league tool, so the AI games equal the tool's.
+   Regular season: week = position in L.sch (0..13), gameIndex = the pair's position in the week. Playoffs: week = 100 + round, gameIndex = the game's position in the round (1 v 4, then 2 v 3; then the final), the better seed is the home team (hfa true in every game, as the tool does).
+   My own game is the hand-played score (or SIM GAME's, from the same stream); every other game of the week or round is the engine's. */
+const STD_RULES={"version":"round3","positions":[["QB",1],["RB",1],["WR",3],["TE",1],["OL",5],["DL",4],["LB",3],["DB",4],["K",1]],"ratingKeys":{"QB":["arm","acc"],"RB":["run"],"WR":["spd","cat"],"TE":["spd","cat"],"OL":["blk"],"DL":["def"],"LB":["def"],"DB":["def"],"K":["acc","rng"]},"league":{"target":3.7,"burnIn":10,"playoffTeams":4},"potential":{"mean":5,"sd":0.75,"min":3,"max":7.2,"posSdMult":{"QB":0.35,"RB":0.35,"WR":1,"TE":1,"OL":1,"DL":1,"LB":1,"DB":1,"K":1},"posShift":{"QB":-0.523,"RB":-0.523,"WR":-0.523,"TE":-0.523,"OL":-0.523,"DL":-0.15,"LB":-0.15,"DB":-0.15,"K":0},"star":{"min":7.5,"max":9.4,"curve":0.9,"chance":{"QB":0.03,"RB":0.03,"WR":0.16,"TE":0.16,"OL":0.03,"DL":0.04,"LB":0.04,"DB":0.045,"K":0.02}}},"rookie":{"ageMin":21,"ageMax":23,"ratingMin":2,"ratingMax":4.6,"potentialPull":0.3,"jitter":0.3,"floor":1.5},"growth":{"peakAge":26,"startAge":21,"maxShare":0.35,"ptLift":0.35,"ptLiftFrom":5,"shareCap":0.95,"noiseSd":0.075,"lateShift":{"QB":3,"K":3}},"decline":{"perYearPastPeak":[0,0.05,0.1,0.15,0.2,0.3,0.4,0.6],"floor":1},"xp":{"perGame":2,"perWin":1,"boostPer100":0.5,"maxBoost":0.6},"retire":{"chanceByAge":{"31":0.06,"32":0.12,"33":0.2,"34":0.32,"35":0.5},"belowMedianMultiplier":1.8,"forceAge":36,"forceAgeLate":39,"lateShift":{"QB":3,"K":3}},"edge":{"scale":1,"keep":0.4,"sd":0.17,"clamp":0.5}};
+const STD=LGSTD.make(LGE);
+const STD_STUB={fmt:'NFL'};    /* the engine's lgGame only asks lgCfg(L).noTie; the real lgCfg knows only NFL and COL, so it is handed this stand-in (the playoff games say po = true themselves) */
+const STD_CFG={id:'STD',tag:'STANDARD LEAGUE',btn:'STANDARD: 8 TEAMS',nc:1,dv:2,per:4,games:14,byes:0,homeRds:2,noTie:false,spread:1,
+ conf:['PIGSKIN LEAGUE'],div:['EAST','WEST'],rnd:['SEMIFINAL','PIGSKIN BOWL'],champ:'PIGSKIN BOWL CHAMPIONS!',
+ info:'8 TEAMS WITH REAL PLAYERS - 2 DIVISIONS OF 4 - 14 GAMES - TOP 4 MAKE THE PLAYOFFS.',
+ poTxt:'THE 4 BEST RECORDS MAKE IT: 1 PLAYS 4 AND 2 PLAYS 3, THEN THE PIGSKIN BOWL.',miss:'ONLY THE 4 BEST OF THE 8 TEAMS GET IN.',
+ help:'8 TEAMS, EACH WITH 23 REAL STARTERS WHO GROW, AGE AND RETIRE. 14 GAMES - PLAY EACH WEEK OR SIM IT. THE TOP 4 TEAMS MAKE A 2 ROUND PLAYOFF. WIN THE PIGSKIN BOWL.'};
+function stdMean(a){return a.reduce((s,x)=>s+x,0)/(a.length||1)}
+function stdR1(x){return Math.round(x*10)/10}
+function stdBy(t,pos){return t.ro.filter(p=>p.ps===pos).sort((a,b)=>a.sl-b.sl)}
+
+/* ----- the read-only adapter: a Standard league in the game's own league shape. Nothing in it is saved. ----- */
+function stdView(s){
+ const L=s.std,me=s.stm|0,nG=L.sch.length;
+ const teams=L.teams.map((t,i)=>{const d=STD.derive(t);return{id:i,name:t.nm,conf:0,div:t.dv,off:d.off,def:d.def,col:{c:t.lk.c,d:t.lk.d}}});   /* strength WITHOUT the edge (the edge is sim only) */
+ const rec=L.teams.map(t=>({w:t.rc[0],l:t.rc[1],t:t.rc[2],pf:t.rc[3],pa:t.rc[4],cw:t.rc[0],cl:t.rc[1]}));                                      /* one conference: every game is a conference game */
+ const res=[];let last=-1;
+ for(const r of L.res){if(r.wk>=nG)continue;if(r.wk>last)last=r.wk;
+  if(r.h===me||r.a===me){const mp=r.h===me?r.sc[0]:r.sc[1],op=r.h===me?r.sc[1]:r.sc[0];res[r.wk]=(mp>op?'W ':mp<op?'L ':'T ')+mp+'-'+op}}
+ const scores=last>=0?{w:last+1,games:L.res.filter(r=>r.wk===last).map(r=>[r.h,r.a,r.sc[0],r.sc[1]])}:null;
+ let po=null,champ=null;const seed={};
+ if(L.po){const seeds=L.po.seeds,pr=L.res.filter(r=>r.wk>=nG),r0=pr.filter(r=>r.wk===nG),win=r=>r.sc[0]>r.sc[1]?r.h:r.a;
+  seeds.forEach((id,i)=>seed[id]=i+1);
+  const round=L.po.ch!=null?2:r0.length>=2?1:0;
+  const alive=round===0?seeds.slice():round===1?r0.map(win).sort((x,y)=>seeds.indexOf(x)-seeds.indexOf(y)):[L.po.ch];
+  champ=L.po.ch!=null?L.po.ch:null;
+  po={seeds:[seeds.slice()],alive:[alive],round}}
+ const hist=L.hist.map(h=>({s:h.s,id:h.ch}));
+ if(champ!=null&&!hist.some(h=>h.s===L.ssn))hist.push({s:L.ssn,id:champ});
+ return{name:L.nm,fmt:'STD',conf:STD_CFG.conf.slice(),div:STD_CFG.div.slice(),me,ho:1,teams,sched:L.sch,rec,res,scores,po,seed,champ,hist}}
+/* S.r, S.ro, S.names from my starters: QB arm and acc; RB; WR1 to 3 and TE speed and catching; K accuracy and range; the five linemen's average = the O-line number; the eleven defenders' average = the defense number (the game's own formula, the same arithmetic as STD.derive) */
+function stdRatingsOf(t){     /* v2.24: one team's S.r / S.ro numbers from its starters (the formulas stdDerive always used); also used for the other teams */
+ const qb=stdBy(t,'QB')[0],rb=stdBy(t,'RB')[0],te=stdBy(t,'TE')[0],wr=stdBy(t,'WR').slice(0,3),k=stdBy(t,'K')[0];
+ const d=STD.derive(t),q=(qb.rt.arm+qb.rt.acc)/2,rc=(wr.reduce((a,w)=>a+w.rt.spd+w.rt.cat,0)+te.rt.spd+te.rt.cat)/8,ol=stdMean(stdBy(t,'OL').slice(0,5).map(p=>p.rt.blk));
+ return{r:{qb:q,wr:rc,rb:rb.rt.run,ol,def:d.def,k:(k.rt.acc+k.rt.rng)/2},
+  ro:{qb:{arm:qb.rt.arm,acc:qb.rt.acc},wr:wr.map(w=>({spd:w.rt.spd,cat:w.rt.cat})),te:{spd:te.rt.spd,cat:te.rt.cat},k:{acc:k.rt.acc,rng:k.rt.rng}},
+  names:{qb:qb.nm,rb:rb.nm,wr:wr.map(w=>w.nm),te:te.nm,k:k.nm}}}
+function stdDerive(s){
+ const x=stdRatingsOf(s.std.teams[s.stm|0]);s.r=x.r;s.ro=x.ro;s.names=x.names}
+/* rebuild the adapter IN PLACE (code that holds the old object sees the new numbers) and re-derive my ratings */
+function stdSync(s){
+ const v=stdView(s),dsc=Object.getOwnPropertyDescriptor(s,'lg');
+ if(dsc&&!dsc.enumerable&&s.lg)Object.assign(s.lg,v);else Object.defineProperty(s,'lg',{value:v,writable:true,configurable:true,enumerable:false});
+ stdDerive(s);return s}
+function stdAttach(s){return s&&s.std&&typeof s.std==='object'&&s.std.teams?stdSync(s):s}
+
+/* ----- creating a league: ONE Math.random draw (the league's rs); everything else comes from it ----- */
+function stdDraft(name){
+ const rs=(Math.random()*4294967296)>>>0,std=STD.makeLeague(rs,STD_RULES);std.nm=name||'PIXEL LEAGUE';
+ const v=stdView({std,stm:0});Object.defineProperty(v,'_std',{value:std});return v}
+function stdNew(L,me){
+ const std=L._std;std.nm=L.name||'PIXEL LEAGUE';
+ S={name:std.teams[me].nm,ci:0,season:std.ssn,week:0,w:0,l:0,t:0,credits:3,phase:'reg',round:0,over:null,champs:0,qLen:90,last:'',std,stm:me};
+ stdSync(S);save()}
+
+/* ----- games ----- */
+function stdRt(L){const e=L.teams.map(t=>STD.effective(t,L.rules));return id=>e[id]}     /* strength + edge: what every sim game uses */
+const stdGame=(L,rt,wk,gi,h,a,po)=>LGE.game(STD_STUB,L.rs,L.ssn,wk,gi,rt,h,a,po,true);
+function stdRecord(L,wk,h,a,sc,po,src){      /* the league tool's own record(): the result, and the standings for a regular-season game */
+ L.res.push({wk,h,a,sc,src});if(po)return;
+ const H=L.teams[h].rc,A=L.teams[a].rc;H[3]+=sc[0];H[4]+=sc[1];A[3]+=sc[1];A[4]+=sc[0];
+ if(sc[0]>sc[1]){H[0]++;A[1]++}else if(sc[0]<sc[1]){H[1]++;A[0]++}else{H[2]++;A[2]++}}
+const stdRound=L=>L.res.filter(r=>r.wk===L.sch.length).length>=2?1:0;     /* the playoff round to play next (0 = semifinals, 1 = the final) */
+/* the pairs of the round to play, better seed first (the home team) */
+function stdPoPairs(L){
+ if(!L.po||L.po.ch!=null)return[];
+ const sd=L.po.seeds,r0=L.res.filter(r=>r.wk===L.sch.length),win=r=>r.sc[0]>r.sc[1]?r.h:r.a;
+ if(r0.length<2)return[[sd[0],sd[3]],[sd[1],sd[2]]];
+ const w=r0.map(win).sort((x,y)=>sd.indexOf(x)-sd.indexOf(y));return[[w[0],w[1]]]}
+/* my result goes into the week; every other game of the week is the engine's, from its own stream (week position, pair position) */
+function stdFinishWeek(w,mp,op,src){
+ const L=S.std,me=S.stm,rt=stdRt(L);
+ L.sch[w].forEach(([h,a],g)=>{
+  if(h===me||a===me)stdRecord(L,w,h,a,h===me?[mp,op]:[op,mp],false,src||'hand');
+  else stdRecord(L,w,h,a,stdGame(L,rt,w,g,h,a,false),false,'sim')});
+ L.wk=w+1;L.ph='reg';S.week=w+1;stdSync(S);lgSync()}
+function stdEndRegular(){
+ const L=S.std;L.po={seeds:STD.rank(L,0).slice(0,L.rules.league.playoffTeams),ch:null,ru:null};L.wk=L.sch.length;stdSync(S);
+ if(!L.po.seeds.includes(S.stm)){stdSimRestPo();S.over='missed';return}
+ S.phase='playoff';S.round=0}
+/* one whole playoff round; hum = my result {mp,op,src} when I am in it */
+function stdPoRound(hum){
+ const L=S.std,me=S.stm,rt=stdRt(L),nG=L.sch.length,round=stdRound(L);
+ stdPoPairs(L).forEach(([h,a],g)=>{const mine=hum&&(h===me||a===me);
+  stdRecord(L,nG+round,h,a,mine?(h===me?[hum.mp,hum.op]:[hum.op,hum.mp]):stdGame(L,rt,100+round,g,h,a,true),true,mine?(hum.src||'hand'):'sim')});
+ if(round===1){const f=L.res[L.res.length-1],ch=f.sc[0]>f.sc[1]?f.h:f.a;L.po.ch=ch;L.po.ru=ch===f.h?f.a:f.h;L.ph='done';L.wk=nG+2}
+ stdSync(S)}
+function stdSimRestPo(){let g=0;while(S.std.po&&S.std.po.ch==null&&g++<4)stdPoRound(null)}
+/* SIM GAME of my own game: the same stream and pair order the league tool (or another device) uses for it. Returns [my score, their score]. */
+function stdSimMy(po){
+ const L=S.std,me=S.stm,rt=stdRt(L),wk=po?100+stdRound(L):S.week,pairs=po?stdPoPairs(L):L.sch[S.week],gi=pairs.findIndex(g=>g[0]===me||g[1]===me),g=pairs[gi],sc=stdGame(L,rt,wk,gi,g[0],g[1],!!po);
+ return g[0]===me?[sc[0],sc[1]]:[sc[1],sc[0]]}
+/* standings order for the screens: the tool's own order (record, points difference, seeded draw), so the table and the playoff seeds always agree */
+const stdOrder=ids=>STD.rank(S.std,0).filter(i=>ids.includes(i));
+
+/* ----- the offseason (my team included): aging, growth, XP, retirement, rookies, edges. Returns nothing; the hub shows one line about my starters. ----- */
+function stdNewSeason(){
+ const L=S.std,me=S.stm;
+ if(L.po&&L.po.ch==null)stdSimRestPo();
+ const before=new Set(L.teams[me].ro.map(p=>p.id));
+ STD.offseason(L,STD.newCtx());
+ const n=L.teams[me].ro.filter(p=>!before.has(p.id)).length;
+ S.season=L.ssn;S.week=0;S.w=S.l=S.t=0;S.phase='reg';S.round=0;S.over=null;S.credits+=3;
+ S.last='OFFSEASON - '+(n?n+' OF YOUR STARTERS RETIRED, '+n+(n>1?' ROOKIES JOINED':' ROOKIE JOINED'):'NONE OF YOUR STARTERS RETIRED');
+ stdSync(S);save();renderHub()}
+
+/* ----- credits: an upgrade raises the player (or EACH starter of a unit) by 1.0, never past his potential ----- */
+function stdTarget(kind,key){
+ const t=S.std.teams[S.stm];
+ if(kind==='up'){
+  if(key==='rb')return{ps:[stdBy(t,'RB')[0]],rk:'run'};
+  if(key==='ol')return{ps:stdBy(t,'OL').slice(0,5),rk:'blk'};
+  if(key==='def')return{ps:[...stdBy(t,'DL').slice(0,4),...stdBy(t,'LB').slice(0,3),...stdBy(t,'DB').slice(0,4)],rk:'def'}
+  return null}
+ const q=key.split('.'),rk=q[q.length-1];
+ if(q[0]==='qb')return{ps:[stdBy(t,'QB')[0]],rk};
+ if(q[0]==='wr')return{ps:[stdBy(t,'WR')[+q[1]]],rk};
+ if(q[0]==='te')return{ps:[stdBy(t,'TE')[0]],rk};
+ if(q[0]==='k')return{ps:[stdBy(t,'K')[0]],rk};
+ return null}
+const stdCanUp=(kind,key)=>{const x=stdTarget(kind,key);return!!x&&x.ps.every(Boolean)&&x.ps.some(p=>p.rt[x.rk]<p.pt-1e-9)};
+/* returns true when bought (credits taken); false with a plain message when nobody in the target can rise */
+function stdBuy(kind,key,cost){
+ const x=stdTarget(kind,key);
+ if(!stdCanUp(kind,key)){notice(x&&x.ps.length>1?'ALL THESE PLAYERS ARE AT THEIR POTENTIAL':'THIS PLAYER IS AT HIS POTENTIAL');return false}
+ for(const p of x.ps)p.rt[x.rk]=Math.min(10,stdR1(Math.min(p.pt,p.rt[x.rk]+1)));
+ S.credits-=cost;stdSync(S);save();return true}
+
+/* ----- v2.24 TEAM POWER: what the opponent's difficulty shift reads in a Standard league = how far my team is above the league, in credits ----- */
+/* the cost table for a rating that may have decimals: the same cumulative table as upSpent (4 = 0, 5 = 3, 6 = 7, 7 = 12 ...), straight line between the whole steps. Whole ratings give exactly the old numbers. (upSpent itself counts a whole step as soon as a rating is past a whole number: 4.1 already costs 3. Simple leagues only have whole ratings, so it is left as it is there.) */
+function stdCost(v){if(!(v>4))return 0;let t=0,r=4;while(r+1<=v){t+=upCost(r);r++}return t+(v-r)*upCost(r)}
+/* the same ratings upSpent reads (RB, O-line, defense, QB arm and acc, WR1-3 speed and catching; TE and kicker are not counted today) through the cost table */
+function stdSpent(x){let t=stdCost(x.r.rb)+stdCost(x.r.ol)+stdCost(x.r.def)+stdCost(x.ro.qb.arm)+stdCost(x.ro.qb.acc);for(let i=0;i<3;i++)t+=stdCost(x.ro.wr[i].spd)+stdCost(x.ro.wr[i].cat);return t}
+/* the average of the OTHER 7 teams, rating by rating (same shape as S.r / S.ro), worked out fresh from the league each time (nothing saved). The edge (ed) is not part of it. */
+function stdLeagueAvg(s){
+ s=s||S;const rs=s.std.teams.filter((t,i)=>i!==(s.stm|0)).map(stdRatingsOf),av=f=>stdMean(rs.map(f));
+ return{r:{qb:av(x=>x.r.qb),wr:av(x=>x.r.wr),rb:av(x=>x.r.rb),ol:av(x=>x.r.ol),def:av(x=>x.r.def),k:av(x=>x.r.k)},
+  ro:{qb:{arm:av(x=>x.ro.qb.arm),acc:av(x=>x.ro.qb.acc)},wr:[0,1,2].map(i=>({spd:av(x=>x.ro.wr[i].spd),cat:av(x=>x.ro.wr[i].cat)})),te:{spd:av(x=>x.ro.te.spd),cat:av(x=>x.ro.te.cat)},k:{acc:av(x=>x.ro.k.acc),rng:av(x=>x.ro.k.rng)}}}}
+/* credits-equivalent of my team above the league average; a team at or below the league gets 0 */
+function stdPower(s){s=s||S;return Math.max(0,stdSpent({r:s.r,ro:s.ro})-stdSpent(stdLeagueAvg(s)))}
+
 /* ---------- home page (v1.40): saved leagues, new league, customize, how to play ---------- */
 const HOME={tab:'lg',fmt:'NFL',drafts:{},pick:0,cz:{src:'draft',team:0},del:null};
 const hmTabs=[['lg','MY LEAGUES'],['new','NEW LEAGUE'],['ex','EXHIBITION'],['cz','CUSTOMIZE'],['help','HOW TO PLAY']];
 const hmEsc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const hmDraft=()=>HOME.drafts[HOME.fmt]||(HOME.drafts[HOME.fmt]=lgMake('PIXEL LEAGUE',HOME.fmt));
+const hmDraft=()=>HOME.drafts[HOME.fmt]||(HOME.drafts[HOME.fmt]=HOME.fmt==='STD'?stdDraft('PIXEL LEAGUE'):lgMake('PIXEL LEAGUE',HOME.fmt)); /* v2.23: fmt STD = the Standard 8-team league (std.js): one random draw makes the whole league */
 function openMenu(){if(S)save();HOME.ret=null;HOME.tab=rdIdx().length?'lg':'new';HOME.del=null;renderHome();show('menu')}
 function czFocusKey(){const a=document.activeElement;if(!a||a.tagName==='INPUT'||!$('mbody').contains(a))return null;const q=[...a.attributes].filter(x=>x.name.startsWith('data-')).map(x=>`[${x.name}="${x.value}"]`).join('');return q?'#mbody '+q:null} /* v2.04: a button that re-draws the LOOK tab keeps focus */
 /* v2.05: LOOK under TEAM and HELP under MORE: the same screens as the home tabs (renderHome draws them into #mbody), shown inside the shell with their own screen ids */
-function openLook(){if(!S||!S.lg)return;save();HOME.cz={src:S.id,team:S.lg.me};HOME.tab='cz';HOME.ret=null;HOME.del=null;show('look');renderHome()}
+function openLook(){if(!S||!S.lg||S.std)return;   /* v2.23: a Standard league has no wardrobe to edit (the adapter is not saved) */
+ save();HOME.cz={src:S.id,team:S.lg.me};HOME.tab='cz';HOME.ret=null;HOME.del=null;show('look');renderHome()}
 function openHelp(){HOME.tab='help';HOME.ret=null;HOME.del=null;show('help');renderHome()}
 function hmTab(k){HOME.tab=k;HOME.del=null;HOME.ret=null;renderHome()} /* v2.01: the five home tabs are drawn by the nav (sh.js) */
 function renderHome(){
@@ -1152,11 +1631,11 @@ function hmNew(){
  const L=hmDraft(),T=L.teams,t=T[HOME.pick],cf=lgCfg(L);
  const conf=c=>`<div class="dv"><h4>${hmEsc(L.conf[c])}</h4>`+Array.from({length:cf.dv},(_,d)=>d).map(d=>(cf.dv>1?`<div class="sm" style="margin:.5em 0 .2em">${sc(`${hmEsc(L.div[d])}`)}</div>`:'')+`<div class="tg">`+lgDivIds(c,d,cf).map(id=>`<button class="tb ${id===HOME.pick?'on':''}" data-pick="${id}"><i style="background:${T[id].col.c};border-color:${T[id].col.d}"></i>${hmEsc(T[id].name)}</button>`).join('')+'</div>').join('')+'</div>';
  return`<div class="row"><span class="sm">${sc(`LEAGUE NAME`)}</span><input id="lgn" maxlength="16" value="${hmEsc(L.name)}" style="width:13em">
- <span class="sm">${sc(`FORMAT`)}</span>${Object.values(LGF).map(f=>`<button class="btn xs ${f.id===cf.id?'on':'alt'}" data-fmt="${f.id}">${f.btn}</button>`).join('')}</div>
+ <span class="sm">${sc(`FORMAT`)}</span>${[...Object.values(LGF),STD_CFG].map(f=>`<button class="btn xs ${f.id===cf.id?'on':'alt'}" data-fmt="${f.id}">${f.btn}</button>`).join('')}</div>
  <div class="sm">${sc(`${cf.info} PICK YOUR TEAM:`)}</div>
  <div class="dvg">${L.conf.map((_,c)=>conf(c)).join('')}</div>
  <div class="row"><span class="sm" style="color:${t.col.c}">${sc(`YOU: ${hmEsc(tn(t.name))}`)}</span>
- <button class="btn xs alt" data-act2="reroll">NEW RANDOM TEAMS</button><button class="btn xs alt" data-act2="theme">REAL-STYLE TEAMS</button>${cf.id==='NFL'?'<button class="btn xs alt" data-act2="sifa">SIFA TEAMS</button>':''}<button class="btn xs alt" data-act2="cust">CUSTOMIZE</button><button class="btn" data-act2="start">START LEAGUE</button></div>`}
+ <button class="btn xs alt" data-act2="reroll">${cf.id==='STD'?'NEW RANDOM PLAYERS':'NEW RANDOM TEAMS'}</button>${cf.id==='STD'?'':`<button class="btn xs alt" data-act2="theme">REAL-STYLE TEAMS</button>${cf.id==='NFL'?'<button class="btn xs alt" data-act2="sifa">SIFA TEAMS</button>':''}<button class="btn xs alt" data-act2="cust">CUSTOMIZE</button>`}<button class="btn" data-act2="start">START LEAGUE</button></div>`}
 
 /* ----- tab 3: customize (draft league or any saved league) ----- */
 function czTarget(){
@@ -1267,7 +1746,7 @@ function czShDraw(){const h=czShHost(),sh=CZSH,{L}=czTarget(),ti=clamp(HOME.cz.t
   b=`<div class="czsh-h"><i class="czbig" id="czbig" style="background:${v}"></i><b class="czsh-t">PICK A COLOR<small>${sc(`${hmEsc(lab?lab.textContent:'')} <span id="czshhx">${v.toUpperCase()}</span>`)}</small></b><button class="btn" data-shx="1" data-first="1">DONE</button></div>
   <div class="czpal" role="group" aria-label="Palette">${CZ_PAL.map(c=>`<button data-shc="${c}" style="background:${c}" aria-label="${c.toUpperCase()}" aria-pressed="false"><u></u></button>`).join('')}</div>
   <div class="row czhexr"><label class="czlb" for="czhex">HEX</label><input id="czhex" maxlength="7" value="${v.toUpperCase()}" autocomplete="off" autocapitalize="characters" spellcheck="false"><label class="btn alt czany">ANY COLOR<input type="color" id="czany" value="${v}"></label></div>`}
- else if(sh.t==='league'){const ix=rdIdx().filter(e=>e.fmt!=='CLASSIC 8 GAMES'),o=[['draft','NEW LEAGUE (NOT STARTED)']].concat(ix.map(e=>[e.id,e.name+' - '+e.team]));
+ else if(sh.t==='league'){const ix=rdIdx().filter(e=>e.fmt!=='CLASSIC 8 GAMES'&&e.fmt!==STD_CFG.tag),o=[['draft','NEW LEAGUE (NOT STARTED)']].concat(ix.map(e=>[e.id,e.name+' - '+e.team]));
   b=`<div class="czsh-h"><b class="czsh-t">PICK A LEAGUE<small>${sc(`WHICH LEAGUE TO EDIT`)}</small></b><button class="btn alt" data-shback="1" data-first="1">BACK</button><button class="btn" data-shx="1">CLOSE</button></div>
   <div class="czlist">${o.map(([v,l])=>{const on=HOME.cz.src===v;return`<button class="czch wide ${on?'on':''}" data-shlg="${hmEsc(v)}" aria-current="${on}"><span>${hmEsc(l)}</span>${on?'<em>NOW</em>':''}</button>`}).join('')}</div>`}
  else{const cf=lgCfg(L),chip=id=>{const x=T[id],on=id===ti;return`<button class="czch ${on?'on':''}" data-shteam="${id}" aria-current="${on}"><i style="background:${x.col.c};box-shadow:0 0 0 2px ${x.col.d}"></i><span>${hmEsc(x.name)}</span>${on?'<em>NOW</em>':''}</button>`};
@@ -1306,7 +1785,7 @@ ${stGroup()}
 <h4>STARTING OUT</h4><p>${sc(`NEW LEAGUE: NAME IT, PICK THE FORMAT AND YOUR TEAM, THEN START LEAGUE. YOUR LEAGUES LIVE ON MY LEAGUES.`)}</p>
 <h4>EACH WEEK</h4><p>${sc(`PLAY GAME: PLAY IT YOURSELF. THE LOCKER ROOM LETS YOU PICK UNIFORMS FIRST. SIM GAME: THE COMPUTER PLAYS IT.<br>PLAYBOOK: DESIGN YOUR OWN PLAYS.<br>LEFT A GAME HALFWAY? TAP RESUME GAME ON YOUR LEAGUE SCREEN.<br>EARN COACH CREDITS AFTER EVERY LEAGUE GAME AND SPEND THEM ON THE TEAM TAB, UPGRADES.`)}</p>
 <h4>EXHIBITION</h4><p>${sc(`THE EXHIBITION TAB LETS YOU PICK A LEAGUE (ONE OF YOURS, OR A NEW NFL OR COLLEGE ONE), YOUR TEAM AND THE OPPONENT. IT IS ONE GAME THAT DOES NOT COUNT AND IS NOT SAVED.`)}</p>
-<h4>LEAGUE FORMATS</h4><p>${sc(`NFL LEAGUE: ${LGF.NFL.help}<br>COLLEGE LEAGUE: ${LGF.COL.help}`)}</p>
+<h4>LEAGUE FORMATS</h4><p>${sc(`NFL LEAGUE: ${LGF.NFL.help}<br>COLLEGE LEAGUE: ${LGF.COL.help}<br>STANDARD LEAGUE: ${STD_CFG.help}`)}</p>
 <h4>INSTALL</h4><p>${sc(`ON IPHONE: SAFARI, SHARE, ADD TO HOME SCREEN. ON ANDROID OR DESKTOP CHROME: TAP INSTALL BELOW WHEN IT SHOWS.`)}</p>
 <p>${sc(`PROBLEMS? TAP REPORT A PROBLEM.`)}</p></div>
 <div class="row"><button class="btn xs alt" data-cg="open">CLOUD SAVE</button>${cgRestoreBtn('xs alt')}<button class="btn xs alt" data-rp="open">REPORT A PROBLEM</button></div>
@@ -1316,7 +1795,7 @@ ${stGroup()}
 /* ----- events ----- */
 function hmStart(){
  const L=hmDraft(),nameEl=$('lgn');if(nameEl)L.name=nameEl.value.trim().toUpperCase()||'PIXEL LEAGUE';
- lgNew(L,HOME.pick);HOME.drafts[HOME.fmt]=null;HOME.pick=0;HOME.cz={src:'draft',team:0};resetSprites();renderHub()}
+ if(HOME.fmt==='STD')stdNew(L,HOME.pick);else lgNew(L,HOME.pick);HOME.drafts[HOME.fmt]=null;HOME.pick=0;HOME.cz={src:'draft',team:0};resetSprites();renderHub()}
 function hmPlay(id){const s=loadSlot(id);if(!s)return;S=s;if(S.lg){if(!S.lg.ho){lgOrient(S.lg.sched);S.lg.ho=1;save()}lgSync()}resetSprites();renderHub();sqKick()}
 $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
  if(d.ret){HOME.ret=null;openLocker()}
@@ -1330,7 +1809,7 @@ $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.
  else if(d.play)hmPlay(d.play);
  else if(d.del){if(HOME.del===d.del){if(S&&S.id===d.del)S=null;delSlot(d.del);HOME.del=null}else HOME.del=d.del;renderHome()}
  else if(d.pick!=null){const n=$('lgn');if(n)hmDraft().name=n.value.toUpperCase();HOME.pick=+d.pick;renderHome()}
- else if(d.act2==='reroll'){const n=$('lgn'),nm0=n?n.value.toUpperCase():hmDraft().name;HOME.drafts[HOME.fmt]=lgMake(nm0,HOME.fmt);renderHome()}
+ else if(d.act2==='reroll'){const n=$('lgn'),nm0=n?n.value.toUpperCase():hmDraft().name;HOME.drafts[HOME.fmt]=HOME.fmt==='STD'?stdDraft(nm0):lgMake(nm0,HOME.fmt);renderHome()}
  else if(d.fmt){const n=$('lgn'),nm0=n?n.value.toUpperCase():hmDraft().name;if(d.fmt!==HOME.fmt){HOME.fmt=d.fmt;HOME.pick=0;hmDraft().name=nm0||hmDraft().name}renderHome()}
  else if(d.act2==='theme'){const n=$('lgn');if(n)hmDraft().name=n.value.toUpperCase();lgThemed(hmDraft());renderHome()}
  else if(d.act2==='sifa'){const n=$('lgn');if(n)hmDraft().name=n.value.toUpperCase();lgThemed(hmDraft(),'SIFA');HOME.pick=0;renderHome()}
@@ -1417,9 +1896,10 @@ const bkBad=msg=>({ok:false,msg});
 function bkShape(d){
  if(!d||typeof d!=='object'||Array.isArray(d))return false;
  if(!(+d.season>=1))return false;
+ if(d.std){try{const L=d.std;return!!(L&&typeof L.rs==='number'&&L.rules&&Array.isArray(L.sch)&&L.sch.length===STD_CFG.games&&L.sch.every(x=>Array.isArray(x)&&x.length===4)&&Array.isArray(L.teams)&&L.teams.length===8&&Number.isInteger(d.stm)&&d.stm>=0&&d.stm<8&&typeof d.name==='string'&&STD.checkLeague(L).length===0&&stdView(d))}catch(e){return false}}   /* v2.23: a Standard league: 8 teams, 23 starters each, valid ratings */
  if(d.lg){const L=d.lg;return!!(L&&Array.isArray(L.teams)&&L.teams.length>=2&&Number.isInteger(L.me)&&L.teams[L.me]&&typeof L.teams[L.me]==='object')}
  return typeof d.name==='string'&&Array.isArray(d.sched)&&!!d.r&&typeof d.r==='object'}
-const bkInfo=d=>{const rec=(d.w|0)+'-'+(d.l|0)+(d.t?'-'+(d.t|0):'');return{name:String(d.lg?d.lg.name:d.name),team:String(d.name),season:d.season,rec,fmt:d.lg?lgCfg(d.lg).tag:'CLASSIC 8 GAMES'}};
+const bkInfo=d=>{const rec=(d.w|0)+'-'+(d.l|0)+(d.t?'-'+(d.t|0):''),L=d.lg||(d.std?stdView(d):null);return{name:String(L?L.name:d.name),team:String(d.name),season:d.season,rec,fmt:L?lgCfg(L).tag:'CLASSIC 8 GAMES'}};
 /* text -> {ok,items:[{obj,info}]} or {ok:false,msg}; never touches storage */
 async function bkUnpack(text){
  try{
@@ -1457,8 +1937,8 @@ function bkCommit(items){
   for(const it of items){
    const d=JSON.parse(JSON.stringify(it.obj));let id,g=0;
    do{id=newId()}while((lsGet(SLOT+id)||rdIdx().some(e=>e.id===id))&&g++<50);
-   let base=String(d.lg?d.lg.name:d.name),n=base,k=2;while(taken.has(n))n=base+' ('+(k++)+')';
-   taken.add(n);if(d.lg)d.lg.name=n;else d.name=n;
+   let base=String(d.std?d.std.nm:d.lg?d.lg.name:d.name),n=base,k=2;while(taken.has(n))n=base+' ('+(k++)+')';
+   taken.add(n);if(d.std)d.std.nm=n;else if(d.lg)d.lg.name=n;else d.name=n;
    d.id=id;
    if(!writeSlot(d))return{ok:false,msg:"COULDN'T SAVE THE LEAGUE (STORAGE MAY BE FULL). NOTHING EXISTING WAS CHANGED.",ids,names};
    ids.push(id);names.push(n)}
@@ -1626,7 +2106,7 @@ function buildReport(text){
  add('STATS UPLOAD',sqReportLine); /* v2.16: counts only (n of m sent), never a key or id */
  add('SCREEN NOW',rpScreen);
  add('GAME MODE',()=>G&&G.mode?G.mode:'NONE');
- add('LEAGUE',()=>{if(!S)return'NONE LOADED';const f=S.lg?((S.lg.fmt||'NFL')==='COL'?'COLLEGE':'NFL'):'NONE (CLASSIC FRANCHISE)';return f+', SEASON '+S.season+', WEEK '+((+S.week||0)+1)+', PHASE '+S.phase});
+ add('LEAGUE',()=>{if(!S)return'NONE LOADED';const f=S.std?'STANDARD 8-TEAM':S.lg?((S.lg.fmt||'NFL')==='COL'?'COLLEGE':'NFL'):'NONE (CLASSIC FRANCHISE)';return f+', SEASON '+S.season+', WEEK '+((+S.week||0)+1)+', PHASE '+S.phase});
  if(!ERRS.length)L.push('ERRORS: NONE');else ERRS.forEach((e,i)=>L.push('ERROR '+(i+1)+': '+e));
  return L.join('\n')}
 /* ----- panel (an overlay like the backup panels; it does not touch the game) ----- */
@@ -1680,7 +2160,7 @@ function gsShape(o){const g=o&&o.g;
  return!!g&&typeof g==='object'&&o.gv===1&&['me','op','clock','los','down','fd','qLen'].every(k=>gsNum(g[k]))&&g.down>=1&&g.down<=4&&(g.first==='me'||g.first==='opp')
   &&['st','qs','pl','ost','opp','oc'].every(k=>g[k]&&typeof g[k]==='object')&&typeof g.opp.name==='string'&&Array.isArray(g.qs.me)&&Array.isArray(g.qs.op)}
 function gsPeek(id){try{id=id||(S&&S.id);if(!id)return null;const t=lsGet(GSK+id);if(!t)return null;const o=JSON.parse(t);
- return o&&o.sv===SAVE_VERSION&&o.id===id&&gsShape(o)?o:false}catch(e){return false}} /* null = none, false = unusable */
+ return o&&o.sv>=1&&o.sv<=SAVE_VERSION&&o.id===id&&gsShape(o)?o:false}catch(e){return false}} /* null = none, false = unusable */
 function gsMatch(o){try{
  if(!o||o.season!==S.season)return false;if(o.exh)return true;
  const n=nextOpp(),p=o.g.opp;
@@ -1930,7 +2410,7 @@ function sqRec(r){if(!Array.isArray(r)||r.length!==31)return null;const q=r.slic
 function sqPrune(e,L){const ks=new Set(L.map(sqKey));e.s=e.s.filter(k=>ks.has(k));for(const k of Object.keys(e.x))if(!ks.has(k))delete e.x[k]}
 /* endGame() calls this right after glAdd(): lb = the last log record before glAdd. If a new record was added, keep its x (credits spent on upgrades) on this device. */
 function sqNote(lb){try{
- if(!S||!G||G.exh||!S.id)return;const L=glList(),r=L[L.length-1];if(!r||r===lb)return;
+ if(!S||!G||G.exh||!S.id||S.std)return;const L=glList(),r=L[L.length-1];if(!r||r===lb)return;
  let x=-1;try{x=Math.round(upSpent());x=isFinite(x)?Math.max(0,Math.min(999,x)):-1}catch(e){x=-1}
  const st=sqRead(),e=sqEnt(st,S.id);const k=sqKey(r);if(!(k in e.x)&&e.s.indexOf(k)<0)e.x[k]=x;sqPrune(e,L);sqWrite(st)}catch(e){}}
 const sqKick=ms=>{try{if(window.__SQOFF)return;setTimeout(()=>{try{sqRun().catch(()=>{})}catch(e){}},ms==null?30:ms)}catch(e){}};
@@ -1939,7 +2419,7 @@ async function sqRun(){
  try{
   if(!cgHostOK()||navigator.onLine===false||CG.stale||Date.now()<SQ.next)return; /* CG.stale would make cgLoad restart the game: never from here */
   let st=sqRead();if(!st.on)return;
-  if(!S||!S.id||S.sbx)return;
+  if(!S||!S.id||S.sbx||S.std)return;   /* v2.23: a Standard league sends no gameStats (the document's league tag knows only n, c, k) */
   const id=S.id,f=S.lg?((S.lg.fmt||'NFL')==='COL'?'c':'n'):'k',L=glList().filter(r=>sqRec(r));
   {const e=sqEnt(st,id);sqPrune(e,L);sqWrite(st)}
   const sent=new Set(st.m[id].s),todo=L.filter(r=>!sent.has(sqKey(r)));if(!todo.length)return;
@@ -2430,7 +2910,7 @@ document.addEventListener('click',e=>{try{if(!DC.on)return;const kb=e.target.clo
 const HB_BL={rb:['RUN GAME','MORE YARDS AND BREAKAWAYS ON RUNS'],ol:['PASS PROTECTION','MORE TIME BEFORE THE RUSH GETS TO YOUR QB'],def:['DEFENSE','THE OPPONENT SCORES LESS WHEN THEY HAVE THE BALL']};
 const hbOff=()=>{const r=S.r;return(r.qb+r.wr+r.rb+r.ol)/4};
 const hbRo=()=>{if(S.ro)return S.ro;const r=S.r;return{qb:{arm:r.qb,acc:r.qb},wr:[0,1,2].map(()=>({spd:r.wr,cat:r.wr})),te:{spd:r.wr,cat:r.wr},k:{acc:r.k,rng:r.k}}}; /* the same defaults as ensureRo, but it changes nothing */
-const hbBuy=()=>{const o=hbRo(),ok=v=>v<10&&S.credits>=upCost(v);return RK.filter(k=>ok(S.r[k])).length+ROS_DEF().reduce((n,c)=>n+c.st.filter(([p])=>ok(roGet(o,p))).length,0)}; /* v2.05: team ratings AND players: how many upgrades the credits can buy */
+const hbBuy=()=>{const o=hbRo(),ok=v=>v<10&&S.credits>=upCost(v);return RK.filter(k=>ok(S.r[k])&&(!S.std||stdCanUp('up',k))).length+ROS_DEF().reduce((n,c)=>n+c.st.filter(([p])=>ok(roGet(o,p))&&(!S.std||stdCanUp('ru',p))).length,0)}; /* v2.05: team ratings AND players: how many upgrades the credits can buy */
 const hbRec=x=>x.w+'-'+x.l+(x.t?'-'+x.t:'');
 function hbNext(){
  if(S.lg){const o=lgNextOpp();return{name:o.name,col:o.col.c,off:o.off,def:o.def,home:o.home,id:o.id}}
@@ -2460,12 +2940,14 @@ function hbDiv(L){const t=L.teams[L.me],cf=lgCfg(L),ids=lgOrder(lgDivIds(t.conf,
 function openCoach(){
  const n=hbBuy(),o=ensureRo();
  $('coach').innerHTML=`<div class="sm hbcr">${sc(`CREDITS ${S.credits} - ${n?n+' UPGRADE'+(n>1?'S':'')+' YOU CAN AFFORD.':S.credits?'NOT ENOUGH CREDITS FOR ANOTHER UPGRADE.':'NO CREDITS LEFT.'} EARN MORE AFTER EVERY GAME. COST IS THE RATING x 0.7, ROUNDED UP.`)}</div>
- <div class="upg"><div class="card hbw"><h3>TEAM RATINGS</h3>${RK.map(k=>{const v=S.r[k],mx=v>=10,c=upCost(v);return`<div class="hbu"><div class="hbl"><b>${HB_BL[k][0]}</b><span class="sm">${sc(`${HB_BL[k][1]}`)}</span></div><div class="up"><b>${RL[k]}</b>${pips(v)}<span class="sm" style="width:3em;text-align:right">${v}/10</span><button class="btn xs" data-up="${k}" ${mx||S.credits<c?'disabled':''}>${mx?'MAX':'+'+c}</button></div></div>`}).join('')}</div>
+ <div class="upg"><div class="card hbw"><h3>TEAM RATINGS</h3>${RK.map(k=>{const v=S.r[k],mx=v>=10,c=upCost(v);return`<div class="hbu"><div class="hbl"><b>${HB_BL[k][0]}</b><span class="sm">${sc(`${HB_BL[k][1]}`)}</span></div><div class="up"><b>${RL[k]}</b>${pips(v)}<span class="sm" style="width:3em;text-align:right">${stdR1(v)}/10</span><button class="btn xs" data-up="${k}" ${mx||S.credits<c?'disabled':''}>${mx?'MAX':'+'+c}</button></div></div>`}).join('')}</div>
  <div class="card hbw"><h3>PLAYERS</h3>${ROS_DEF().map(c=>`<div class="hbu"><div class="hbl"><b>${c.h} - ${hmEsc(c.who||'')}</b></div>${c.st.map(([p,l,d])=>{const v=roGet(o,p),mx=v>=10;return`<div class="up"><b>${l}</b>${pips(v)}<button class="btn xs" data-ru="${p}" ${mx||S.credits<upCost(v)?'disabled':''}>${mx?'MAX':'+'+upCost(v)}</button></div><div class="sm hbnt">${sc(`${d(v)}`)}</div>`}).join('')}</div>`).join('')}</div></div>`;
  show('coach')}
 $('coach').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;let sel=null;
- if(d.up){const k=d.up,c=upCost(S.r[k]);if(S.credits>=c&&S.r[k]<10){S.credits-=c;S.r[k]++;save();sel='[data-up="'+k+'"]'}}
- else if(d.ru){const p=d.ru.split('.'),k=p.pop(),t=p.reduce((a,x)=>a[x],ensureRo()),c=upCost(t[k]);if(S.credits>=c&&t[k]<10){S.credits-=c;t[k]++;save();sel='[data-ru="'+d.ru+'"]'}}
+ if(d.up){const k=d.up,c=upCost(S.r[k]);if(S.std){if(S.credits>=c&&S.r[k]<10&&stdBuy('up',k,c))sel='[data-up="'+k+'"]'}   /* v2.23: a Standard league raises the real players (std.js) */
+  else if(S.credits>=c&&S.r[k]<10){S.credits-=c;S.r[k]++;save();sel='[data-up="'+k+'"]'}}
+ else if(d.ru){const p=d.ru.split('.'),k=p.pop(),t=p.reduce((a,x)=>a[x],ensureRo()),c=upCost(t[k]);if(S.std){if(S.credits>=c&&t[k]<10&&stdBuy('ru',d.ru,c))sel='[data-ru="'+d.ru+'"]'}
+  else if(S.credits>=c&&t[k]<10){S.credits-=c;t[k]++;save();sel='[data-ru="'+d.ru+'"]'}}
  if(sel===null)return;const v=$('view'),st=v?v.scrollTop:0;openCoach(); /* the buttons are drawn again: keep the scroll place and the focus on the button that was used */
  if(v)v.scrollTop=st;const nb=$('coach').querySelector(sel);if(nb)try{(nb.disabled?$('coach').querySelector('.btn:not([disabled])')||$('sub').querySelector('.on'):nb).focus({preventScroll:true})}catch(x){}};
 /* ----- SETTINGS: the game options that used to sit on the hub, with the device settings under them ----- */
@@ -2496,7 +2978,7 @@ const SH_LG=[['game','GAME','NEXT GAME','ball'],['league','LEAGUE','LEAGUE','tro
 const SH_ON={hub:'game',stand:'league',book:'book',coach:'team',look:'team',gset:'more',exh:'more',help:'more'};
 const SH_TT={hub:'NEXT GAME',stand:'LEAGUE',book:'PLAYBOOK',coach:'UPGRADES',look:'LOOK',gset:'SETTINGS',exh:'EXHIBITION',help:'HELP'};
 const SH_SUB={more:[['gset','SETTINGS'],['exh','EXHIBITION'],['help','HELP'],['menu','ALL LEAGUES']]};
-const shTeamSubs=()=>[['coach','UPGRADES'],['stats','STATS'],...(S&&S.lg?[['look','LOOK']]:[])]; /* v2.05: one UPGRADES screen; LOOK needs a league team to dress, so a classic game has two */
+const shTeamSubs=()=>[['coach','UPGRADES'],['stats','STATS'],...(S&&S.lg&&!S.std?[['look','LOOK']]:[])]; /* v2.05: one UPGRADES screen; LOOK needs a league team to dress, so a classic game has two */
 /* v2.03: LEAGUE and BOOK have sub-tabs of their own (lgSubs in lg.js, boSubs in bo.js) whose lit tab is the screen's own state (ST.tab, BK.sub) */
 const shSubs=on=>on==='league'?lgSubs():on==='book'?boSubs():on==='team'?shTeamSubs():SH_SUB[on];
 const shSubOn=(on,k)=>on==='league'?ST.tab===k:on==='book'?BOK.sub===k:k===UI.scr;
@@ -2520,7 +3002,7 @@ function shFocus(sel){if(!UI.sh||UI.bare)return;const b=document.querySelector(s
 function shGo(k){const c=UI.scr; /* LEAGUE-set tabs: each opens an existing screen; nothing is rebuilt */
  if(k==='game'){if(c!=='hub')renderHub()}
  else if(k==='league'){if(c!=='stand'){lgOpenStand();shFocus('#sub');return true}} /* v2.03: a new screen with sub-tabs puts the focus on its first sub-tab */
- else if(k==='team'){if(c!=='coach'&&c!=='look')(SHL.tm==='look'&&S&&S.lg?openLook:openCoach)()}
+ else if(k==='team'){if(c!=='coach'&&c!=='look')(SHL.tm==='look'&&S&&S.lg&&!S.std?openLook:openCoach)()}
  else if(k==='book'){if(c!=='book'){BOK.sub='bo';openBook();shFocus('#sub');return true}} /* v2.03: BOOK is a screen; the designer is one tap away from it */
  else if(k==='more'){if(c!=='gset'&&c!=='exh'&&c!=='help')(SHL.mo==='exh'?openExh:SHL.mo==='help'?openHelp:openSet)()}
  shFocus('#nav')}
@@ -3598,13 +4080,15 @@ function upSpent(){
  const one=v=>{let t=0;for(let r=4;r<v;r++)t+=upCost(r);return t},o=S.ro;let t=one(S.r.rb)+one(S.r.ol)+one(S.r.def);
  if(o){t+=one(o.qb.arm)+one(o.qb.acc);for(let i=0;i<3;i++)t+=one(o.wr[i].spd)+one(o.wr[i].cat)}
  return t}
+/* v2.24: teamPower() = the ONE number the opponent's difficulty shift reads (credits-equivalent). Simple leagues (NFL, college, anything that is not Standard): exactly upSpent(), the same code as before (the AI teams sit at rating 4 = 0 credits, so "above the league" and "credits spent" are the same). Standard league: my team above the AVERAGE of the other 7 teams, in credits, never below 0 (std.js stdPower). Worked out fresh at every drive; nothing is saved. */
+function teamPower(){return S&&S.std?stdPower():upSpent()}
 function simOpp(start,call){
  const o=G.opp,edge=o.off-S.r.def,fb=(start-25)*(start>25?.0100:.0075),fbF=(start-25)*(start>25?.0033:.0025); /* v1.59: where the drive starts matters about twice as much for scoring; v1.95: a good start (past their own 25) is worth about a third more (.0100 TD and .0033 FG per yard); a bad start is unchanged */
  const k=DK(); /* v1.53: difficulty also moves the opponent's scoring drives (5 = unchanged) */
  /* v1.55: a better opponent offense: higher base chances, a steeper rating edge, a two-minute drill when it trails late and clock-killing when it leads */
  const late=G.clock<=G.qLen*1.2,trail=G.op<G.me,lead=G.op>G.me;
  const ha=G.home===false?.025:G.home===true?-.025:0; /* v1.56: the opponent scores a little less on your field */
- const sh=Math.min(UPCAP,UPSHIFT*upSpent()/100); /* v2.14: upgrades count as extra levels in the opponent's touchdown chance (a default team has sh = 0) */
+ const sh=Math.min(UPCAP,UPSHIFT*teamPower()/100); /* v2.24: teamPower() is the only input (was upSpent()); v2.14: upgrades count as extra levels in the opponent's touchdown chance (a default team has sh = 0) */
  let pTD=clamp(.32+edge*.052+fb+.03*(k+sh)+ha+(late&&trail?.06:0),.08,.75),pFG=clamp(.15+edge*.008+.006*k+fbF,.07,.3),pTO=clamp(.095-edge*.012-.008*k,.03,.2);
  if(call){const f=dcFactors(call.sch,call.style,late&&trail);pTD=clamp(pTD*f[0],.08,.75);pFG=clamp(pFG*f[1],.07,.3);pTO=clamp(pTO*f[2],.03,.2)} /* v1.83: CALL YOUR DEFENSE, only with a called scheme; the same clamps as above */
  /* v1.95: the clock. A scoring drive needs time: with less than TMIN seconds left in the half (or the game) the odds of a touchdown or field goal fall off fast (6 s left is about 1.2% of normal; 0 s is zero). Overtime has its own clock and is not limited. Applied after the clamps above on purpose so the .08 floor cannot bring the odds back. */
@@ -5211,6 +5695,6 @@ function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return
 document.addEventListener('pointerup',fsTry,{capture:true});
 UI.ready=true;fit();openMenu();olBoot();
 requestAnimationFrame(frame);
-window.__pp={LGE,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:()=>Math.min(UPCAP,UPSHIFT*upSpent()/100),LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
+window.__pp={LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:()=>Math.min(UPCAP,UPSHIFT*teamPower()/100),teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
 })();
 </script></body></html>
