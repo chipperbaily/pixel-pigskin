@@ -519,7 +519,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="2.24"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.28"; /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -1508,7 +1508,7 @@ function stdDraft(name){
  const v=stdView({std,stm:0});Object.defineProperty(v,'_std',{value:std});return v}
 function stdNew(L,me){
  const std=L._std;std.nm=L.name||'PIXEL LEAGUE';
- S={name:std.teams[me].nm,ci:0,season:std.ssn,week:0,w:0,l:0,t:0,credits:3,phase:'reg',round:0,over:null,champs:0,qLen:90,last:'',std,stm:me};
+ S={name:std.teams[me].nm,ci:0,season:std.ssn,week:0,w:0,l:0,t:0,credits:3,phase:'reg',round:0,over:null,champs:0,qLen:90,last:'',std,stm:me,stx:{relief:1}};   /* v2.25: a NEW Standard league starts with RELIEF ON */
  stdSync(S);save()}
 
 /* ----- games ----- */
@@ -1588,14 +1588,25 @@ function stdBuy(kind,key,cost){
 /* the cost table for a rating that may have decimals: the same cumulative table as upSpent (4 = 0, 5 = 3, 6 = 7, 7 = 12 ...), straight line between the whole steps. Whole ratings give exactly the old numbers. (upSpent itself counts a whole step as soon as a rating is past a whole number: 4.1 already costs 3. Simple leagues only have whole ratings, so it is left as it is there.) */
 function stdCost(v){if(!(v>4))return 0;let t=0,r=4;while(r+1<=v){t+=upCost(r);r++}return t+(v-r)*upCost(r)}
 /* the same ratings upSpent reads (RB, O-line, defense, QB arm and acc, WR1-3 speed and catching; TE and kicker are not counted today) through the cost table */
-function stdSpent(x){let t=stdCost(x.r.rb)+stdCost(x.r.ol)+stdCost(x.r.def)+stdCost(x.ro.qb.arm)+stdCost(x.ro.qb.acc);for(let i=0;i<3;i++)t+=stdCost(x.ro.wr[i].spd)+stdCost(x.ro.wr[i].cat);return t}
+function stdSpent(x,f){f=f||stdCost;let t=f(x.r.rb)+f(x.r.ol)+f(x.r.def)+f(x.ro.qb.arm)+f(x.ro.qb.acc);for(let i=0;i<3;i++)t+=f(x.ro.wr[i].spd)+f(x.ro.wr[i].cat);return t}
 /* the average of the OTHER 7 teams, rating by rating (same shape as S.r / S.ro), worked out fresh from the league each time (nothing saved). The edge (ed) is not part of it. */
 function stdLeagueAvg(s){
  s=s||S;const rs=s.std.teams.filter((t,i)=>i!==(s.stm|0)).map(stdRatingsOf),av=f=>stdMean(rs.map(f));
  return{r:{qb:av(x=>x.r.qb),wr:av(x=>x.r.wr),rb:av(x=>x.r.rb),ol:av(x=>x.r.ol),def:av(x=>x.r.def),k:av(x=>x.r.k)},
   ro:{qb:{arm:av(x=>x.ro.qb.arm),acc:av(x=>x.ro.qb.acc)},wr:[0,1,2].map(i=>({spd:av(x=>x.ro.wr[i].spd),cat:av(x=>x.ro.wr[i].cat)})),te:{spd:av(x=>x.ro.te.spd),cat:av(x=>x.ro.te.cat)},k:{acc:av(x=>x.ro.k.acc),rng:av(x=>x.ro.k.rng)}}}}
-/* credits-equivalent of my team above the league average; a team at or below the league gets 0 */
-function stdPower(s){s=s||S;return Math.max(0,stdSpent({r:s.r,ro:s.ro})-stdSpent(stdLeagueAvg(s)))}
+/* v2.25 RELIEF: the per-league option "EASIER GAMES FOR A WEAK TEAM". It lives in its own save field S.stx = {relief: 0 or 1} (next to S.stm), not in S.std. A save without the field is OFF. */
+function stdRelief(s){s=s||S;return!!(s&&s.std&&s.stx&&s.stx.relief)}
+function stdSetRelief(on,s){s=s||S;s.stx={relief:on?1:0};if(s===S)try{save()}catch(e){}return s.stx.relief}
+/* the cost table with RELIEF: under 4 the line goes on at the slope of its first step (upCost(4) = 3 credits per rating point: 3 = -3, 2 = -6, 1 = -9); 4 and above exactly stdCost */
+function stdCostR(v){return v<4?upCost(4)*(v-4):stdCost(v)}
+/* credits-equivalent of my team against the league average. RELIEF OFF (v2.24, unchanged): never below 0. RELIEF ON: signed, below 0 for a team weaker than the league, and equal to the OFF number when every rating (mine and the league's) is 4 or more. */
+function stdPower(s){s=s||S;
+ if(stdRelief(s))return stdSpent({r:s.r,ro:s.ro},stdCostR)-stdSpent(stdLeagueAvg(s),stdCostR);
+ return Math.max(0,stdSpent({r:s.r,ro:s.ro})-stdSpent(stdLeagueAvg(s)))}
+/* v2.25: one line on the hub: the next opponent's OFF and DEF (the game's own numbers, no edge) and a word against my team. Strength = (OFF + DEF) / 2 for both; WEAKER or STRONGER when it is 0.3 or more apart, otherwise SIMILAR. */
+const STD_NEAR=0.3;
+function stdOppLine(o){const me=(hbOff()+S.r.def)/2,d=(o.off+o.def)/2-me,w=d<=-STD_NEAR?'WEAKER':d>=STD_NEAR?'STRONGER':'SIMILAR';
+ return`<div class="sm" style="margin-top:.5em">${sc(`THEIR OFF ${stdR1(o.off)} DEF ${stdR1(o.def)} - ${w} THAN YOUR TEAM`)}</div>`}
 
 /* ---------- home page (v1.40): saved leagues, new league, customize, how to play ---------- */
 const HOME={tab:'lg',fmt:'NFL',drafts:{},pick:0,cz:{src:'draft',team:0},del:null};
@@ -1896,7 +1907,7 @@ const bkBad=msg=>({ok:false,msg});
 function bkShape(d){
  if(!d||typeof d!=='object'||Array.isArray(d))return false;
  if(!(+d.season>=1))return false;
- if(d.std){try{const L=d.std;return!!(L&&typeof L.rs==='number'&&L.rules&&Array.isArray(L.sch)&&L.sch.length===STD_CFG.games&&L.sch.every(x=>Array.isArray(x)&&x.length===4)&&Array.isArray(L.teams)&&L.teams.length===8&&Number.isInteger(d.stm)&&d.stm>=0&&d.stm<8&&typeof d.name==='string'&&STD.checkLeague(L).length===0&&stdView(d))}catch(e){return false}}   /* v2.23: a Standard league: 8 teams, 23 starters each, valid ratings */
+ if(d.std){try{const L=d.std;return!!(L&&typeof L.rs==='number'&&L.rules&&Array.isArray(L.sch)&&L.sch.length===STD_CFG.games&&L.sch.every(x=>Array.isArray(x)&&x.length===4)&&Array.isArray(L.teams)&&L.teams.length===8&&Number.isInteger(d.stm)&&d.stm>=0&&d.stm<8&&(d.stx===undefined||(!!d.stx&&typeof d.stx==='object'&&(d.stx.relief===0||d.stx.relief===1)))&&typeof d.name==='string'&&STD.checkLeague(L).length===0&&stdView(d))}catch(e){return false}}   /* v2.23: a Standard league: 8 teams, 23 starters each, valid ratings */
  if(d.lg){const L=d.lg;return!!(L&&Array.isArray(L.teams)&&L.teams.length>=2&&Number.isInteger(L.me)&&L.teams[L.me]&&typeof L.teams[L.me]==='object')}
  return typeof d.name==='string'&&Array.isArray(d.sched)&&!!d.r&&typeof d.r==='object'}
 const bkInfo=d=>{const rec=(d.w|0)+'-'+(d.l|0)+(d.t?'-'+(d.t|0):''),L=d.lg||(d.std?stdView(d):null);return{name:String(L?L.name:d.name),team:String(d.name),season:d.season,rec,fmt:L?lgCfg(L).tag:'CLASSIC 8 GAMES'}};
@@ -2398,43 +2409,93 @@ queueMicrotask(()=>{try{if(window.__pp)Object.assign(window.__pp,{cloudInfo:()=>
    Runs: after a hand-played game is saved, when a league is opened, when the page becomes visible, when the browser comes back online. Oldest first, at most 10 per run,
    one at a time, 10 s per step (cgWith), a record counts as sent only after the write is confirmed; after a failure nothing for 60 s. Only on the cloud save's hosts and only online;
    anywhere else, or with on=0, NO Firebase request at all. It reuses cgLoad/cgUid/cgWith; it never shows an error and never throws. window.__SQOFF=true switches it off (tests). ----- */
-const SQ_KEY='pixelPigskin.statsq',SQ_GAP=60000,SQ_MAX=10;
+/* v2.26 STATS V2: a game with detail goes out in the new shape {d,v,f,l,u,t,s:2}: d is ONE JSON string (at most 30000 characters; the stored detail is kept under 8000) built when the record is written (sqNote -> sqDetail)
+   and kept in the same device key next to x: e.d[key]. Everything about a game goes inside d, so a new stat never changes the rules or the export script. A record WITHOUT detail (older, back-filled, detail lost) goes out in the v2.16
+   shape exactly as before. A Standard league (f = "s") sends only games with detail (the v2.16 shape does not know "s"). d holds names of players (cut to 24 characters), no league name, no team name, no slot id, no save text or code. ----- */
+const SQ_KEY='pixelPigskin.statsq',SQ_GAP=60000,SQ_MAX=10,SQ_DMAX=8000,SQ_D30=30000;
 const SQ={busy:0,next:0,ids:{},slow:{}};
 function sqRead(){try{const o=JSON.parse(localStorage.getItem(SQ_KEY)||'null');if(o&&o.v===1&&o.m&&typeof o.m==='object'&&!Array.isArray(o.m))return{v:1,on:(o.on===0||o.on===false)?0:1,m:o.m}}catch(e){}return{v:1,on:1,m:{}}}
 function sqWrite(o){try{localStorage.setItem(SQ_KEY,JSON.stringify(o));return true}catch(e){return false}}
 function sqEnt(o,id){let e=o.m[id];if(!e||typeof e!=='object'||Array.isArray(e))e=o.m[id]={};
  if(typeof e.l!=='string'||e.l.length!==10){const A='abcdefghijklmnopqrstuvwxyz0123456789';let s='';try{const b=new Uint8Array(10);crypto.getRandomValues(b);for(let i=0;i<10;i++)s+=A[b[i]%36]}catch(x){s='';for(let i=0;i<10;i++)s+=A[Math.floor(Math.random()*36)]}e.l=s}
- if(!Array.isArray(e.s))e.s=[];if(!e.x||typeof e.x!=='object'||Array.isArray(e.x))e.x={};return e}
+ if(!Array.isArray(e.s))e.s=[];if(!e.x||typeof e.x!=='object'||Array.isArray(e.x))e.x={};if(!e.d||typeof e.d!=='object'||Array.isArray(e.d))e.d={};return e}
 const sqKey=r=>r[0]+':'+r[1];
 function sqRec(r){if(!Array.isArray(r)||r.length!==31)return null;const q=r.slice();for(let i=0;i<31;i++){if(i===2){if(typeof q[i]!=='number')q[i]=-1}if(typeof q[i]!=='number'||!isFinite(q[i]))return null}return q}
-function sqPrune(e,L){const ks=new Set(L.map(sqKey));e.s=e.s.filter(k=>ks.has(k));for(const k of Object.keys(e.x))if(!ks.has(k))delete e.x[k]}
-/* endGame() calls this right after glAdd(): lb = the last log record before glAdd. If a new record was added, keep its x (credits spent on upgrades) on this device. */
+function sqPrune(e,L){const ks=new Set(L.map(sqKey));e.s=e.s.filter(k=>ks.has(k));for(const k of Object.keys(e.x))if(!ks.has(k))delete e.x[k];for(const k of Object.keys(e.d))if(!ks.has(k))delete e.d[k]}
+/* ----- v2.26: the detail of ONE game (d). Built from what the game already counts: G.st, G.pl, G.ost, G.qs, the ratings S.r/S.ro and the opponent's off and def. Nothing here counts anything new. ----- */
+const SQ_G=['season','week','opp','home','pts_for','pts_against','overtime','level','speed_step','defense_on','first_downs','turnovers','sacks','completions','attempts','pass_yds','pass_td','interceptions','rush_att','rush_yds','rush_td','fg_made','fg_tried','rusher_slot','rusher_att','rusher_yds','rusher_td','receiver_slot','catches','rec_yds','rec_td'];
+const sqN=(v,d)=>{v=+v;if(!isFinite(v))return 0;const m=Math.pow(10,d==null?3:d);return Math.round(v*m)/m};
+const sqName=v=>String(v==null?'':v).replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g,'').slice(0,24);
+/* v2.27: a Standard starter's career so far, from the player record (p.cr = [season, games] for each finished season; the game never fills p.xp, it is always 0, so it is not sent). Nothing for a first-season player. */
+function sqCr(l,p){try{const c=Array.isArray(p.cr)?p.cr:[];if(c.length){l.seasons=c.length;l.games_started=c.reduce((a,x)=>a+((x&&+x[1])||0),0)}}catch(e){}}
+function sqLines(){
+ const st=G.st,nm=S.names||{},ro=S.ro||null,r=S.r||{},L={},line=s=>L[s]||(L[s]={slot:s,pos:GL_SLOT[s],name:sqName(glSlotName(s))});
+ const rt=s=>{const q=s===0?ro&&ro.qb:s===1?{run:r.rb}:s>=2&&s<=4?ro&&ro.wr&&ro.wr[s-2]:s===5?ro&&ro.te:ro&&ro.k;if(!q)return null;const o={};for(const k of Object.keys(q))o[k]=sqN(q[k],2);return o};
+ const add=(s,k,v)=>{v=Math.round(+v)||0;if(v){const l=line(s);l[k]=(l[k]||0)+v}};
+ line(0);add(0,'pass_att',st.att);add(0,'pass_comp',st.comp);add(0,'pass_yds',st.pyd);add(0,'pass_td',st.ptd);add(0,'pass_int',st.ints);add(0,'sacks_taken',st.sacks);
+ for(const[k,v]of Object.entries(G.pl||{})){const s=glSlotOf(k,v.pos);add(s,'rush_att',v.att);add(s,'rush_yds',v.ruy);add(s,'rush_td',v.rtd);add(s,'catches',v.rec);add(s,'rec_yds',v.recy);add(s,'rec_td',v.td)}
+ add(6,'fg_made',st.fg&&st.fg[0]);add(6,'fg_tried',st.fg&&st.fg[1]);add(6,'xp_made',st.xp&&st.xp[0]);add(6,'xp_tried',st.xp&&st.xp[1]);
+ const out=[];
+ for(let s=0;s<=6;s++){const l=L[s];if(!l&&!S.std)continue;const l2=line(s);const q=rt(s);if(q)l2.rt=q;out.push(l2)}
+ if(S.std&&S.std.teams){ /* Standard: my starters carry their stable id, age, potential, XP and the star mark; the 16 linemen and defenders are listed with their ratings only */
+  const t=S.std.teams[S.stm|0];
+  if(t&&Array.isArray(t.ro)){
+   const by=(ps,n)=>stdBy(t,ps).slice(0,n),sk=[by('QB',1)[0],by('RB',1)[0],...by('WR',3),by('TE',1)[0],by('K',1)[0]];
+   sk.forEach((p,i)=>{const l=out[i];if(p&&l){l.id=String(p.id);l.age=p.ag;l.pot=sqN(p.pt,1);l.star=p.st?1:0;sqCr(l,p)}});
+   for(const[ps,n]of[['OL',5],['DL',4],['LB',3],['DB',4]])by(ps,n).forEach((p,i)=>{const l={pos:ps+(i+1),name:sqName(p.nm),id:String(p.id),age:p.ag,pot:sqN(p.pt,1),star:p.st?1:0,rt:Object.fromEntries(Object.keys(p.rt).map(k=>[k,sqN(p.rt[k],2)]))};sqCr(l,p);out.push(l)})}}
+ return out}
+function sqDetail(rec,x){
+ const r=S.r||{},ro=S.ro||null,o=G.opp||{},g={};SQ_G.forEach((k,i)=>g[k]=rec[i]);g.credits_spent=typeof x==='number'?x:-1;
+ const tm={off:sqN(hbOff(),3),def:sqN(r.def,3),qb:sqN(r.qb,3),wr:sqN(r.wr,3),rb:sqN(r.rb,3),ol:sqN(r.ol,3),k:sqN(r.k,3),sh:sqN(upShift(),3)};
+ if(ro){tm.qb_arm=sqN(ro.qb.arm,2);tm.qb_acc=sqN(ro.qb.acc,2);(ro.wr||[]).forEach((w,i)=>{tm['wr'+(i+1)+'_spd']=sqN(w.spd,2);tm['wr'+(i+1)+'_cat']=sqN(w.cat,2)});if(ro.te){tm.te_spd=sqN(ro.te.spd,2);tm.te_cat=sqN(ro.te.cat,2)}if(ro.k){tm.k_acc=sqN(ro.k.acc,2);tm.k_rng=sqN(ro.k.rng,2)}}
+ const ob=G.ost||{},st=G.st||{},op={off:sqN(o.off,3),def:sqN(o.def,3)},lg={type:S.std?'standard':S.lg?((S.lg.fmt||'NFL')==='COL'?'college':'nfl'):'classic'};
+ if(S.std){lg.team_power=sqN(teamPower(),2);lg.opp_shift=sqN(upShift(),3);lg.relief=S.stx&&(S.stx.relief===0||S.stx.relief===1)?S.stx.relief:null;lg.seed=+S.std.rs||0}
+ /* v2.27 (dv 2): context and units, all read from what the league already holds. tm.off / tm.def and every rating on a player line are the CURRENT ratings, upgrades included (a credit upgrade raises the player's own rating; no pre-upgrade number is stored, so there is no off_base / def_base). The hand-played game uses these no-edge numbers; ed / eff_off / eff_def are what the engine uses for a SIMULATED game (strength plus edge). */
+ const LGo=S.lg&&S.lg.rec?S.lg:null,oi=rec[2],rc=i=>{const q=LGo&&typeof i==='number'&&i>=0?LGo.rec[i]:null;return q?[q.w|0,q.l|0,q.t|0,q.pf|0,q.pa|0]:null};
+ lg.me=LGo&&typeof LGo.me==='number'?LGo.me:null;
+ lg.po=S.phase==='playoff'?(S.round|0)+1:S.phase==='reg'?0:null;
+ lg.rec_me=LGo?rc(LGo.me):(typeof S.w==='number'?[S.w|0,S.l|0,S.t|0,null,null]:null);
+ lg.rec_op=LGo?rc(oi):null;
+ lg.games_hand=null;lg.games_sim=null;lg.eng=null;lg.rules_v=null;
+ if(S.std&&S.std.teams){
+  const L=S.std,me=S.stm|0,ed=i=>{const t=L.teams[i];if(!t)return null;const e=STD.effective(t,L.rules);return{ed:sqN(t.ed,3),eff_off:sqN(e.off,3),eff_def:sqN(e.def,3)}};
+  Object.assign(tm,ed(me)||{});if(typeof oi==='number'&&oi>=0)Object.assign(op,ed(oi)||{});
+  let gm=0,w=0,h=0,sm=0;for(const q of L.res||[]){if(q.h!==me&&q.a!==me)continue;gm++;if(q.sc&&((q.h===me&&q.sc[0]>q.sc[1])||(q.a===me&&q.sc[1]>q.sc[0])))w++;if(q.src==='hand')h++;else if(q.src==='sim')sm++}
+  lg.xp_team=(L.rules.xp.perGame*gm+L.rules.xp.perWin*w)||0;lg.games_hand=h;lg.games_sim=sm;lg.eng=String(STD.version||'').slice(0,40)||null;lg.rules_v=String(L.rules.version||'').slice(0,20)||null}
+ const d={dv:2,g,tm,op,od:{drives:ob.dr|0,plays:ob.pl|0,yds:ob.yd|0,td:ob.td|0,fg:ob.fg|0,turnovers:ob.to|0,punt_or_miss:ob.pt|0},
+  qs:{me:(G.qs&&G.qs.me||[]).map(v=>v|0),op:(G.qs&&G.qs.op||[]).map(v=>v|0)},
+  sit:{xp_made:st.xp&&st.xp[0]|0,xp_tried:st.xp&&st.xp[1]|0,two_made:st.tp&&st.tp[0]|0,two_tried:st.tp&&st.tp[1]|0},lg,p:sqLines()};
+ let t=JSON.stringify(d);if(t.length>SQ_DMAX){d.p=d.p.filter(l=>l.slot!=null);t=JSON.stringify(d)}
+ return t.length<=SQ_DMAX?t:null}
+/* endGame() calls this right after glAdd(): lb = the last log record before glAdd. If a new record was added, keep its x (credits spent on upgrades) and its detail d on this device. */
 function sqNote(lb){try{
- if(!S||!G||G.exh||!S.id||S.std)return;const L=glList(),r=L[L.length-1];if(!r||r===lb)return;
+ if(!S||!G||G.exh||!S.id)return;const L=glList(),r=L[L.length-1];if(!r||r===lb)return;
  let x=-1;try{x=Math.round(upSpent());x=isFinite(x)?Math.max(0,Math.min(999,x)):-1}catch(e){x=-1}
- const st=sqRead(),e=sqEnt(st,S.id);const k=sqKey(r);if(!(k in e.x)&&e.s.indexOf(k)<0)e.x[k]=x;sqPrune(e,L);sqWrite(st)}catch(e){}}
+ const st=sqRead(),e=sqEnt(st,S.id);const k=sqKey(r);
+ if(!(k in e.x)&&e.s.indexOf(k)<0){e.x[k]=x;try{const rc=sqRec(r),ds=rc&&sqDetail(rc,x);if(ds)e.d[k]=ds}catch(e2){}}
+ sqPrune(e,L);sqWrite(st)}catch(e){}}
 const sqKick=ms=>{try{if(window.__SQOFF)return;setTimeout(()=>{try{sqRun().catch(()=>{})}catch(e){}},ms==null?30:ms)}catch(e){}};
 async function sqRun(){
  if(SQ.busy||window.__SQOFF)return;
  try{
   if(!cgHostOK()||navigator.onLine===false||CG.stale||Date.now()<SQ.next)return; /* CG.stale would make cgLoad restart the game: never from here */
   let st=sqRead();if(!st.on)return;
-  if(!S||!S.id||S.sbx||S.std)return;   /* v2.23: a Standard league sends no gameStats (the document's league tag knows only n, c, k) */
-  const id=S.id,f=S.lg?((S.lg.fmt||'NFL')==='COL'?'c':'n'):'k',L=glList().filter(r=>sqRec(r));
+  if(!S||!S.id||S.sbx)return;
+  const id=S.id,f=S.std?'s':S.lg?((S.lg.fmt||'NFL')==='COL'?'c':'n'):'k',L=glList().filter(r=>sqRec(r));   /* v2.26: a Standard league sends f = "s", and only games that have detail (v2.23 to v2.25 sent nothing for Standard) */
   {const e=sqEnt(st,id);sqPrune(e,L);sqWrite(st)}
-  const sent=new Set(st.m[id].s),todo=L.filter(r=>!sent.has(sqKey(r)));if(!todo.length)return;
+  const sent=new Set(st.m[id].s),dd=st.m[id].d,todo=L.filter(r=>!sent.has(sqKey(r))&&(!S.std||typeof dd[sqKey(r)]==='string'));if(!todo.length)return;
   SQ.busy=1;let failed=false;
   try{
    for(const r of todo.slice(0,SQ_MAX)){
-    const key=sqKey(r),fk=id+'|'+key,e0=sqEnt(sqRead(),id),x=typeof e0.x[key]==='number'?e0.x[key]:-1,rr=sqRec(r);
+    const key=sqKey(r),fk=id+'|'+key,e0=sqEnt(sqRead(),id),x=typeof e0.x[key]==='number'?e0.x[key]:-1,rr=sqRec(r),ds=typeof e0.d[key]==='string'&&e0.d[key].length<=SQ_D30?e0.d[key]:null;
     let ok=false;
     try{
      await cgWith(async(s,uid)=>{
       const X=s.X;let did=SQ.ids[fk];if(!did)did=SQ.ids[fk]=X.doc(X.collection(s.db,'gameStats')).id; /* the same document id on a retry, so a write that timed out and lands later cannot make a second document */
-      await X.setDoc(X.doc(s.db,'gameStats',did),{r:rr,v:String(APP_VERSION),f,l:e0.l,u:uid,t:X.serverTimestamp(),s:1,x});ok=true});
+      await X.setDoc(X.doc(s.db,'gameStats',did),ds?{d:ds,v:String(APP_VERSION),f,l:e0.l,u:uid,t:X.serverTimestamp(),s:2}:{r:rr,v:String(APP_VERSION),f,l:e0.l,u:uid,t:X.serverTimestamp(),s:1,x});ok=true});
     }catch(e){ok=false;if(e&&e.code==='permission-denied'&&SQ.slow[fk])ok=true /* an earlier try timed out and the document is there now (a second create is an update, which the rules refuse) */;else if(cgKind(e)==='net')SQ.slow[fk]=1}
     if(!ok){failed=true;SQ.next=Date.now()+SQ_GAP;break}
-    {const st2=sqRead(),e=sqEnt(st2,id);if(e.s.indexOf(key)<0)e.s.push(key);delete e.x[key];sqWrite(st2)}
+    {const st2=sqRead(),e=sqEnt(st2,id);if(e.s.indexOf(key)<0)e.s.push(key);delete e.x[key];delete e.d[key];sqWrite(st2)}
     delete SQ.ids[fk];delete SQ.slow[fk]}
   }finally{SQ.busy=0}
   if(!failed&&todo.length>SQ_MAX)sqKick(5000) /* a long back-fill goes on in runs of 10, 5 s apart */
@@ -2446,7 +2507,7 @@ function sqReportLine(){
  const st=sqRead(),L=glList().filter(r=>sqRec(r)),e=st.m[S.id],ks=new Set(e&&Array.isArray(e.s)?e.s:[]);
  const n=L.filter(r=>ks.has(sqKey(r))).length;return(st.on?'':'OFF, ')+n+' OF '+L.length+' SENT'}
 try{document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sqKick()});addEventListener('online',()=>sqKick())}catch(e){}
-queueMicrotask(()=>{try{if(window.__pp)window.__pp.sq={SQ,sqRun,sqRead,sqKick,sqKey,sqReportLine};window.__pp.hmPlay=hmPlay}catch(e){}});
+queueMicrotask(()=>{try{if(window.__pp)window.__pp.sq={SQ,sqRun,sqRead,sqKick,sqKey,sqReportLine,sqDetail,sqRec};window.__pp.hmPlay=hmPlay}catch(e){}});
 /* ----- FADING TIPS + IN-GAME HELP (v1.79) -----
    Tip counters live ONLY in localStorage 'pixelPigskin.hints' = {v:1,c:{pre,fourth,aim,run}}: never in a league save, a backup code, a mid-game snapshot, a cloud copy or a report.
    A counter is how many times that tip has already been used up: pre = snaps, fourth = 4th downs played, aim = passes, run = runs.
@@ -2929,7 +2990,7 @@ function hbHub(){
  return`<div class="hbh" style="border-color:${mc}"><div style="text-align:left"><div class="hbt" style="color:${mc}">${hmEsc(S.name)}</div><div class="sm">${sc(`${hmEsc(sub)}`)}</div></div><div class="hbc"><span class="sm">${sc(`CREDITS`)}</span><b>${S.credits}</b></div></div>
  <div class="hbr">RECORD ${hbRec(r)}${rank}</div>
  <div class="card hbn"><h3>${label} - ${siteTxt(o.home)}</h3><div class="big" style="color:${o.col}">${o.name}</div>${note?`<div class="sm">${sc(`${note}`)}</div>`:''}
- <div class="hbm">${hbMatch('YOU',mc,hbOff(),S.r.def)}<div class="vs">VS</div>${hbMatch('THEM',o.col,o.off,o.def)}</div>
+ <div class="hbm">${hbMatch('YOU',mc,hbOff(),S.r.def)}<div class="vs">VS</div>${hbMatch('THEM',o.col,o.off,o.def)}</div>${S.std?stdOppLine(o):''}
  <p style="margin-top:.6em">${sc(`${S.last?'LAST: '+S.last:'FIRST GAME OF THE SEASON'}`)}</p></div>
  ${gsRow()}<div class="row hbp"><button class="btn" data-act="play">PLAY GAME</button>${L?'<button class="btn alt" data-act="sim">SIM GAME</button>':''}</div>
  <div class="card hbw"><h3>TO DO</h3><div class="hbtd">${todo.join('')}</div></div>${dv}`}
@@ -2956,6 +3017,7 @@ function openSet(){
  <div class="card hbw"><h3>THIS LEAGUE</h3>
  <div class="stw"><div class="row"><span class="sm">${sc(`DRIVE`)}</span><button class="btn xs ${S.flip!==false?'alt':''}" data-dir="0">RIGHT &gt;</button><button class="btn xs ${S.flip!==false?'':'alt'}" data-dir="1">&lt; LEFT</button></div><div class="sm spdn">${sc(`WHICH WAY YOUR OFFENSE DRIVES ON SCREEN.`)}</div></div>
  <div class="stw"><div class="row"><span class="sm">${sc(`LEVEL`)}</span><button class="btn xs alt" data-dl="-1">-</button><span class="sm">${sc(`${DIFF()} ${dName()}`)}</span><button class="btn xs alt" data-dl="1">+</button></div><div class="sm spdn">${sc(`HOW HARD THE OPPONENT PLAYS. IT COUNTS FOR THE RECORD.`)}</div></div>
+ ${S.std?`<div class="stw"><div class="row"><span class="sm">${sc(`RELIEF`)}</span><button class="btn xs ${stdRelief()?'':'alt'}" data-rl="1">ON</button><button class="btn xs ${stdRelief()?'alt':''}" data-rl="0">OFF</button></div><div class="sm spdn">${sc(`EASIER GAMES FOR A WEAK TEAM: IF YOUR TEAM IS WEAKER THAN THE LEAGUE AVERAGE, THE OPPONENT PLAYS A LITTLE WEAKER. TAKES EFFECT AT THE NEXT DRIVE.`)}</div></div>`:''}
  <div class="stw"><div class="row"><span class="sm">${sc(`QUARTER`)}</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'':'alt'}" data-q="${q}">${q}S</button>`).join('')}</div><div class="sm spdn">${sc(`HOW LONG EACH QUARTER RUNS.`)}</div></div></div>
  <div class="card hbw"><h3>THIS DEVICE</h3>${stGroup()}</div>
  `;
@@ -2963,7 +3025,8 @@ function openSet(){
 $('gset').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
  if(d.dl){S.diff=clamp(DIFF()+ +d.dl,1,10);save();openSet()}
  else if(d.dir!=null){S.flip=d.dir==='1';save();openSet()}
- else if(d.q){S.qLen=+d.q;save();openSet()}};
+ else if(d.q){S.qLen=+d.q;save();openSet()}
+ else if(d.rl!=null&&S.std){stdSetRelief(d.rl==='1');openSet()}};
 /* ---------- v2.01 UI step 2: the nav shell. One function (shDraw) draws the nav, the header and the sub-tab strip for every DESTINATION screen (SHD in p1.js); the CSS is the "nav shell" block at the end of head.html.
    Which tab is lit is a pure function of UI.scr (and HOME.tab on the home screen), so a tile, the nav and a test all go through the same openers (renderHub, lgOpenStand, openCoach, openLook, openHelp, glOpen, openDesigner, openSet, openExh, openMenu) and nothing has to be kept in sync. ---------- */
 const SHL={tm:'coach',mo:'gset'}; /* the last TEAM and MORE screen, for the tab (v2.05: TEAM = coach | look, MORE = gset | exh | help) */
@@ -4076,19 +4139,24 @@ function odCut(out){
 /* v2.14: UPGRADES MAKE THE OPPONENT'S DRIVES BEHAVE AS IF THE LEVEL WERE HIGHER. upSpent() = the credits spent on the ratings that decide the opponent's drives: RUNNING BK, O-LINE and DEFENSE (S.r.rb, S.r.ol, S.r.def) and the roster's QB arm and accuracy and WR1, WR2, WR3 speed and catching (S.ro, if it exists; it is never created here). TE and kicker are not counted. A rating v has cost the sum of upCost(r) for r = 4 .. v-1 (4 = 0, 5 = 3, 6 = 7, 7 = 12, 8 = 17, 9 = 23, 10 = 30); 4 or less counts 0. Worked out from the current ratings at every drive; nothing is saved. */
 const UPSHIFT=4.5; /* levels of extra difficulty per 100 credits spent */
 const UPCAP=6;     /* the most extra levels the upgrades can add */
+/* v2.25 RELIEF (Standard league option S.stx.relief = 1, EASIER GAMES FOR A WEAK TEAM): teamPower() may go below 0 and the shift below 0. One place to tune: */
+const RELIEF_SLOPE=10;  /* v2.28: was 4.5 (bots chat measurement).  levels of EASIER play per 100 credits-equivalent below the league average (the same as UPSHIFT to start) */
+const RELIEF_CAP=-3;    /* the most extra levels of relief (a negative shift) */
 function upSpent(){
  const one=v=>{let t=0;for(let r=4;r<v;r++)t+=upCost(r);return t},o=S.ro;let t=one(S.r.rb)+one(S.r.ol)+one(S.r.def);
  if(o){t+=one(o.qb.arm)+one(o.qb.acc);for(let i=0;i<3;i++)t+=one(o.wr[i].spd)+one(o.wr[i].cat)}
  return t}
 /* v2.24: teamPower() = the ONE number the opponent's difficulty shift reads (credits-equivalent). Simple leagues (NFL, college, anything that is not Standard): exactly upSpent(), the same code as before (the AI teams sit at rating 4 = 0 credits, so "above the league" and "credits spent" are the same). Standard league: my team above the AVERAGE of the other 7 teams, in credits, never below 0 (std.js stdPower). Worked out fresh at every drive; nothing is saved. */
 function teamPower(){return S&&S.std?stdPower():upSpent()}
+/* v2.25: the opponent's shift in levels = the ONE place teamPower() is turned into levels. Zero or above: as in v2.24 (UPSHIFT x teamPower / 100, at most UPCAP). Below zero (only with RELIEF ON in a Standard league, otherwise teamPower is never negative): RELIEF_SLOPE x teamPower / 100, at least RELIEF_CAP. */
+function upShift(){const t=teamPower();return t>=0?Math.min(UPCAP,UPSHIFT*t/100):Math.max(RELIEF_CAP,RELIEF_SLOPE*t/100)}
 function simOpp(start,call){
  const o=G.opp,edge=o.off-S.r.def,fb=(start-25)*(start>25?.0100:.0075),fbF=(start-25)*(start>25?.0033:.0025); /* v1.59: where the drive starts matters about twice as much for scoring; v1.95: a good start (past their own 25) is worth about a third more (.0100 TD and .0033 FG per yard); a bad start is unchanged */
  const k=DK(); /* v1.53: difficulty also moves the opponent's scoring drives (5 = unchanged) */
  /* v1.55: a better opponent offense: higher base chances, a steeper rating edge, a two-minute drill when it trails late and clock-killing when it leads */
  const late=G.clock<=G.qLen*1.2,trail=G.op<G.me,lead=G.op>G.me;
  const ha=G.home===false?.025:G.home===true?-.025:0; /* v1.56: the opponent scores a little less on your field */
- const sh=Math.min(UPCAP,UPSHIFT*teamPower()/100); /* v2.24: teamPower() is the only input (was upSpent()); v2.14: upgrades count as extra levels in the opponent's touchdown chance (a default team has sh = 0) */
+ const sh=upShift(); /* v2.25: upShift() (v2.24: min(UPCAP, UPSHIFT x teamPower / 100)); v2.24: teamPower() is the only input (was upSpent()); v2.14: upgrades count as extra levels in the opponent's touchdown chance (a default team has sh = 0) */
  let pTD=clamp(.32+edge*.052+fb+.03*(k+sh)+ha+(late&&trail?.06:0),.08,.75),pFG=clamp(.15+edge*.008+.006*k+fbF,.07,.3),pTO=clamp(.095-edge*.012-.008*k,.03,.2);
  if(call){const f=dcFactors(call.sch,call.style,late&&trail);pTD=clamp(pTD*f[0],.08,.75);pFG=clamp(pFG*f[1],.07,.3);pTO=clamp(pTO*f[2],.03,.2)} /* v1.83: CALL YOUR DEFENSE, only with a called scheme; the same clamps as above */
  /* v1.95: the clock. A scoring drive needs time: with less than TMIN seconds left in the half (or the game) the odds of a touchdown or field goal fall off fast (6 s left is about 1.2% of normal; 0 s is zero). Overtime has its own clock and is not limited. Applied after the clamps above on purpose so the .08 floor cannot bring the odds back. */
@@ -5695,6 +5763,6 @@ function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return
 document.addEventListener('pointerup',fsTry,{capture:true});
 UI.ready=true;fit();openMenu();olBoot();
 requestAnimationFrame(frame);
-window.__pp={LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:()=>Math.min(UPCAP,UPSHIFT*teamPower()/100),teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
+window.__pp={LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:upShift,upShift,stdRelief,stdSetRelief,stdCostR,stdOppLine,RELIEF_SLOPE,RELIEF_CAP,STD_NEAR,teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdCur,mult:m}},setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
 })();
 </script></body></html>
