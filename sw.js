@@ -2,7 +2,7 @@
    BUMP CACHE_VERSION whenever you change sw.js, the manifest, an icon or the font (anything in PRECACHE other than index.html).
    index.html itself is fetched network-first, so a new index.html reaches players on their next online visit even without a bump;
    bumping on every release is still harmless and keeps the cache tidy. */
-const CACHE_VERSION = 'pp-v1';
+const CACHE_VERSION = 'pp-v2';
 const CACHE = 'pixel-pigskin-' + CACHE_VERSION;
 const PRECACHE = [
   './',
@@ -14,6 +14,9 @@ const PRECACHE = [
   './icons/apple-touch-icon.png',
   './fonts/press-start-2p-latin-400-normal.woff2'
 ];
+
+const BASE = new URL('./', location).pathname;
+const OWN = new Set(PRECACHE.map(u => new URL(u, location).pathname));
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.all(PRECACHE.map(u =>
@@ -32,7 +35,10 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;               /* never touch other origins */
-  const isPage = req.mode === 'navigate' || url.pathname.endsWith('/index.html') || url.pathname === new URL('./', location).pathname;
+  /* Only THE GAME's own files are handled here (the PRECACHE list). Anything else on this site, such as hq.html, pc.html, a pc/ folder,
+     their scripts or a test page, is a different app: leave it completely alone (never cached, never answered, never saved over the game page). */
+  if (!OWN.has(url.pathname)) return;
+  const isPage = url.pathname === BASE || url.pathname === BASE + 'index.html';
   if (isPage) {
     /* network first so updates arrive, cache fallback so it works offline */
     e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => {
