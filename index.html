@@ -531,7 +531,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="2.32"; /* v2.32: no game change (tests only: drvoff pinned to the .611 speed, hlp over http). Helmet logo, jersey trim and number are still drawn in the play designer and the kick scene, so their LOOK rows stay. */ /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.33"; /* v2.33: LINKED LEAGUES, the player side (src/lk.js): join a commissioner's league by its code, pull it, play and send games. v2.32: no game change (tests only: drvoff pinned to the .611 speed, hlp over http). Helmet logo, jersey trim and number are still drawn in the play designer and the kick scene, so their LOOK rows stay. */ /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -621,7 +621,7 @@ function rebuildIdx(){const out=[];try{for(let i=0;i<localStorage.length;i++){co
  out.sort((a,b)=>(b.upd||0)-(a.upd||0));wrIdx(out);return out}
 const rdIdx=()=>{const t=lsGet(IDX);if(t==null)return[];try{const a=JSON.parse(t);if(Array.isArray(a))return a}catch(e){}return rebuildIdx()};
 const wrIdx=a=>lsSet(IDX,JSON.stringify(a));
-const slotInfo=s=>{const L=s.lg||(s.std?stdView(s):null);return{id:s.id,name:L?L.name:s.name,team:s.name,fmt:L?lgCfg(L).tag:'CLASSIC 8 GAMES',season:s.season,w:s.w,l:s.l,t:s.t,champs:s.champs||0,upd:Date.now()}}; /* v2.23: a Standard league (S.std) is read through its adapter */
+const slotInfo=s=>{const L=s.lg||(s.std?stdView(s):null);return{id:s.id,name:L?L.name:s.name,team:s.name,fmt:L?lgCfg(L).tag:'CLASSIC 8 GAMES',season:s.season,w:s.w,l:s.l,t:s.t,champs:s.champs||0,upd:Date.now(),...(s.lnk&&s.lnk.code?{lk:s.lnk.code}:{})}}; /* v2.23: a Standard league (S.std) is read through its adapter */
 /* write one slot safely: stage in .next and read it back, then rotate the old good value into .bak, then write the real key */
 function writeSlot(o){
  const key=SLOT+o.id,nx=key+'.next';let json;
@@ -696,7 +696,7 @@ const UIM=new Set(['menu','look','help','hub','post','season','stand','book','lo
 const SHD=new Set(['menu','look','help','hub','stand','book','exh','coach','gset']);
 const SHM={look:'menu',help:'menu'}; /* v2.05: LOOK and HELP opened from TEAM and MORE are the home screen's #menu element, drawn inside the shell with their own screen ids (so the nav lights TEAM or MORE) */
 const UI={scr:'menu',ready:false,sh:true,bare:false,stS:false};
-function show(id){const el=SHM[id]||id;['menu','hub','post','season','stand','book','lock','half','exh','pd','pcs','dcs','coach','gset','ol'].forEach(s=>$(s).classList.toggle('on',s===el));UI.scr=id||'';if(el!=='menu')czShClose(true);if(id!=='stand')UI.stS=false;UI.sh=SHD.has(id);UI.bare=UI.sh&&UI.stS;shDraw();if(UI.ready)fit();if(id==='menu'||id==='hub')nvBar()}
+function show(id){const el=SHM[id]||id;['menu','hub','post','season','stand','book','lock','half','exh','pd','pcs','dcs','coach','gset','ol'].forEach(s=>$(s).classList.toggle('on',s===el));UI.scr=id||'';if(el!=='menu')czShClose(true);lnShown(el);if(id!=='stand')UI.stS=false;UI.sh=SHD.has(id);UI.bare=UI.sh&&UI.stS;shDraw();if(UI.ready)fit();if(id==='menu'||id==='hub')nvBar()}
 
 function renderHub(){
  if(S.lg)return lgHub();
@@ -735,8 +735,9 @@ const ROS_DEF=()=>{const n=S.names;return[
  {h:'KICKER',who:n.k,st:[['k.acc','ACCURACY',v=>'SMALLER MISS SPREAD'],['k.rng','RANGE',v=>'KICKS UP TO '+(40+3.5*v).toFixed(0)+' YDS']]}]};
 const roGet=(o,p)=>p.split('.').reduce((a,k)=>a[k],o);
 $('hub').onclick=e=>{const b=e.target.closest('button');if(!b)return;
- if(b.dataset.act==='play')gsAsk(()=>S.lg?openLocker():startGame());
- else if(b.dataset.act==='sim')gsAsk(lgSimMine);
+ if(b.dataset.act==='play')gsAsk(()=>S.lnk?lnPlayGo():S.lg?openLocker():startGame());   /* v2.33: a linked league plays through lk.js */
+ else if(b.dataset.act==='sim')gsAsk(()=>S.lnk?lnSimGo():lgSimMine());
+ else if(b.dataset.ln)lnHubClick(b.dataset.ln);
  else if(b.dataset.go==='up'){openCoach();shFocus('#sub')} /* v2.05: the TO DO rows use the same openers as the nav (a screen with sub-tabs puts the focus on them) */
  else if(b.dataset.go==='book')shGo('book')
  else if(b.dataset.go==='stand'){lgOpenStand();shFocus('#sub')}};
@@ -2222,6 +2223,7 @@ function lgNextOpp(){
  return{name:t.name,off:t.off,def:t.def,col:t.col,uni:lgUni(t),id,home}}
 const lgLabel=()=>S.phase==='reg'?'WEEK '+(S.week+1)+' OF '+LGC().games:LGC().rnd[LG().po.round];
 function lgAfterGame(win,tie,cr,mp,op,src){
+ if(S.lnk)return lnAfterGame(win,tie,cr,mp,op,src);   /* v2.33: a linked league queues the result and waits for the commissioner */
  const L=LG();
  if(S.phase==='reg'){lgFinishWeek(S.week,mp,op,src);if(S.week>=LGC().games)lgEndRegular()}
  else{
@@ -2237,6 +2239,7 @@ function lgSimMy(po){
  const[pa,pb]=LGE.game(L,LGE.leagueSeed(L),S.season,reg?S.week:100+L.po.round,gi,lgRt,g[0],g[1],po,hfa);
  return g[0]===L.me?[pa,pb]:[pb,pa]}
 function lgSimMine(){
+ if(S.lnk)return lnSimGo();
  const L=LG(),po=S.phase==='playoff',o=lgNextOpp(),lbl=lgLabel();
  const[mp,op]=lgSimMy(po),win=mp>op,tie=mp===op&&!po;
  let cr=win?3:tie?2:1;if(po&&win)cr+=2;
@@ -2246,6 +2249,7 @@ function lgSimMine(){
  <div style="font-size:1.4em">${S.name} ${mp} - ${op} ${o.name}</div><p style="color:#ffd400">${sc(`+${cr} COACH CREDITS EARNED`)}</p><button class="btn" id="bPostGo">CONTINUE</button>`;
  $('bPostGo').onclick=()=>{if(S.over)showSeasonEnd();else renderHub()};show('post')}
 function lgNewSeason(){
+ if(S.lnk)return;   /* v2.33: the commissioner starts the next season */
  if(S.std)return stdNewSeason();
  const L=LG();S.season++;
  for(const t of L.teams){const m=3.7+.25*(S.season-1);t.off=clamp(Math.round((t.off*.8+m*.2+lgGauss()*.5)*10)/10,2,9.4);t.def=clamp(Math.round((t.def*.8+m*.2+lgGauss()*.5)*10)/10,2,9.4)}
@@ -2301,11 +2305,11 @@ function lgStand(){
     sd.map((id,i)=>`<tr${id===me?' class="me"':''}><td class="rk">${i+1}</td>${who(id)}<td>${(col&&(L.po.cc||[]).includes(id)?'(CC) ':'')+(L.po.alive[c].includes(id)||L.champ===id?'IN':'OUT')}</td></tr>`).join('')+'</tbody></table></div></section>').join('')+
     (L.champ!=null?`<p class="stp gold">${sc(`CHAMPION: ${T[L.champ].name}`)}</p>`:`<p class="stp">${sc(`NEXT ROUND: ${L.po.round<4?cf.rnd[L.po.round]:''}`)}</p>`)}
  else{
-  body=`<section class="sdt"><h3>WEEK ${L.scores.w} RESULTS</h3><div class="sdc"><table class="gmt"><tbody>`+L.scores.games.map(([a,b,pa,pb])=>`<tr${a===me||b===me?' class="me"':''}>${who(a)}<td class="sc">${pa} - ${pb}</td>${who(b)}</tr>`).join('')+'</tbody></table></div></section>'}
+  body=`<section class="sdt"><h3>WEEK ${L.scores.w} RESULTS</h3><div class="sdc"><table class="gmt"><tbody>`+L.scores.games.map(([a,b,pa,pb,sr])=>`<tr${a===me||b===me?' class="me"':''}>${who(a)}<td class="sc">${pa} - ${pb}${S.lnk&&sr&&sr!=='sim'?' <small>H</small>':''}</td>${who(b)}</tr>`).join('')+'</tbody></table></div></section>'}
  const kb=`<button type="button" class="sb keyb${ST.key?' on':''}" data-st="key" aria-expanded="${!!ST.key}">KEY</button>`;
  const key=ST.key?`<dl class="lgkey">${(LG_KEYS[ST.tab]||[]).map(([a,b])=>`<dt>${a==='STAR'?youI:a}</dt><dd>${sc(b)}</dd>`).join('')}</dl>`:'';
  const bare=UI.stS?`<div class="stbare"><button type="button" class="sb" data-st="back" aria-label="BACK">BACK</button><div class="seg" role="tablist" aria-label="Section">${sub.map(([k,l])=>`<button type="button" role="tab" class="sb${ST.tab===k?' on':''}" aria-selected="${ST.tab===k}" data-st="${k}">${l}</button>`).join('')}</div></div>`:'';
- $('stand').innerHTML=`${bare}<div class="stbody"><div class="sttool">${seg}${kb}</div>${key}${body}</div>`}
+ $('stand').innerHTML=`${bare}<div class="stbody">${lnTag()}<div class="sttool">${seg}${kb}</div>${key}${body}</div>`}
 $('stand').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.st;if(!k)return;
  if(k==='back'){if(S.over&&$('season').innerHTML)showSeasonEnd();else renderHub();return}
  if(k==='key')ST.key=!ST.key;else if(/^c\d+$/.test(k))ST.cf=+k.slice(1);else ST.tab=k;
@@ -2339,14 +2343,15 @@ function stdView(s){
  const rec=L.teams.map(t=>({w:t.rc[0],l:t.rc[1],t:t.rc[2],pf:t.rc[3],pa:t.rc[4],cw:t.rc[0],cl:t.rc[1]}));                                      /* one conference: every game is a conference game */
  const res=[];let last=-1;
  for(const r of L.res){if(r.wk>=nG)continue;if(r.wk>last)last=r.wk;
-  if(r.h===me||r.a===me){const mp=r.h===me?r.sc[0]:r.sc[1],op=r.h===me?r.sc[1]:r.sc[0];res[r.wk]=(mp>op?'W ':mp<op?'L ':'T ')+mp+'-'+op}}
- const scores=last>=0?{w:last+1,games:L.res.filter(r=>r.wk===last).map(r=>[r.h,r.a,r.sc[0],r.sc[1]])}:null;
+  if(r.h===me||r.a===me){const mp=r.h===me?r.sc[0]:r.sc[1],op=r.h===me?r.sc[1]:r.sc[0];res[r.wk]=(mp>op?'W ':mp<op?'L ':'T ')+mp+'-'+op+(s.lnk&&r.src!=='sim'?' H':'')}}
+ const scores=last>=0?{w:last+1,games:L.res.filter(r=>r.wk===last).map(r=>s.lnk?[r.h,r.a,r.sc[0],r.sc[1],r.src]:[r.h,r.a,r.sc[0],r.sc[1]])}:null;
  let po=null,champ=null;const seed={};
- if(L.po){const seeds=L.po.seeds,pr=L.res.filter(r=>r.wk>=nG),r0=pr.filter(r=>r.wk===nG),win=r=>r.sc[0]>r.sc[1]?r.h:r.a;
+ const po0=L.po||(s.lnk&&L.wk>=nG?{seeds:STD.nextGames(L).seeds,ch:null}:null);   /* v2.33: a linked league's record is HQ's: after week 14 the playoffs are not opened yet (L.po null); the seeds come from the standings and nothing is changed */
+ if(po0){const seeds=po0.seeds,pr=L.res.filter(r=>r.wk>=nG),r0=pr.filter(r=>r.wk===nG),win=r=>r.sc[0]>r.sc[1]?r.h:r.a;
   seeds.forEach((id,i)=>seed[id]=i+1);
-  const round=L.po.ch!=null?2:r0.length>=2?1:0;
-  const alive=round===0?seeds.slice():round===1?r0.map(win).sort((x,y)=>seeds.indexOf(x)-seeds.indexOf(y)):[L.po.ch];
-  champ=L.po.ch!=null?L.po.ch:null;
+  const round=po0.ch!=null?2:r0.length>=2?1:0;
+  const alive=round===0?seeds.slice():round===1?r0.map(win).sort((x,y)=>seeds.indexOf(x)-seeds.indexOf(y)):[po0.ch];
+  champ=po0.ch!=null?po0.ch:null;
   po={seeds:[seeds.slice()],alive:[alive],round}}
  const hist=L.hist.map(h=>({s:h.s,id:h.ch}));
  if(champ!=null&&!hist.some(h=>h.s===L.ssn))hist.push({s:L.ssn,id:champ});
@@ -2382,7 +2387,7 @@ const stdGame=(L,rt,wk,gi,h,a,po)=>LGE.game(STD_STUB,L.rs,L.ssn,wk,gi,rt,h,a,po,
 /* v2.31: what to play next comes from the shared lg-std (STD.nextGames): the playoff round (0 = semifinals, 1 = the final) and its pairs, better seed first (the home team); [] when no playoff round is open */
 const stdRound=L=>{const n=STD.nextGames(L);return n.kind==='po'?n.round:0};
 function stdPoPairs(L){
- if(!L.po||L.po.ch!=null)return[];
+ if(L.po?L.po.ch!=null:!(S&&S.lnk))return[];
  const n=STD.nextGames(L);return n.kind==='po'?n.pairs:[]}
 /* my result goes into the week; every other game of the week is the engine's, from its own stream (week position, pair position). v2.31: the shared lg-std does the recording (STD.playWeekWith); a SIM GAME is simply no entry. */
 function stdFinishWeek(w,mp,op,src){
@@ -2408,6 +2413,7 @@ const stdOrder=ids=>STD.rank(S.std,0).filter(i=>ids.includes(i));
 
 /* ----- the offseason (my team included): aging, growth, XP, retirement, rookies, edges. Returns nothing; the hub shows one line about my starters. ----- */
 function stdNewSeason(){
+ if(S.lnk)return;   /* v2.33: in a linked league the COMMISSIONER runs the offseason; the game only pulls it */
  const L=S.std,me=S.stm;
  if(L.po&&L.po.ch==null)stdSimRestPo();
  const rep=STD.offseason(L,STD.newCtx()).report[me],n=rep.rookies.length;   /* v2.31: the count comes from the offseason's own report */
@@ -2432,6 +2438,7 @@ function stdTarget(kind,key){
 const stdCanUp=(kind,key)=>{const x=stdTarget(kind,key);return!!x&&x.ps.every(Boolean)&&x.ps.some(p=>p.rt[x.rk]<p.pt-1e-9)};
 /* returns true when bought (credits taken); false with a plain message when nobody in the target can rise */
 function stdBuy(kind,key,cost){
+ if(S.lnk)return lnBuy(kind,key,cost);   /* v2.33: a linked league spends credits through lk.js */
  const x=stdTarget(kind,key);
  if(!stdCanUp(kind,key)){notice(x&&x.ps.length>1?'ALL THESE PLAYERS ARE AT THEIR POTENTIAL':'THIS PLAYER IS AT HIS POTENTIAL');return false}
  for(const p of x.ps)p.rt[x.rk]=Math.min(10,stdR1(Math.min(p.pt,p.rt[x.rk]+1)));
@@ -2460,6 +2467,674 @@ function stdPower(s){s=s||S;
 const STD_NEAR=0.3;
 function stdOppLine(o){const me=(hbOff()+S.r.def)/2,d=(o.off+o.def)/2-me,w=d<=-STD_NEAR?'WEAKER':d>=STD_NEAR?'STRONGER':'SIMILAR';
  return`<div class="sm" style="margin-top:.5em">${sc(`THEIR OFF ${stdR1(o.off)} DEF ${stdR1(o.def)} - ${w} THAN YOUR TEAM`)}</div>`}
+/* ---------- v2.33: LINKED LEAGUES, the PLAYER side (src/lk.js). A friend joins the commissioner's league by its 6-character code, plays his own team's games by hand,
+   sends the results and spends credits on his team; the commissioner (HQ, a separate page) advances the weeks. The game stays fully playable alone, offline and with no login: nothing here runs
+   for a league without S.lnk, and Simple and local Standard leagues never touch this file's code paths.
+   The link lives in its OWN save field S.lnk = { lg, code, idx, uid, nm, lastMeta, lastSync, st, queue, cs, cw, note } (never inside the league record S.std), so the league record stays exactly what HQ's buildLeague makes.
+   (1) LNC: lines copied UNCHANGED from HQ's cloud layer (D:\PigskinHQ\src\part-cloud.js, HQ 0.5): the errors, the Firestore adapter, the document <-> league functions (buildLeague with the shared lg-std),
+       the paths, the code reader and the reader of all parts. A test compares the source text of every copied function with HQ's.
+   (2) the player's own code: join, pull, derive the game's week state from the league, the screens, the hooks. Prefix ln / LNK; the old file ol.js already uses lk for the online link, so this file does not. ---------- */
+const LNC=(function(){
+var CLOUD_SDK_VERSION = '10.14.1';           /* the same Firebase web SDK version the game loads */
+var CLOUD_FORMAT = 1;                        /* meta.v: the format of the cloud documents written by HQ */
+/* the league code: 6 characters. The rules accept [A-HJKMNP-Z2-9]; HQ also leaves out B, S and Z (look like 8, 5 and 2) */
+var CODE_ALPHABET = 'ACDEFGHJKMNPQRTUVWXY23456789';
+var CODE_RULE = /^[A-HJKMNP-Z2-9]{6}$/;
+var LG_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+var NTEAMS = 8;
+/* ---------- errors ---------- */
+function CloudError(kind, text, cause){ var e = new Error(text); e.kind = kind; e.cause = cause || null; e.cloud = true; return e; }
+function classify(e){
+  if (e && e.cloud) return e.kind;
+  var c = String((e && (e.code || e.name)) || ''), m = String((e && e.message) || '');
+  if (/permission-denied|PERMISSION_DENIED/i.test(c + ' ' + m)) return 'denied';
+  if (/resource-exhausted|quota/i.test(c + ' ' + m)) return 'quota';
+  if (/already-exists/i.test(c)) return 'exists';
+  if (/unauthenticated/i.test(c)) return 'denied';
+  if (/unavailable|deadline-exceeded|network|offline|failed to fetch|timeout/i.test(c + ' ' + m)) return 'net';
+  return 'other';
+}
+function kindText(kind){
+  if (kind === 'denied') return 'The cloud refused this. Either you are not signed in the right way (the commissioner tools need a Google sign-in), or the rules for linked leagues are not published yet, or this change is not allowed.';
+  if (kind === 'quota') return 'The free daily limit of the cloud was reached. Nothing is lost; try again tomorrow.';
+  if (kind === 'net') return 'The connection to the cloud failed. Check the internet connection and try again.';
+  return 'The cloud reported a problem.';
+}
+function cloudMsg(e){ return e && e.cloud && e.kind !== 'other' && e.message ? e.message : (kindText(classify(e)) + (e && e.message && classify(e) === 'other' ? ' (' + e.message + ')' : '')); }
+
+/* ---------- (1) the adapter over the Firestore SDK (modular API: X = firebase-firestore) ---------- */
+/* paths are plain strings 'lgs/ID/teams/3'. Every call returns plain data: { id, exists, data } and so on. */
+function makeSdkAdapter(X, db){
+  function ref(p){ return X.doc(db, p); }
+  function snap(s){ var ex = s.exists(); return { id: s.id, exists: ex, data: ex ? s.data() : null }; }
+  function applyOp(w, o){
+    if (o.op === 'set') w.set(ref(o.path), o.data);
+    else if (o.op === 'update') w.update(ref(o.path), o.data);
+    else if (o.op === 'delete') w.delete(ref(o.path));
+    else throw new Error('hq: unknown batch op ' + o.op);
+    return w;
+  }
+  return {
+    get: function(p){ return X.getDoc(ref(p)).then(snap); },
+    list: function(p){ return X.getDocs(X.collection(db, p)).then(function(s){ return s.docs.map(function(d){ return { id: d.id, data: d.data() }; }); }); },
+    set: function(p, data){ return X.setDoc(ref(p), data); },
+    update: function(p, data){ return X.updateDoc(ref(p), data); },
+    del: function(p){ return X.deleteDoc(ref(p)); },
+    batch: function(ops){ var b = X.writeBatch(db); ops.forEach(function(o){ applyOp(b, o); }); return b.commit(); },
+    transaction: function(fn){
+      return X.runTransaction(db, function(t){
+        return fn({
+          get: function(p){ return t.get(ref(p)).then(snap); },
+          set: function(p, data){ t.set(ref(p), data); },
+          update: function(p, data){ t.update(ref(p), data); },
+          del: function(p){ t.delete(ref(p)); }
+        });
+      });
+    },
+    onSnapshot: function(p, cb, errCb){ return X.onSnapshot(ref(p), function(s){ cb(snap(s)); }, errCb || function(){}); }
+  };
+}
+
+/* ---------- (2) pure functions: Standard league <-> cloud documents ---------- */
+function bad(msg){ return CloudError('data', 'hq: ' + msg); }
+function encPlayer(p){
+  var cr = []; p.cr.forEach(function(x){ cr.push(x[0], x[1]); });
+  return { id: p.id, nm: p.nm, ps: p.ps, sl: p.sl, rt: Object.assign({}, p.rt), ag: p.ag, pt: p.pt, xp: p.xp, st: p.st, cr: cr };
+}
+function decPlayer(q, rules){
+  var keys = rules.ratingKeys[q.ps];
+  if (!keys || !q.rt || !Array.isArray(q.cr)) throw bad('a player record is damaged (' + q.id + ')');
+  var rt = {};
+  keys.forEach(function(k){ if (typeof q.rt[k] !== 'number') throw bad('a rating is missing (' + q.id + ' ' + k + ')'); rt[k] = q.rt[k]; });
+  var cr = []; for (var i = 0; i + 1 < q.cr.length; i += 2) cr.push([q.cr[i], q.cr[i + 1]]);
+  return { id: q.id, nm: q.nm, ps: q.ps, sl: q.sl, rt: rt, ag: q.ag, pt: q.pt, xp: q.xp, st: q.st, cr: cr };
+}
+/* a team chunk. id is a STRING in the cloud (the candidate rules need it); rc is always the season-start zeros (the season's
+   results come from the week documents); rtd = ["season:playerId", ...] the retired ids this chunk keeps for the league */
+/* bl = the BASELINE ratings of every player as the commissioner wrote them: { playerId: [rating values in rules.ratingKeys order] }.
+   The slot owner may change only ro, cr and up (candidate rules), so bl is what the audit compares the roster with. */
+function blOf(ro, rules){
+  var bl = {};
+  ro.forEach(function(p){ bl[p.id] = rules.ratingKeys[p.ps].map(function(k){ return p.rt[k]; }); });
+  return bl;
+}
+function encTeam(t, rtd, up, rules){
+  rules = rules || STD_RULES;
+  var d = { id: String(t.id), nm: t.nm, cf: t.cf, dv: t.dv, ow: t.ow, lk: { c: t.lk.c, d: t.lk.d }, cr: t.cr, ed: t.ed,
+    rc: [0, 0, 0, 0, 0], ro: t.ro.map(encPlayer), rtd: (rtd || []).slice(), bl: blOf(t.ro, rules) };
+  if (up && up.length) d.up = up.slice();
+  return d;
+}
+function decTeam(d, rules, idx){
+  if (!d || String(d.id) !== String(idx) || !Array.isArray(d.ro) || !d.lk) throw bad('team chunk ' + idx + ' is damaged or missing');
+  return { id: idx, nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0],
+    ro: d.ro.map(function(q){ return decPlayer(q, rules); }) };
+}
+function rtdStrings(pairs){ return pairs.map(function(x){ return x[0] + ':' + x[1]; }); }
+function rulesOf(meta){
+  var r = typeof meta.rules === 'string' ? JSON.parse(meta.rules) : meta.rules;
+  if (!r || !r.ratingKeys) throw bad('the league rules are missing');
+  return r;
+}
+function metaOf(L, uid, now){
+  return { v: CLOUD_FORMAT, nm: L.nm, rs: L.rs, season: L.ssn, wk: L.wk, ph: L.ph, rules: JSON.stringify(L.rules), commish: uid,
+    opts: {}, hold: false, ovr: [], updatedAt: now };
+}
+function weekKey(season, wk){ return season + '-' + wk; }
+/* a finished week or playoff round as stored: rows are MAPS { a: home team, b: away team, pa: home points, pb: away points, src } */
+function weekDocOf(rows, uid, now){
+  return { games: rows.map(function(r){ return { a: r.h, b: r.a, pa: r.sc[0], pb: r.sc[1], src: r.src }; }), by: uid, t: now };
+}
+function gamesOfDoc(d){
+  if (!d || !Array.isArray(d.games)) throw bad('a week document is damaged');
+  return d.games.map(function(g){ return { h: g.a, a: g.b, sc: [g.pa, g.pb], src: g.src }; });
+}
+/* hist: one doc per finished season: { ch, ru, st: [ {w,l,t,pf,pa} x8 ], t } */
+function histDocOf(row, now){
+  return { ch: row.ch, ru: row.ru, st: row.st.map(function(x){ return { w: x[0], l: x[1], t: x[2], pf: x[3], pa: x[4] }; }), t: now };
+}
+function histRowOf(season, d){
+  if (!d || !Array.isArray(d.st)) throw bad('a history document is damaged (season ' + season + ')');
+  return { s: season, ch: d.ch, ru: d.ru, st: d.st.map(function(x){ return [x.w, x.l, x.t, x.pf, x.pa]; }) };
+}
+
+/* Rebuild the league record L (the shape of lg-std 1.2) from the cloud documents. Nothing is simulated: the stored weeks are applied.
+   meta = the meta doc; teamDocs = 8 chunks (array, index = team); weekDocs = { 'season-week': doc }; histDocs = { 'season': doc } */
+function buildLeague(meta, teamDocs, weekDocs, histDocs){
+  var rules = rulesOf(meta), K = LGSTD.parts.K, season = meta.season;
+  weekDocs = weekDocs || {}; histDocs = histDocs || {};
+  var teams = [], rtdAll = [];
+  for (var i = 0; i < NTEAMS; i++){
+    var d = teamDocs[i];
+    teams.push(decTeam(d, rules, i));
+    (d.rtd || []).forEach(function(s){ var j = s.indexOf(':'); rtdAll.push({ s: Number(s.slice(0, j)), id: s.slice(j + 1), ti: teams.length - 1, n: rtdAll.length }); });
+  }
+  rtdAll.sort(function(a, b){ return a.s - b.s || a.ti - b.ti || a.n - b.n; });
+  var L = { v: 2, dp: 'std', fmt: 'p8', nm: meta.nm, id: 'L' + LGE.seedFor(meta.rs, 0, K.ID, 0).toString(36).slice(0, 5), cmr: null,
+    ssn: season, wk: 0, ph: 'reg', burn: rules.league.burnIn,
+    sch: LGSTD.parts.makeSchedule(STD.stream(meta.rs, season, K.SCHED)), po: null, hist: [], res: [], rs: meta.rs, rules: rules,
+    rtd: rtdAll.map(function(x){ return [x.s, x.id]; }), teams: teams };
+  Object.keys(histDocs).map(Number).sort(function(a, b){ return a - b; }).forEach(function(s){ L.hist.push(histRowOf(s, histDocs[s])); });
+  var nG = L.sch.length, w, applied = 0;
+  for (w = 0; w < nG; w++){ var wd = weekDocs[weekKey(season, w)]; if (!wd) break; STD.applyWeek(L, gamesOfDoc(wd)); applied++; }
+  for (w = applied; w < nG; w++) if (weekDocs[weekKey(season, w)]) throw bad('week ' + (applied + 1) + ' of season ' + season + ' is missing but a later week is stored');
+  var r0 = weekDocs[weekKey(season, 100)], r1 = weekDocs[weekKey(season, 101)];
+  if ((r0 || r1) && applied < nG) throw bad('a playoff round is stored before the regular season is complete');
+  if (r0) STD.applyPlayoffRound(L, gamesOfDoc(r0));
+  if (r1 && !r0) throw bad('the final is stored without the semifinals');
+  if (r1) STD.applyPlayoffRound(L, gamesOfDoc(r1));
+  if (L.wk !== meta.wk || L.ph !== meta.ph) throw bad('the league says week ' + meta.wk + ' (' + meta.ph + ') but the stored weeks give week ' + L.wk + ' (' + L.ph + ')');
+  return L;
+}
+
+var PATH = {
+  meta: function(lg){ return 'lgs/' + lg; },
+  team: function(lg, i){ return 'lgs/' + lg + '/teams/' + i; },
+  slots: function(lg){ return 'lgs/' + lg + '/slots'; },
+  slot: function(lg, i){ return 'lgs/' + lg + '/slots/' + i; },
+  week: function(lg, season, wk){ return 'lgs/' + lg + '/weeks/' + weekKey(season, wk); },
+  sub: function(lg, season, wk, team){ return 'lgs/' + lg + '/subs/' + season + '-' + wk + '-' + team; },
+  hist: function(lg, season){ return 'lgs/' + lg + '/hist/' + season; },
+  code: function(code){ return 'leagueCodes/' + code; }
+};
+function normCode(s){ return String(s == null ? '' : s).toUpperCase().replace(/[\s-]+/g, ''); }
+
+async function readCode(ad, code){
+  code = normCode(code);
+  if (!CODE_RULE.test(code)) throw CloudError('bad', 'A league code has 6 letters and digits (for example K7M2QX).');
+  var g = await ad.get(PATH.code(code));
+  return g.exists ? { code: code, lg: g.data.lg, commish: g.data.commish } : null;
+}
+/* everything needed to rebuild the league after the meta doc is known. cache = { weeks, hist } keeps documents that never change. */
+async function readParts(ad, lg, meta, cache){
+  cache = cache || { weeks: {}, hist: {} };
+  var season = meta.season, i, p = [];
+  for (i = 0; i < NTEAMS; i++) p.push(ad.get(PATH.team(lg, i)));
+  var slotsP = ad.list(PATH.slots(lg));
+  function want(key, path){ if (cache.weeks[key]) return null; return ad.get(path).then(function(g){ if (g.exists) cache.weeks[key] = g.data; }); }
+  var wp = [], nG = 14;
+  for (i = 0; i < Math.min(meta.wk, nG); i++) wp.push(want(weekKey(season, i), PATH.week(lg, season, i)));
+  if (meta.wk >= nG) wp.push(want(weekKey(season, 100), PATH.week(lg, season, 100)));
+  if (meta.wk >= nG + 2) wp.push(want(weekKey(season, 101), PATH.week(lg, season, 101)));
+  for (var s = 1; s < season; s++) (function(s){
+    if (!cache.hist[s]) wp.push(ad.get(PATH.hist(lg, s)).then(function(g){ if (g.exists) cache.hist[s] = g.data; }));
+  })(s);
+  var teamSnaps = await Promise.all(p), slotList = await slotsP;
+  await Promise.all(wp.filter(Boolean));
+  var teamDocs = teamSnaps.map(function(g, k){ if (!g.exists) throw CloudError('data', 'Team ' + (k + 1) + ' of this league is missing in the cloud. The creation of the league was probably interrupted: if you are the commissioner, press RESUME.'); return g.data; });
+  var slots = {}; slotList.forEach(function(d){ slots[d.id] = d.data; });
+  return { teamDocs: teamDocs, slots: slots, weeks: cache.weeks, hist: cache.hist };
+}
+
+function planWeekNo(plan){ return plan.kind === 'reg' ? plan.week : (plan.kind === 'po' ? 100 + plan.round : null); }
+function ovrKey(season, wkNo, gi){ return season + '-' + wkNo + '-' + gi; }
+return{CloudError:CloudError,classify:classify,cloudMsg:cloudMsg,makeSdkAdapter:makeSdkAdapter,buildLeague:buildLeague,decTeam:decTeam,encPlayer:encPlayer,decPlayer:decPlayer,blOf:blOf,
+ rulesOf:rulesOf,weekKey:weekKey,weekDocOf:weekDocOf,gamesOfDoc:gamesOfDoc,histDocOf:histDocOf,histRowOf:histRowOf,PATH:PATH,normCode:normCode,readCode:readCode,readParts:readParts,
+ planWeekNo:planWeekNo,ovrKey:ovrKey,CODE_RULE:CODE_RULE,CODE_ALPHABET:CODE_ALPHABET,NTEAMS:NTEAMS,bad:bad};
+})();
+
+/* ===================================================================================================================
+   (2) the player's side
+   =================================================================================================================== */
+const LNK={ad:null,adDb:null,test:null,w:null,pp:null,busy:false,fun:false,sure:null,fl:null};   /* LNK.test = {ad, uid}: the tests hand in an adapter (HQ's in-memory store or the emulator) and a uid */
+const lnPath=LNC.PATH;
+const lnHostOK=()=>!!LNK.test||cgHostOK();
+const lnKind=e=>e&&e.cgKind?e.cgKind:LNC.classify(e);
+function lnMsg(e){const k=lnKind(e);
+ if(e&&e.cloud&&e.kind!=='other'&&e.kind!=='net'&&e.kind!=='denied'&&e.message)return String(e.message).replace(/^hq: /,'').toUpperCase();
+ return k==='denied'?'THE CLOUD REFUSED THIS. THE RULES FOR LINKED LEAGUES MAY NOT BE PUBLISHED YET.':k==='quota'?'THE FREE DAILY LIMIT OF THE CLOUD WAS REACHED. TRY AGAIN TOMORROW.':k==='net'?'NO CONNECTION. TRY AGAIN WHEN YOU ARE ONLINE.':'THE CLOUD REPORTED A PROBLEM. TRY AGAIN LATER.'}
+/* the connection: the real SDK through the game's own loader and anonymous sign-in (each step has its 10 s limit), or the adapter a test handed in */
+async function lnConn(){
+ if(LNK.test)return{ad:LNK.test.ad,uid:LNK.test.uid};
+ if(!cgHostOK())throw{cgKind:'net'};
+ const s=await cgT(cgLoad()),uid=await cgT(cgUid(s));
+ if(!LNK.ad||LNK.adDb!==s.db){const a=LNC.makeSdkAdapter(s.X,s.db),lim=f=>(...x)=>cgT(f(...x));
+  LNK.ad={get:lim(a.get),list:lim(a.list),set:lim(a.set),update:lim(a.update),del:lim(a.del),batch:lim(a.batch),transaction:a.transaction,onSnapshot:a.onSnapshot};LNK.adDb=s.db}
+ return{ad:LNK.ad,uid}}
+const lnMetaOf=m=>({season:m.season,wk:m.wk,ph:m.ph,ovr:(m.ovr||[]).slice(),hold:!!m.hold,nm:m.nm,u:m.updatedAt||0});
+const lnClock=ms=>{const d=new Date(ms);return isFinite(d)&&ms?cgP2(d.getHours())+':'+cgP2(d.getMinutes()):'NEVER'};
+const lnNG=L=>L.sch.length;
+const lnWkNo=(L,n)=>n.kind==='reg'?n.week:100+n.round;      /* the number in a week document's key: a regular week is its own number, the semifinals 100, the final 101 */
+
+/* ---------- the week state of the game, worked out from the league record (nothing in the record is changed) ---------- */
+function lnDerive(s){
+ const L=s.std,me=s.stm|0,n=STD.nextGames(L),nG=lnNG(L),k=s.lnk||{cs:L.ssn};   /* a league that left the link counts no title again */
+ s.season=L.ssn;
+ if(n.kind==='reg'){s.phase='reg';s.week=L.wk;s.round=0;s.over=null}
+ else{
+  const seeds=n.kind==='po'?n.seeds:L.po.seeds;s.week=nG;
+  if(n.kind==='done')s.over=L.po.ch===me?'champ':seeds.includes(me)?'elim':'missed';
+  else if(!seeds.includes(me)){s.phase='reg';s.round=0;s.over='missed'}
+  else if(n.round===0){s.phase='playoff';s.round=0;s.over=null}
+  else if(n.pairs[0].includes(me)){s.phase='playoff';s.round=1;s.over=null}
+  else{s.phase='playoff';s.round=1;s.over='elim'}
+  if(s.over==='champ'&&k.cs!==L.ssn){k.cs=L.ssn;s.champs=(s.champs|0)+1}}
+ const r=L.teams[me].rc;s.w=r[0];s.l=r[1];s.t=r[2];
+ return s}
+/* my latest result of this season, as the hub's LAST line */
+function lnLast(s){
+ const L=s.std,me=s.stm|0;
+ for(let i=L.res.length-1;i>=0;i--){const r=L.res[i];if(r.h!==me&&r.a!==me)continue;
+  const mp=r.h===me?r.sc[0]:r.sc[1],op=r.h===me?r.sc[1]:r.sc[0],o=L.teams[r.h===me?r.a:r.h].nm;
+  return(mp>op?'W ':mp<op?'L ':'T ')+mp+'-'+op+' VS '+o+(r.src==='sim'?' (SIM)':'')}
+ return''}
+/* the game I play in the league's current week or round: {season, wkNo, gi, opp, home, label} or null (the season is over for me) */
+function lnCur(s){
+ s=s||S;const L=s.std,me=s.stm|0,n=STD.nextGames(L);
+ if(n.kind==='done'||s.over)return null;
+ const gi=n.pairs.findIndex(p=>p[0]===me||p[1]===me);if(gi<0)return null;
+ const p=n.pairs[gi];
+ return{season:L.ssn,wkNo:lnWkNo(L,n),gi:gi,opp:p[0]===me?p[1]:p[0],home:p[0]===me,po:n.kind==='po'}}
+const lnSimMarked=(s,c)=>!!(c&&s.lnk&&s.lnk.lastMeta&&(s.lnk.lastMeta.ovr||[]).includes(LNC.ovrKey(c.season,c.wkNo,c.gi)));
+
+/* ---------- JOIN ---------- */
+/* a code -> what the join screen shows: the league, the teams with who has them */
+async function lnFind(codeRaw){
+ const{ad,uid}=await lnConn(),c=await LNC.readCode(ad,codeRaw);
+ if(!c)throw LNC.CloudError('bad','There is no league with this code. Check the 6 characters.');
+ const mg=await ad.get(lnPath.meta(c.lg));
+ if(!mg.exists)throw LNC.CloudError('missing','This league is no longer in the cloud.');
+ const meta=mg.data,[sl,ts]=await Promise.all([ad.list(lnPath.slots(c.lg)),Promise.all([0,1,2,3,4,5,6,7].map(i=>ad.get(lnPath.team(c.lg,i))))]);
+ const slots={};sl.forEach(d=>{slots[d.id]=d.data});
+ const teams=ts.map((g,i)=>({i:i,nm:g.exists?g.data.nm:'TEAM '+(i+1),slot:slots[String(i)]||null,mine:!!(slots[String(i)]&&slots[String(i)].uid===uid)}));
+ return{code:c.code,lg:c.lg,meta:meta,teams:teams,uid:uid}}
+const lnName=x=>String(x==null?'':x).replace(/\s+/g,' ').trim().toUpperCase().slice(0,40);
+async function lnJoin(info,idx,nmRaw){
+ const{ad,uid}=await lnConn(),nm=lnName(nmRaw);
+ if(!nm)throw LNC.CloudError('bad','Type a name for yourself first.');
+ const tm=info.teams[idx];if(!tm)throw LNC.CloudError('bad','Pick a team first.');
+ const sp=lnPath.slot(info.lg,idx);
+ let cur=await ad.get(sp);
+ if(cur.exists&&cur.data.uid!==uid)throw LNC.CloudError('taken','Someone just took this team. The list is refreshed.');
+ if(!cur.exists){
+  try{await ad.set(sp,{uid:uid,g:null,nm:nm,since:Date.now()})}
+  catch(e){let g2=null;try{g2=await ad.get(sp)}catch(e2){}
+   if(g2&&g2.exists&&g2.data.uid===uid){/* it was written; only the answer was lost */}
+   else if(g2&&g2.exists)throw LNC.CloudError('taken','Someone just took this team. The list is refreshed.');
+   else throw e}}
+ const mg=await ad.get(lnPath.meta(info.lg));if(!mg.exists)throw LNC.CloudError('missing','This league is no longer in the cloud.');
+ const meta=mg.data,parts=await LNC.readParts(ad,info.lg,meta,null),L=LNC.buildLeague(meta,parts.teamDocs,parts.weeks,parts.hist),ch=parts.teamDocs[idx];
+ const cr0=typeof ch.cr==='number'&&ch.cr>0?ch.cr:(Array.isArray(ch.up)&&ch.up.length?0:3);       /* a fresh team starts with 3 credits like a new local league; a team that already spent is not given them again */
+ const s={name:L.teams[idx].nm,ci:0,season:L.ssn,week:0,w:0,l:0,t:0,credits:cr0,phase:'reg',round:0,over:null,champs:0,qLen:90,last:'',std:L,stm:idx,stx:{relief:1},
+  lnk:{lg:info.lg,code:info.code,idx:idx,uid:uid,nm:nm,lastMeta:lnMetaOf(meta),lastSync:Date.now(),st:null,queue:[],cs:0,cw:'',note:'',un:Array.isArray(ch.up)?ch.up.length:0}};
+ stdSync(s);lnDerive(s);s.last=lnLast(s);
+ S=s;saveNow();return s}
+
+/* ---------- PULL ---------- */
+/* the weeks and rounds the local record already has, as the week documents readParts keeps in its cache (same keys, same rows) */
+function lnWeeksOf(L){
+ const w={},nG=lnNG(L);
+ L.res.forEach(r=>{const k=LNC.weekKey(L.ssn,r.wk>=nG?100+(r.wk-nG):r.wk);(w[k]=w[k]||{games:[]}).games.push({a:r.h,b:r.a,pa:r.sc[0],pb:r.sc[1],src:r.src})});
+ return w}
+const lnHistOf=L=>{const h={};L.hist.forEach(x=>{h[x.s]=LNC.histDocOf(x,0)});return h};
+function lnFail(s,e){const k=lnKind(e);if(s&&s.lnk&&k!=='net'&&k!=='denied')s.lnk.err=lnMsg(e);return{kind:'err',err:k,msg:lnMsg(e)}}
+/* one pull: the meta, the slot, and, when the week or season moved (or force), the league rebuilt from the cloud. Never throws. */
+function lnPull(o){
+ o=o||{};const s=S;
+ if(!s||!s.lnk)return Promise.resolve({kind:'none'});
+ if(LNK.pp&&LNK.pp.s===s)return LNK.pp.p;
+ const p=(async()=>{
+  const k=s.lnk;let c;
+  try{c=await lnConn()}catch(e){return lnFail(s,e)}
+  const ad=c.ad,uid=c.uid;
+  try{
+   const mg=o.meta?{exists:true,data:o.meta}:await ad.get(lnPath.meta(k.lg));
+   if(!mg.exists){k.st='gone';save();return{kind:'gone'}}
+   const meta=mg.data,sg=await ad.get(lnPath.slot(k.lg,k.idx));
+   if(!sg.exists){k.st='freed';save();return{kind:'freed'}}
+   if(sg.data.uid!==uid){k.st='claimed';save();return{kind:'claimed'}}
+   k.st=null;k.err='';
+   const L=s.std;let same=meta.season===L.ssn&&meta.wk===L.wk&&meta.ph===L.ph;
+   if(same&&L.wk>=lnNG(L)&&meta.updatedAt!==(k.lastMeta||{}).u){   /* the playoffs: the meta's week number does not change between the semifinals and the final, so look for the round's document itself (one read) */
+    const n=STD.nextGames(L);
+    if(n.kind==='po'){const g=await ad.get(lnPath.week(k.lg,L.ssn,lnWkNo(L,n)));if(g.exists)same=false}}
+   if(same&&!o.force){
+    const q=lnSubItem(s);   /* my result of this week is in the cloud: look at it once, so a result the commissioner voided is seen */
+    if(q&&q.st==='sent'){const sd=await ad.get(lnPath.sub(k.lg,q.s,q.w,k.idx));if(!sd.exists){q.st='void';q.e='THE COMMISSIONER REMOVED YOUR RESULT. PLAY AGAIN TO SEND A NEW ONE.'}}
+    k.lastMeta=lnMetaOf(meta);k.lastSync=Date.now();save();return{kind:'same'}}
+   const seasonMoved=meta.season!==L.ssn,old={season:L.ssn,wk:L.wk,ph:L.ph},res0=L.res.length;
+   const cache={weeks:seasonMoved?{}:lnWeeksOf(L),hist:lnHistOf(L)};
+   const parts=await LNC.readParts(ad,k.lg,meta,cache),nL=LNC.buildLeague(meta,parts.teamDocs,parts.weeks,parts.hist);
+   lnTake(s,nL,meta,old,seasonMoved,parts.teamDocs[k.idx]);
+   const fresh=nL.res.slice(seasonMoved?0:res0);
+   k.lastMeta=lnMetaOf(meta);k.lastSync=Date.now();save();
+   return{kind:seasonMoved?'season':'moved',weeks:fresh.length}}
+  catch(e){return lnFail(s,e)}})();
+ LNK.pp={s:s,p:p};p.then(()=>{if(LNK.pp&&LNK.pp.p===p)LNK.pp=null},()=>{if(LNK.pp&&LNK.pp.p===p)LNK.pp=null});
+ return p}
+/* the rebuilt league replaces the local one. A season change means the commissioner ran the offseason: the local offseason is never run in a linked league. */
+function lnTake(s,nL,meta,old,seasonMoved,chunk){
+ const k=s.lnk,ch0=s.champs|0;
+ k.note='';
+ if(seasonMoved){s.credits+=3;lnSeasonMoved(s)}          /* the 3 credits the local offseason would have given; unsent results and upgrades of the old season are dropped here */
+ s.std=nL;
+ k.un=chunk&&Array.isArray(chunk.up)?chunk.up.length:0;
+ lnReapply(s,chunk);                                       /* my upgrades that are not in the cloud yet go back onto the pulled roster */
+ stdSync(s);lnDerive(s);s.last=lnLast(s)||s.last;
+ if((s.champs|0)>ch0)s.credits+=4*((s.champs|0)-ch0);      /* the title bonus of a local league, given when the pulled season shows my team as the champion */
+ lnReconcile(s,seasonMoved);
+ if(seasonMoved)s.last='OFFSEASON - THE COMMISSIONER STARTED SEASON '+nL.ssn;
+ return s}
+const lnNote=(k,t)=>{k.note=(k.note?k.note+' | ':'')+t;if(k.note.length>300)k.note=k.note.slice(0,297)+'...'};
+/* a new season: results and upgrades still waiting to be sent belong to the old season and are dropped (credits for the upgrades come back) */
+function lnSeasonMoved(s){
+ const k=s.lnk,q=k.queue||[];let ups=0,refund=0,subs=0;
+ q.forEach(it=>{if(it.k==='up'){ups++;refund+=it.cost|0}else if(it.k==='sub'&&(it.st==='wait'||it.st==='fail'))subs++});
+ s.credits+=refund;k.queue=[];
+ if(ups)lnNote(k,'NEW SEASON: UPGRADES YOU HAD NOT SENT YET WERE DISCARDED ('+ups+'). '+refund+' CREDITS GIVEN BACK.');
+ if(subs)lnNote(k,'NEW SEASON: A RESULT YOU HAD NOT SENT WAS DISCARDED.')}
+/* my upgrades that are still queued are put back onto the roster that was just pulled. A line whose player is not at its "from" value any more is stale: the whole purchase is dropped and its credits come back. A line the cloud already has (it was sent, only the answer was lost) is skipped. */
+function lnReapply(s,chunk){
+ const k=s.lnk,t=s.std.teams[s.stm|0],cu=chunk&&Array.isArray(chunk.up)?chunk.up:[],keep=[];let drop=0,refund=0;
+ const same=(a,b)=>a&&b&&a.s===b.s&&a.id===b.id&&a.k===b.k&&a.from===b.from&&a.to===b.to;
+ for(const it of k.queue||[]){
+  if(it.k!=='up'){keep.push(it);continue}
+  let ok=!it.bad&&it.s===s.std.ssn;const todo=[];
+  if(ok)for(const ln of it.lines){
+   const p=t.ro.find(x=>x.id===ln.id);
+   if(!p){ok=false;break}
+   if(p.rt[ln.k]===ln.from)todo.push([p,ln]);
+   else if(p.rt[ln.k]===ln.to&&cu.some(e=>same(e,ln))){}          /* already in the cloud */
+   else{ok=false;break}}
+  if(!ok){drop++;refund+=it.cost|0;continue}
+  if(!todo.length&&it.lines.length&&it.lines.every(ln=>cu.some(e=>same(e,ln))))continue;      /* sent; nothing is left to do for it */
+  todo.forEach(([p,ln])=>{p.rt[ln.k]=ln.to});keep.push(it)}
+ k.queue=keep;
+ if(drop){s.credits+=refund;lnNote(k,'AN UPGRADE COULD NOT BE KEPT BECAUSE YOUR TEAM CHANGED IN THE CLOUD ('+drop+'). '+refund+' CREDITS GIVEN BACK.')}}
+/* after a pull: what the commissioner made of the results I queued. A result that is now in the league is compared with mine; a difference shows the REAL score. */
+function lnReconcile(s,seasonMoved){
+ const k=s.lnk,L=s.std,me=s.stm|0,nG=lnNG(L),keep=[];
+ for(const it of k.queue||[]){
+  if(it.k!=='sub'){keep.push(it);continue}
+  if(it.s!==L.ssn){continue}
+  const wk=it.w>=100?nG+(it.w-100):it.w,r=L.res.find(x=>x.wk===wk&&(x.h===me||x.a===me));
+  if(!r){keep.push(it);continue}
+  const mp=r.h===me?r.sc[0]:r.sc[1],op=r.h===me?r.sc[1]:r.sc[0],real=mp+'-'+op;
+  if(it.st==='sent'||it.st==='wait'||it.st==='fail'){
+   if(!(it.pa===mp&&it.pb===op)||it.st!=='sent'){
+    lnNote(k,it.st==='sent'?'THE COMMISSIONER\'S RESULT STANDS: '+(it.w>=100?'PLAYOFFS':'WEEK '+(it.w+1))+' WAS '+real+' (YOU SENT '+it.pa+'-'+it.pb+')':'THE COMMISSIONER MOVED ON BEFORE YOUR RESULT WAS SENT. THE REAL RESULT: '+real)}}
+  else if(it.st==='void'&&!(it.pa===mp&&it.pb===op))lnNote(k,'THE COMMISSIONER\'S RESULT STANDS: '+(it.w>=100?'PLAYOFFS':'WEEK '+(it.w+1))+' WAS '+real)}
+ k.queue=keep}
+
+/* ---------- the listener on the meta document: only while the league screen or the standings are open ---------- */
+function lnWatch(){
+ const s=S;if(!s||!s.lnk||!lnHostOK())return lnUnwatch();
+ if(LNK.w&&LNK.w.s===s)return;
+ lnUnwatch();const w={s:s,off:null,dead:false};LNK.w=w;
+ lnConn().then(c=>{if(w.dead)return;w.off=c.ad.onSnapshot(lnPath.meta(s.lnk.lg),sn=>{if(!w.dead&&sn&&sn.exists)lnOnMeta(s,sn.data)},()=>{})}).catch(()=>{})}
+function lnUnwatch(){const w=LNK.w;LNK.w=null;if(w){w.dead=true;if(w.off)try{w.off()}catch(e){}}}
+async function lnOnMeta(s,meta){
+ if(S!==s||!s.lnk)return;
+ const L=s.std,m=s.lnk.lastMeta||{};
+ if(meta.season!==L.ssn||meta.wk!==L.wk||meta.ph!==L.ph||(L.wk>=lnNG(L)&&meta.updatedAt!==m.u)){await lnPull({meta:meta});lnRefresh();return}
+ const nm=lnMetaOf(meta);
+ if(JSON.stringify(nm)!==JSON.stringify(m)){s.lnk.lastMeta=nm;s.lnk.lastSync=Date.now();save();lnRefresh()}}
+/* the screens that show the league are drawn again after a pull (never while a game is on) */
+function lnRefresh(){
+ if(!S||!S.lnk)return;
+ try{if(UI.scr==='hub')$('hub').innerHTML=hbHub();
+  else if(UI.scr==='stand'){lgStand();shDraw()}
+  else if(UI.scr==='menu'&&HOME.tab==='lg'&&$('mbody'))renderHome()}catch(e){}}
+function lnShown(el){if(S&&S.lnk&&(el==='hub'||el==='stand'))lnWatch();else if(LNK.w)lnUnwatch()}
+/* opening a linked league from MY LEAGUES: pull now (the screen is drawn first, then updated) */
+function lnOpen(){if(!S||!S.lnk)return;if(lnHostOK())lnPull().then(()=>{lnRefresh();const k=S&&S.lnk;if(k&&k.note)notice(k.note);if(lnPending(S))lnFlush()},()=>{})}
+
+/* ---------- leaving the link: the league stays on the device as a NORMAL local Standard league ---------- */
+function lnLocalize(s){
+ const L=s.std,nG=lnNG(L);
+ delete s.lnk;
+ if(L.wk>=nG&&!L.po){L.po={seeds:STD.rank(L,0).slice(0,L.rules.league.playoffTeams),ch:null,ru:null};L.wk=nG}   /* the local flow opens the playoffs itself */
+ stdSync(s);lnDerive(s);
+ if(L.po&&L.po.ch==null&&(s.over==='missed'||s.over==='elim')){stdSimRestPo2(s);stdSync(s);lnDerive(s)}   /* a team that is out plays no more: the local flow plays the rest at once */
+ return s}
+function stdSimRestPo2(s){const keep=S;S=s;try{stdSimRestPo()}finally{S=keep}}
+function lnKeepLocal(){
+ if(!S||!S.lnk)return;lnUnwatch();LNK.sure=null;
+ lnLocalize(S);save();saveNow();renderHub()}
+
+/* ===================================================================================================================
+   the screens
+   =================================================================================================================== */
+const lnBtn=(act,txt,cls,extra)=>`<button class="btn ${cls||''}" data-ln="${act}" ${extra||''}>${txt}</button>`;
+/* ----- JOIN LEAGUE on MY LEAGUES ----- */
+function lnJoinHtml(){
+ const J=HOME.join;
+ if(J.step==='code')return`<h1 class="mh" style="font-size:1.3em">JOIN A LINKED LEAGUE</h1><p>${sc(`ENTER THE 6-CHARACTER CODE YOUR COMMISSIONER GAVE YOU. YOU NEED AN INTERNET CONNECTION TO JOIN.`)}</p>
+ <div class="row"><input id="lncode" maxlength="9" value="${hmEsc(J.code||'')}" autocomplete="off" autocapitalize="characters" spellcheck="false" style="width:9em;text-transform:uppercase">${lnBtn('find','FIND LEAGUE','',J.busy?'disabled':'')}${lnBtn('cancel','CANCEL','alt')}</div>
+ <p class="sm" id="lnmsg" role="status">${sc(`${hmEsc(J.busy?'LOOKING...':J.msg||'')}`)}</p>`;
+ const I=J.info,m=I.meta,pk=J.pick,wk=m.ph==='reg'&&m.wk<14?'WEEK '+(m.wk+1)+' OF 14':m.wk>=16?'SEASON OVER':'PLAYOFFS';
+ return`<h1 class="mh" style="font-size:1.3em">${hmEsc(m.nm)}</h1><p class="sm">${sc(`CODE ${hmEsc(I.code)} - SEASON ${m.season} - ${wk}`)}</p>
+ <p>${sc(`PICK AN OPEN TEAM:`)}</p><div class="tg">${I.teams.map(t=>{const st=t.mine?'YOURS':t.slot?'CLAIMED BY '+t.slot.nm:'OPEN',off=t.slot&&!t.mine;
+  return`<button class="tb ${pk===t.i?'on':''}" data-ln="pick" data-i="${t.i}" ${off||J.busy?'disabled':''}>${hmEsc(t.nm)}<small style="display:block">${sc(`${hmEsc(st)}`)}</small></button>`}).join('')}</div>
+ <div class="row"><span class="sm">${sc(`YOUR NAME`)}</span><input id="lnnm" maxlength="40" value="${hmEsc(J.nm||'')}" autocomplete="off" autocapitalize="characters" spellcheck="false" style="width:12em"></div>
+ <div class="row">${lnBtn('go',pk!=null&&I.teams[pk]&&I.teams[pk].mine?'RESUME THIS TEAM':'JOIN THIS TEAM','',pk==null||J.busy?'disabled':'')}${lnBtn('refresh','REFRESH','alt',J.busy?'disabled':'')}${lnBtn('back','BACK','alt')}</div>
+ <p class="sm" id="lnmsg" role="status">${sc(`${hmEsc(J.busy?'WORKING...':J.msg||'')}`)}</p>`}
+function lnJoinRead(){const a=$('lncode'),b=$('lnnm'),J=HOME.join;if(a&&J)J.code=a.value;if(b&&J)J.nm=b.value}
+async function lnMenu(act,b){
+ if(act==='join'){if(!lnHostOK()){notice('LINKED LEAGUES ONLY WORK ON THE INSTALLED OR GITHUB VERSION');return}HOME.join={step:'code',code:'',busy:false,msg:'',nm:LNK.lastNm||''};renderHome();const e=$('lncode');if(e)try{e.focus()}catch(x){};return}
+ const J=HOME.join;if(!J||J.busy&&act!=='cancel')return;
+ lnJoinRead();
+ if(act==='cancel'){HOME.join=null;renderHome();return}
+ if(act==='back'){HOME.join={step:'code',code:J.code||(J.info&&J.info.code)||'',busy:false,msg:'',nm:J.nm};renderHome();return}
+ if(act==='pick'){J.pick=+b.dataset.i;J.msg='';renderHome();return}
+ if(act==='find'||act==='refresh'){
+  const code=act==='refresh'?J.info.code:J.code;J.busy=true;J.msg='';renderHome();
+  try{const info=await lnFind(code);if(HOME.join!==J)return;J.info=info;J.step='teams';if(J.pick!=null&&(!info.teams[J.pick]||info.teams[J.pick].slot&&!info.teams[J.pick].mine))J.pick=null;J.busy=false}
+  catch(e){if(HOME.join!==J)return;J.busy=false;J.msg=lnMsg(e)}
+  renderHome();return}
+ if(act==='go'){
+  if(J.pick==null)return;J.busy=true;J.msg='';renderHome();
+  try{const nm=lnName(J.nm);LNK.lastNm=nm;const s=await lnJoin(J.info,J.pick,nm);if(HOME.join!==J)return;HOME.join=null;hmPlay(s.id);return}
+  catch(e){if(HOME.join!==J)return;J.busy=false;J.msg=lnMsg(e);
+   if(e&&e.kind==='taken'){try{J.info=await lnFind(J.info.code);J.pick=null}catch(x){}}}
+  renderHome()}}
+
+/* ----- the LINKED card on the hub ----- */
+function lnSubItem(s){const c=lnCur(s);return c?(s.lnk.queue||[]).find(q=>q.k==='sub'&&q.s===c.season&&q.w===c.wkNo):null}
+function lnPanel(){
+ const s=S,k=s.lnk,m=k.lastMeta||{},st=k.st;let h='';
+ const sync=`<div class="row">${lnBtn('sync','SYNC NOW','xs alt',LNK.busy?'disabled':'')}${LNK.sure==='leave'?lnBtn('leave2','SURE? LEAVE','xs alt')+lnBtn('leave0','NO','xs alt'):lnBtn('leave','LEAVE LEAGUE','xs alt')}</div>`;
+ if(st==='claimed'||st==='freed'||st==='gone'){
+  const t=st==='claimed'?'THIS TEAM IS CLAIMED BY ANOTHER DEVICE':st==='freed'?'THE COMMISSIONER GAVE YOUR TEAM AWAY OR FREED IT':'THE COMMISSIONER\'S LEAGUE IS NOT IN THE CLOUD ANY MORE';
+  h=`<p style="color:#ffd400">${sc(`${t}`)}</p><p class="sm">${sc(`YOU CAN KEEP THE LEAGUE ON THIS DEVICE AS A NORMAL LOCAL LEAGUE. IT STAYS AS IT IS NOW.`)}</p><div class="row">${lnBtn('keep','KEEP AS A LOCAL LEAGUE','')}</div>`}
+ else{
+  const c=lnCur(s),q=lnSubItem(s),lines=[];
+  lines.push(`PLAYING AS ${hmEsc(k.nm)}. THE COMMISSIONER MOVES THE LEAGUE FORWARD.`);
+  lines.push(`LAST SYNCED ${lnClock(k.lastSync)}${k.err?' - '+hmEsc(k.err):''}`);
+  if(c&&lnSimMarked(s,c))lines.push('SIMMED BY COMMISSIONER, NO NEED TO PLAY. YOU MAY STILL PLAY FOR FUN, IT WILL NOT COUNT.');
+  if(m.hold)lines.push('THE COMMISSIONER IS HOLDING THIS WEEK.');
+  if(q&&q.st!=='late'){const r=q.pa+'-'+q.pb;
+   lines.push(q.st==='sent'?'YOUR RESULT '+r+' IS SENT':q.st==='fail'?'YOUR RESULT '+r+' FAILED TO SEND'+(q.e?' - '+hmEsc(q.e):''):q.st==='void'?hmEsc(q.e||'YOUR RESULT WAS REMOVED'):'YOUR RESULT '+r+' IS WAITING TO SEND')}
+  const nu=(k.queue||[]).filter(x=>x.k==='up').length;
+  if(nu)lines.push(nu+' UPGRADE'+(nu>1?'S':'')+' WAITING TO SEND');
+  if(k.note)lines.push(hmEsc(k.note));
+  const bad=(k.queue||[]).some(x=>x.st==='fail');
+  if(LNK.sure==='leave')lines.push('LEAVING FREES YOUR TEAM FOR SOMEONE ELSE. THE LEAGUE STAYS ON THIS DEVICE AS A LOCAL LEAGUE. RESULTS AND UPGRADES NOT SENT YET ARE LOST.');
+  h=`<div class="sm">${lines.map(x=>sc(`${x}`)).join('<br>')}</div>${bad?`<div class="row">${lnBtn('retry','TRY SENDING AGAIN','xs')}</div>`:''}${sync}`}
+ return`<div class="card hbw"><h3>LINKED LEAGUE - CODE ${hmEsc(k.code)}</h3>${h}</div>`}
+/* the hub of a season that is over for my team (or for the whole league) while the commissioner has not moved on */
+function lnWaitHub(){
+ const s=S,L=s.std,k=s.lnk,mc=myC().c,n=STD.nextGames(L),ch=L.po&&L.po.ch!=null?L.teams[L.po.ch].nm:null,
+  txt=s.over==='champ'?'YOU WON THE PIGSKIN BOWL!':s.over==='missed'?'YOUR TEAM MISSED THE PLAYOFFS':'YOUR PLAYOFF RUN IS OVER',
+  sub2=n.kind==='done'?'THE SEASON IS OVER. THE CHAMPION: '+hmEsc(ch||'')+'. WAITING FOR THE COMMISSIONER TO START THE NEXT SEASON.':'THE PLAYOFFS ARE STILL ON. WATCH THEM IN THE STANDINGS.';
+ const row=(go,name,t)=>`<button type="button" class="btn alt hbli" data-go="${go}"><span class="hbln"><b>${name}</b><small>${sc(`${t}`)}</small></span><span class="hbgo" aria-hidden="true">&gt;</span></button>`;
+ return`<div class="hbh" style="border-color:${mc}"><div style="text-align:left"><div class="hbt" style="color:${mc}">${hmEsc(s.name)}</div><div class="sm">${sc(`${hmEsc(L.nm)} - SEASON ${s.season}${s.champs?' - TITLES '+s.champs:''}`)}</div></div><div class="hbc"><span class="sm">${sc(`CREDITS`)}</span><b>${s.credits}</b></div></div>
+ <div class="hbr">RECORD ${hbRec(s)}</div>
+ <div class="card hbn"><h3>${txt}</h3><p class="sm">${sc(`${sub2}`)}</p>${s.last?`<p>${sc(`LAST: ${hmEsc(s.last)}`)}</p>`:''}</div>
+ ${lnPanel()}<div class="card hbw"><h3>TO DO</h3><div class="hbtd">${row('up','UPGRADES','CREDITS TO SPEND')}${row('book','PLAYBOOK','DESIGN YOUR PLAYS')}${row('stand','STANDINGS','SCHEDULE AND PLAYOFFS')}</div></div>`}
+function lnTag(){return S&&S.lnk?`<div class="sm" style="color:#ffd400;margin-bottom:.4em">${sc(`LINKED LEAGUE - CODE ${hmEsc(S.lnk.code)} - LAST SYNCED ${lnClock(S.lnk.lastSync)}`)}</div>`:''}
+/* clicks on the hub card */
+async function lnHubClick(act){
+ const s=S;if(!s||!s.lnk)return;
+ if(act==='retry'){if(LNK.busy)return;LNK.busy=true;lnRefresh();const r=await lnFlush({retry:true});LNK.busy=false;lnRefresh();notice(r.kind==='offline'?'OFFLINE. YOUR RESULT STAYS IN THE QUEUE':r.kind==='failed'?'THE CLOUD REFUSED IT AGAIN':'SENT');return}
+ if(act==='sync'){if(LNK.busy)return;LNK.busy=true;lnRefresh();const r0=lnPending(s)?await lnFlush({retry:true}):null,r=r0&&r0.kind!=='none'&&r0.kind!=='done'&&r0.kind!=='failed'&&r0.kind!=='offline'?r0:await lnPull({force:true});LNK.busy=false;lnRefresh();
+  if(r0&&r0.kind==='offline')notice('OFFLINE. YOUR LEAGUE AND YOUR QUEUE ARE KEPT ON THIS DEVICE');else if(r0&&r0.kind==='failed')notice('SOME THINGS COULD NOT BE SENT');else
+  if(r.kind==='err')notice(r.err==='net'?'OFFLINE. YOUR LEAGUE IS KEPT ON THIS DEVICE':'SYNC FAILED');else if(r.kind==='season')notice('NEW SEASON FROM THE COMMISSIONER');else if(r.kind==='moved')notice('LEAGUE UPDATED');else if(r.kind==='same')notice('ALREADY UP TO DATE');return}
+ if(act==='keep')return lnKeepLocal();
+ if(act==='leave'){LNK.sure='leave';lnRefresh();return}
+ if(act==='leave0'){LNK.sure=null;lnRefresh();return}
+ if(act==='leave2')return lnLeave()}
+/* LEAVE LEAGUE (asked first): my slot is deleted (the team is OPEN again for someone else), the league stays on this device as a NORMAL local Standard league. Needs a connection; what is still waiting to be sent is tried once first and is lost if it cannot be sent. */
+async function lnLeave(){
+ const s=S;LNK.sure=null;if(!s||!s.lnk||LNK.busy){lnRefresh();return}
+ LNK.busy=true;lnRefresh();
+ try{
+  const k=s.lnk;let c=null;
+  if(!k.st){
+   try{c=await lnConn()}catch(e){notice('YOU NEED A CONNECTION TO LEAVE, SO YOUR TEAM CAN BE FREED');return}
+   if(lnPending(s)){try{await lnFlush({retry:true})}catch(e){}}
+   if(S!==s||!s.lnk)return;
+   try{const sp=lnPath.slot(k.lg,k.idx),sg=await c.ad.get(sp);if(sg.exists&&sg.data.uid===c.uid)await c.ad.del(sp)}
+   catch(e){notice(lnKind(e)==='net'?'NO CONNECTION. YOU ARE STILL IN THE LEAGUE.':'THE CLOUD REFUSED THIS. YOU ARE STILL IN THE LEAGUE.');return}}
+  lnUnwatch();lnLocalize(s);save();saveNow();LNK.game=null;renderHub();
+  notice(k.st?'THE LEAGUE STAYS ON THIS DEVICE AS A LOCAL LEAGUE':'YOU LEFT. THE LEAGUE STAYS ON THIS DEVICE AS A LOCAL LEAGUE.')}
+ finally{LNK.busy=false;if(S&&S.lnk)lnRefresh()}}
+/* ===================================================================================================================
+   PLAY, SEND, CREDITS (Milestone 2)
+   =================================================================================================================== */
+const lnWait=ms=>new Promise(r=>setTimeout(()=>r({kind:'wait'}),ms));
+const lnTx=(c,fn)=>LNK.test?c.ad.transaction(fn):cgT(c.ad.transaction(fn));
+const lnPending=s=>!!(s&&s.lnk&&(s.lnk.queue||[]).some(x=>x.k==='up'||x.st==='wait'||x.st==='fail'));
+function lnPlayLabel(){
+ const c=lnCur(S);if(!c)return'PLAY GAME';
+ if(lnSimMarked(S,c))return'PLAY FOR FUN';
+ const q=lnSubItem(S);return q&&q.st!=='void'&&q.st!=='late'?'PLAY AGAIN':'PLAY GAME'}
+/* PLAY GAME: only the cloud's CURRENT week is played. A short pull first; when the league moved on, the new week is shown instead of the old one. Offline, the local week is played and its result waits in the queue. */
+async function lnPlayGo(){
+ const s=S;if(!s||!s.lnk||LNK.go)return;
+ if(s.lnk.st){lnRefresh();notice('THIS LEAGUE NEEDS YOUR ATTENTION FIRST');return}
+ LNK.go=true;
+ try{
+  if(lnHostOK()){
+   const r=await Promise.race([lnPull(),lnWait(5000)]);
+   if(S!==s)return;
+   if(r&&(r.kind==='moved'||r.kind==='season')){lnRefresh();notice(r.kind==='season'?'NEW SEASON FROM THE COMMISSIONER':'THE COMMISSIONER MOVED THE LEAGUE ON. CHECK YOUR NEW GAME');return}
+   if(r&&(r.kind==='claimed'||r.kind==='freed'||r.kind==='gone')){lnRefresh();return}}
+  const c=lnCur(s);
+  if(!c){lnRefresh();notice('NO GAME TO PLAY RIGHT NOW');return}
+  LNK.game={s:c.season,w:c.wkNo,gi:c.gi,opp:c.opp,fun:lnSimMarked(s,c)};
+  openLocker()}
+ finally{LNK.go=false}}
+/* the game that just ended: queue the result (a result of the commissioner's SIM week or a game for fun is not queued) */
+function lnAfterGame(win,tie,cr,mp,op,src){
+ const s=S,k=s.lnk;let g=LNK.game;LNK.game=null;
+ if(g&&(g.s!==s.std.ssn))g=null;
+ const c=g||(()=>{const x=lnCur(s);return x?{s:x.season,w:x.wkNo,gi:x.gi,opp:x.opp,fun:lnSimMarked(s,x)}:null})();
+ if(!c)return 0;
+ if(c.fun){k.note='THIS GAME WAS FOR FUN. IT DOES NOT COUNT.';save();return 0}
+ const me=s.stm|0;let pa=Math.max(0,Math.min(56,mp|0)),pb=Math.max(0,Math.min(56,op|0));
+ if((mp|0)!==(op|0)&&pa===pb){if(mp>op)pb=55;else pa=55}
+ const q=(k.queue=k.queue||[]).filter(x=>!(x.k==='sub'&&x.s===c.s&&x.w===c.w));
+ q.push({k:'sub',s:c.s,w:c.w,gi:c.gi,a:me,b:c.opp,pa:pa,pb:pb,t:Date.now(),st:'wait',n:0,e:''});
+ k.queue=q;k.note='';
+ const key=c.s+'-'+c.w;
+ if(k.cw!==key){k.cw=key;s.credits+=cr}else cr=0;           /* the credits of a week are given once, however often the game is played again */
+ save();Promise.resolve().then(()=>lnFlush());return cr}
+/* UPGRADES: the same rise as in a local league, written down as `up` lines; the chunk goes to the cloud when it can */
+function lnBuy(kind,key,cost){
+ const s=S,k=s.lnk;
+ if(k.st){notice('THIS LEAGUE NEEDS YOUR ATTENTION FIRST');return false}
+ const x=stdTarget(kind,key);
+ if(!stdCanUp(kind,key)){notice(x&&x.ps.length>1?'ALL THESE PLAYERS ARE AT THEIR POTENTIAL':'THIS PLAYER IS AT HIS POTENTIAL');return false}
+ const L=s.std,lines=[],qn=(k.queue||[]).filter(q=>q.k==='up');
+ if(qn.length>=40){notice('TOO MANY UPGRADES ARE WAITING TO SEND. TAP SYNC NOW FIRST.');return false}
+ const had=qn.reduce((n,q)=>n+q.lines.length,0),want=x.ps.filter(p=>p.rt[x.rk]<p.pt-1e-9).length;
+ if((k.un|0)+had+want>200){notice('THE UPGRADE LIMIT OF THIS SEASON IS REACHED');return false}
+ for(const p of x.ps){const old=p.rt[x.rk],nw=Math.min(10,stdR1(Math.min(p.pt,old+1)));
+  if(nw!==old){lines.push({s:L.ssn,w:L.wk,id:p.id,k:x.rk,from:old,to:nw});p.rt[x.rk]=nw}}
+ s.credits-=cost;
+ (k.queue=k.queue||[]).push({k:'up',s:L.ssn,w:L.wk,cost:cost,lines:lines});
+ stdSync(s);save();Promise.resolve().then(()=>lnFlush());return true}
+/* write my queued upgrades into MY team chunk: ro, cr and up only, in one transaction that re-reads the chunk (so a chunk is never overwritten with a stale copy) and refuses during a season change */
+async function lnPushUps(s,c){
+ const k=s.lnk,items=(k.queue||[]).filter(q=>q.k==='up');
+ if(!items.length)return{kind:'none'};
+ const season=items[0].s,pt=lnPath.team(k.lg,k.idx);let out=null;
+ await lnTx(c,async tx=>{
+  out=null;
+  const mg=await tx.get(lnPath.meta(k.lg));
+  if(!mg.exists){out={kind:'gone'};return}
+  if(mg.data.season!==season){out={kind:'season'};return}
+  const sg=await tx.get(lnPath.slot(k.lg,k.idx));
+  if(!sg.exists||sg.data.uid!==c.uid){out={kind:'slot'};return}
+  const cg=await tx.get(pt);if(!cg.exists){out={kind:'gone'};return}
+  const d=cg.data,ro=d.ro.map(p=>Object.assign({},p,{rt:Object.assign({},p.rt)})),cu=Array.isArray(d.up)?d.up:[],add=[];
+  const same=(a,b)=>a&&b&&a.s===b.s&&a.id===b.id&&a.k===b.k&&a.from===b.from&&a.to===b.to;
+  for(const it of items)for(const ln of it.lines){
+   const p=ro.find(z=>z.id===ln.id);
+   if(!p){out={kind:'stale'};return}
+   if(p.rt[ln.k]===ln.from){p.rt[ln.k]=ln.to;add.push(ln)}
+   else if(p.rt[ln.k]===ln.to&&cu.some(e=>same(e,ln))){}      /* it is there already: only the answer was lost */
+   else{out={kind:'stale'};return}}
+  if(!add.length){out={kind:'ok',n:cu.length,cr:d.cr};return}
+  const up=cu.concat(add);if(up.length>200){out={kind:'full'};return}
+  tx.set(pt,Object.assign({},d,{ro:ro,cr:s.credits,up:up}));
+  out={kind:'ok',n:up.length,cr:s.credits}});
+ return out}
+/* one send: pull first (the league moves, stale things are dropped), then my queued results, then my queued upgrades. Never throws. o.retry also tries the results that were refused before. */
+function lnFlush(o){
+ o=o||{};const s=S;
+ if(!s||!s.lnk)return Promise.resolve({kind:'none'});
+ if(LNK.fl&&LNK.fl.s===s)return LNK.fl.p;
+ const p=(async()=>{
+  const k=s.lnk;
+  if(!lnPending(s)&&!o.force)return{kind:'none'};
+  if(k.st)return{kind:'blocked'};
+  let c;try{c=await lnConn()}catch(e){return lnFail(s,e)}
+  const r=await lnPull(o.force?{force:true}:{});
+  if(S!==s||!s.lnk)return r;
+  const sched=()=>{if(!LNK.test&&!LNK.rt)LNK.rt=setTimeout(()=>{LNK.rt=null;if(lnPending(S))lnFlush()},45000)};
+  if(r.kind==='err'&&r.err==='net'){sched();return{kind:'offline'}}
+  if(r.kind==='err'||r.kind==='claimed'||r.kind==='freed'||r.kind==='gone')return r;
+  let net=false,fails=0;
+  for(const it of k.queue.slice()){
+   if(it.k!=='sub'||!(it.st==='wait'||(o.retry&&it.st==='fail')))continue;
+   const cur=lnCur(s);
+   if(!cur||cur.season!==it.s||cur.wkNo!==it.w||cur.gi!==it.gi){it.st='late';lnNote(k,'THE COMMISSIONER MOVED ON BEFORE YOUR RESULT WAS SENT. IT WAS NOT SENT.');continue}
+   if(lnSimMarked(s,cur)){it.st='void';it.e='SIMMED BY COMMISSIONER';continue}
+   if(net)continue;
+   try{await c.ad.set(lnPath.sub(k.lg,it.s,it.w,k.idx),{a:it.a,b:it.b,pa:it.pa,pb:it.pb,uid:c.uid,t:it.t,gi:it.gi});it.st='sent';it.e='';it.n=(it.n|0)+1}
+   catch(e){it.n=(it.n|0)+1;if(lnKind(e)==='net'){net=true;it.st='wait'}else{it.st='fail';it.e=lnMsg(e);fails++}}}
+  k.queue=k.queue.filter(it=>!(it.k==='sub'&&it.st==='late'));   /* a late result is told once (in the note), then gone */
+  let up=null;
+  if(!net&&(k.queue||[]).some(q=>q.k==='up')){
+   for(let tries=0;tries<2;tries++){
+    if(!k.queue.some(q=>q.k==='up'))break;
+    try{up=await lnPushUps(s,c)}catch(e){if(lnKind(e)==='net')net=true;else{k.err=lnMsg(e);fails++}break}
+    if(up.kind==='ok'){k.queue=k.queue.filter(q=>q.k!=='up');k.un=up.n;k.err='';if(up.cr!=null)s.std.teams[s.stm|0].cr=up.cr;break}
+    if(up.kind==='stale'||up.kind==='full'||up.kind==='season'){
+     if(up.kind==='full')k.queue.forEach(q=>{if(q.k==='up')q.bad=1});
+     const r2=await lnPull({force:true});if(S!==s)break;if(r2.kind==='err'){net=lnKind({cgKind:r2.err})==='net';break}
+     continue}
+    break}}
+  save();
+  if(net)sched();
+  return{kind:net?'offline':fails?'failed':'done',up:up&&up.kind}})();
+ LNK.fl={s:s,p:p};
+ const done=()=>{if(LNK.fl&&LNK.fl.p===p)LNK.fl=null;try{lnRefresh()}catch(e){}};
+ p.then(done,done);return p}
+try{window.addEventListener('online',()=>{if(S&&S.lnk&&lnPending(S))lnFlush({retry:true})})}catch(e){}
+/* a saved link must be well formed before a backup or a cloud copy is accepted (bkShape); a save without the field is valid as it always was */
+function lnShape(d){
+ const k=d.lnk;if(!k||typeof k!=='object'||Array.isArray(k)||!d.std)return false;
+ const str=(v,a,b)=>typeof v==='string'&&v.length>=a&&v.length<=b;
+ if(!str(k.lg,1,64)||typeof k.code!=='string'||!LNC.CODE_RULE.test(k.code)||k.idx!==d.stm||!str(k.uid,1,128)||!str(k.nm,1,40))return false;
+ if(k.lastSync!==undefined&&!(typeof k.lastSync==='number'&&isFinite(k.lastSync)))return false;
+ if(k.st!=null&&!['claimed','freed','gone'].includes(k.st))return false;
+ const m=k.lastMeta;
+ if(m!=null&&(typeof m!=='object'||!Number.isInteger(m.season)||!Number.isInteger(m.wk)||typeof m.ph!=='string'||!Array.isArray(m.ovr)||m.ovr.length>20||!m.ovr.every(x=>typeof x==='string'&&x.length<=20)))return false;
+ if(!Array.isArray(k.queue)||k.queue.length>60)return false;
+ const ix=(v,a,b)=>Number.isInteger(v)&&v>=a&&v<=b;
+ for(const q of k.queue){
+  if(!q||typeof q!=='object'||Array.isArray(q)||(q.k!=='sub'&&q.k!=='up')||!Number.isInteger(q.s))return false;
+  if(q.k==='sub'){if(!ix(q.w,0,101)||!ix(q.gi,0,3)||!ix(q.a,0,7)||!ix(q.b,0,7)||!ix(q.pa,0,56)||!ix(q.pb,0,56)||!['wait','sent','fail','void'].includes(q.st)||typeof q.t!=='number'||!isFinite(q.t))return false}
+  else{if(!Array.isArray(q.lines)||q.lines.length>12||!ix(q.cost,0,99)||!ix(q.w,0,101))return false;
+   for(const l of q.lines)if(!l||typeof l.id!=='string'||l.id.length>40||typeof l.k!=='string'||l.k.length>12||typeof l.from!=='number'||typeof l.to!=='number'||!isFinite(l.from)||!isFinite(l.to))return false}}
+ if(k.un!==undefined&&!ix(k.un,0,200))return false;
+ for(const f of['cw','note','err'])if(k[f]!==undefined&&!str(k[f],0,300))return false;
+ if(k.cs!==undefined&&!Number.isInteger(k.cs))return false;
+ return true}
+function lnSimGo(){const c=lnCur(S);notice(c&&lnSimMarked(S,c)?'THE COMMISSIONER SIMMED THIS GAME. NO NEED TO PLAY.':'THE COMMISSIONER SIMS GAMES IN A LINKED LEAGUE. PLAY YOUR GAME TO SEND A RESULT.')}
 
 /* ---------- home page (v1.40): saved leagues, new league, customize, how to play ---------- */
 const HOME={tab:'lg',fmt:'NFL',drafts:{},pick:0,cz:{src:'draft',team:0},del:null};
@@ -2472,7 +3147,7 @@ function czFocusKey(){const a=document.activeElement;if(!a||a.tagName==='INPUT'|
 function openLook(){if(!S||!S.lg||S.std)return;   /* v2.23: a Standard league has no wardrobe to edit (the adapter is not saved) */
  save();HOME.cz={src:S.id,team:S.lg.me};HOME.tab='cz';HOME.ret=null;HOME.del=null;show('look');renderHome()}
 function openHelp(){HOME.tab='help';HOME.ret=null;HOME.del=null;show('help');renderHome()}
-function hmTab(k){HOME.tab=k;HOME.del=null;HOME.ret=null;renderHome()} /* v2.01: the five home tabs are drawn by the nav (sh.js) */
+function hmTab(k){HOME.tab=k;HOME.del=null;HOME.join=null;HOME.ret=null;renderHome()} /* v2.01: the five home tabs are drawn by the nav (sh.js) */
 function renderHome(){
  const f={lg:hmLeagues,new:hmNew,ex:hmExh,cz:hmCustom,help:hmHelp}[HOME.tab],cz=HOME.tab==='cz',m=$('menu'),st=cz?m.scrollTop:0,fk=cz?czFocusKey():null;
  if(!cz)czShClose(true);
@@ -2484,11 +3159,12 @@ function mrotUI(){const e=$('mrot');if(e)e.innerHTML=coarse()&&upOn()?`<span cla
 
 /* ----- tab 1: saved leagues ----- */
 function hmLeagues(){
+ if(HOME.join)return lnJoinHtml();   /* v2.33: JOIN LEAGUE (a linked league) */
  const ix=rdIdx();
- if(!ix.length)return`<p style="margin:2em 0">${sc(`NO SAVED LEAGUES YET.<br>START ONE IN THE NEW LEAGUE TAB.`)}</p><div class="row"><button class="btn" data-tab="new">NEW LEAGUE</button><button class="btn alt" data-bk="import">IMPORT</button>${cgRestoreBtn()}</div>`;
- return'<div class="lst">'+ix.map(e=>`<div class="slot"><div style="flex:1;text-align:left"><b>${hmEsc(e.name)}</b><div class="sm">${sc(`${hmEsc(tn(e.team))} - ${e.fmt} - SEASON ${e.season} - ${e.w}-${e.l}${e.t?'-'+e.t:''}${e.champs?' - TITLES '+e.champs:''}`)}</div>${gsHas(e.id)?'<div class="sm gtag" style="color:#ffd400">Game in progress</div>':''}</div>
+ if(!ix.length)return`<p style="margin:2em 0">${sc(`NO SAVED LEAGUES YET.<br>START ONE IN THE NEW LEAGUE TAB.`)}</p><div class="row"><button class="btn" data-tab="new">NEW LEAGUE</button><button class="btn alt" data-bk="import">IMPORT</button><button class="btn alt" data-ln="join">JOIN LEAGUE</button>${cgRestoreBtn()}</div>`;
+ return'<div class="lst">'+ix.map(e=>`<div class="slot"><div style="flex:1;text-align:left"><b>${hmEsc(e.name)}</b><div class="sm">${sc(`${hmEsc(tn(e.team))} - ${e.fmt} - SEASON ${e.season} - ${e.w}-${e.l}${e.t?'-'+e.t:''}${e.champs?' - TITLES '+e.champs:''}${e.lk?' - LINKED '+hmEsc(e.lk):''}`)}</div>${gsHas(e.id)?'<div class="sm gtag" style="color:#ffd400">Game in progress</div>':''}</div>
  <button class="btn xs" data-play="${e.id}">PLAY</button><button class="btn xs alt" data-bk="export" data-id="${e.id}">EXPORT</button><button class="btn xs alt" data-del="${e.id}">${HOME.del===e.id?'SURE?':'DELETE'}</button></div>`).join('')+'</div>'+
- `<div class="row"><button class="btn" data-tab="new">NEW LEAGUE</button><button class="btn alt" data-bk="import">IMPORT</button><button class="btn alt" data-bk="all">BACK UP ALL LEAGUES</button>${cgRestoreBtn()}</div>`}
+ `<div class="row"><button class="btn" data-tab="new">NEW LEAGUE</button><button class="btn alt" data-bk="import">IMPORT</button><button class="btn alt" data-ln="join">JOIN LEAGUE</button><button class="btn alt" data-bk="all">BACK UP ALL LEAGUES</button>${cgRestoreBtn()}</div>`}
 
 /* ----- tab 2: new league wizard ----- */
 function hmNew(){
@@ -2667,7 +3343,7 @@ ${stGroup()}
 function hmStart(){
  const L=hmDraft(),nameEl=$('lgn');if(nameEl)L.name=nameEl.value.trim().toUpperCase()||'PIXEL LEAGUE';
  if(HOME.fmt==='STD')stdNew(L,HOME.pick);else lgNew(L,HOME.pick);HOME.drafts[HOME.fmt]=null;HOME.pick=0;HOME.cz={src:'draft',team:0};resetSprites();renderHub()}
-function hmPlay(id){const s=loadSlot(id);if(!s)return;S=s;if(S.lg){if(!S.lg.ho){lgOrient(S.lg.sched);S.lg.ho=1;save()}lgSync()}resetSprites();renderHub();sqKick()}
+function hmPlay(id){const s=loadSlot(id);if(!s)return;S=s;if(S.lg){if(!S.lg.ho){lgOrient(S.lg.sched);S.lg.ho=1;save()}lgSync()}resetSprites();renderHub();sqKick();lnOpen()}
 $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
  if(d.ret){HOME.ret=null;openLocker()}
  else if(d.czs)czShOpen({t:'team'},b)
@@ -2676,6 +3352,7 @@ $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.
  else if(d.rot)setRotPref(+d.rot)
  else if(d.hp==='open')hpOpen(true)
  else if(d.hn==='reset'){hnReset();HOME.hnDone=true;renderHome();HOME.hnDone=false}
+ else if(d.ln)lnMenu(d.ln,b)
  else if(d.tab)hmTab(d.tab)
  else if(d.play)hmPlay(d.play);
  else if(d.del){if(HOME.del===d.del){if(S&&S.id===d.del)S=null;delSlot(d.del);HOME.del=null}else HOME.del=d.del;renderHome()}
@@ -2769,7 +3446,7 @@ const bkBad=msg=>({ok:false,msg});
 function bkShape(d){
  if(!d||typeof d!=='object'||Array.isArray(d))return false;
  if(!(+d.season>=1))return false;
- if(d.std){try{const L=d.std;return!!(L&&typeof L.rs==='number'&&L.rules&&Array.isArray(L.sch)&&L.sch.length===STD_CFG.games&&L.sch.every(x=>Array.isArray(x)&&x.length===4)&&Array.isArray(L.teams)&&L.teams.length===8&&Number.isInteger(d.stm)&&d.stm>=0&&d.stm<8&&(d.stx===undefined||(!!d.stx&&typeof d.stx==='object'&&(d.stx.relief===0||d.stx.relief===1||(d.stx.relief===undefined&&(d.stx.drv===0||d.stx.drv===1)))&&(d.stx.drv===undefined||d.stx.drv===0||d.stx.drv===1)))&&typeof d.name==='string'&&(L.dp==='full'?FULL.checkFull(L):STD.checkLeague(L)).length===0&&stdView(d))}catch(e){return false}}   /* v2.23: a Standard league: 8 teams, 23 starters each, valid ratings */
+ if(d.std){try{const L=d.std;return!!(L&&typeof L.rs==='number'&&L.rules&&Array.isArray(L.sch)&&L.sch.length===STD_CFG.games&&L.sch.every(x=>Array.isArray(x)&&x.length===4)&&Array.isArray(L.teams)&&L.teams.length===8&&Number.isInteger(d.stm)&&d.stm>=0&&d.stm<8&&(d.stx===undefined||(!!d.stx&&typeof d.stx==='object'&&(d.stx.relief===0||d.stx.relief===1||(d.stx.relief===undefined&&(d.stx.drv===0||d.stx.drv===1)))&&(d.stx.drv===undefined||d.stx.drv===0||d.stx.drv===1)))&&(d.lnk===undefined||lnShape(d))&&typeof d.name==='string'&&(L.dp==='full'?FULL.checkFull(L):STD.checkLeague(L)).length===0&&stdView(d))}catch(e){return false}}   /* v2.23: a Standard league: 8 teams, 23 starters each, valid ratings */
  if(d.lg){const L=d.lg;return!!(L&&Array.isArray(L.teams)&&L.teams.length>=2&&Number.isInteger(L.me)&&L.teams[L.me]&&typeof L.teams[L.me]==='object')}
  return typeof d.name==='string'&&Array.isArray(d.sched)&&!!d.r&&typeof d.r==='object'}
 const bkInfo=d=>{const rec=(d.w|0)+'-'+(d.l|0)+(d.t?'-'+(d.t|0):''),L=d.lg||(d.std?stdView(d):null);return{name:String(L?L.name:d.name),team:String(d.name),season:d.season,rec,fmt:L?lgCfg(L).tag:'CLASSIC 8 GAMES'}};
@@ -3511,6 +4188,9 @@ const HP_TEXT=`<div class="hpt"><h1 class="mh">HOW TO PLAY</h1>
 <h4>4TH DOWN</h4><p>${sc(`PUNT [K] OR FIELD GOAL [F] WITH THE BUTTONS (FIELD GOAL ONLY WHEN IN RANGE), OR DRAG THE QB / TAP THE RB TO GO FOR IT. IN THE LAST 30 SECONDS OF A HALF YOU CAN KICK A FIELD GOAL ON ANY DOWN.`)}</p>
 <h4>KICKS</h4><p>${sc(`PULL DOWN FOR POWER, SIDEWAYS TO AIM. PULLING LEFT AIMS RIGHT. WATCH THE WIND ARROW. THE GREEN LINE IS THE MINIMUM POWER.`)}</p>
 <p>${sc(`AFTER A TOUCHDOWN: KICK = +1 POINT, GO FOR 2 = ONE PLAY FROM THE 2.`)}</p>
+<h4>LINKED LEAGUE</h4><p>${sc(`A LINKED LEAGUE IS A LEAGUE YOUR COMMISSIONER RUNS FOR SEVERAL FRIENDS. MY LEAGUES, JOIN LEAGUE: TYPE THE 6-CHARACTER CODE, PICK AN OPEN TEAM.`)}</p>
+<p>${sc(`PLAY YOUR GAME AS USUAL. WHEN IT ENDS THE RESULT IS SENT TO THE COMMISSIONER. NO CONNECTION: IT WAITS ON YOUR DEVICE AND IS SENT LATER. THE LEAGUE MOVES ON WHEN THE COMMISSIONER MOVES IT, AND HIS RESULT IS THE REAL ONE.`)}</p>
+<p>${sc(`UPGRADES YOU BUY GO TO YOUR TEAM IN THE CLOUD. LEAVE LEAGUE FREES YOUR TEAM AND KEEPS THE LEAGUE ON THIS DEVICE AS A LOCAL LEAGUE.`)}</p>
 <h4>KEYS</h4><p>P pass snap - R run - 1-5 quick throw - B bullet - C play call - K punt - F field goal - up/down or W/S steer - space or shift juke - 1 / 2 extra point / go for 2 - M mute</p></div>
 <div class="hpbar"><button class="btn" data-hp="close">CLOSE</button></div>`;
 function hpPanel(){let e=$('hp');
@@ -3849,6 +4529,7 @@ function hbNext(){
  const o=nextOpp();return{name:o.name,col:COLORS[o.ci].c,off:o.off,def:o.def,home:homeOf(o)}}
 const hbMatch=(who,col,off,def)=>`<div class="hbm1"><h4 style="color:${col}">${who}</h4><div class="up"><b>OFFENSE</b>${pips(off)}</div><div class="up"><b>DEFENSE</b>${pips(def)}</div></div>`;
 function hbHub(){
+ if(S.lnk&&S.over)return lnWaitHub();   /* v2.33: a linked league whose season is over for my team */
  const L=S.lg?LG():null,cf=L?lgCfg(L):null,po=S.phase==='playoff',o=hbNext(),r=L?L.rec[L.me]:S,mc=myC().c,n=hbBuy();
  const sub=L?`${L.name} - SEASON ${S.season}${S.champs?' - TITLES '+S.champs:''}`:`SEASON ${S.season}${S.champs?' - TITLES '+S.champs:''}`;
  const rank=L&&!po&&S.week?' - '+lgRank(L.me)+' IN '+lgGrp(L,L.teams[L.me]):'';
@@ -3863,7 +4544,7 @@ function hbHub(){
  <div class="card hbn"><h3>${label} - ${siteTxt(o.home)}</h3><div class="big" style="color:${o.col}">${o.name}</div>${note?`<div class="sm">${sc(`${note}`)}</div>`:''}
  <div class="hbm">${hbMatch('YOU',mc,hbOff(),S.r.def)}<div class="vs">VS</div>${hbMatch('THEM',o.col,o.off,o.def)}</div>${S.std?stdOppLine(o):''}
  <p style="margin-top:.6em">${sc(`${S.last?'LAST: '+S.last:'FIRST GAME OF THE SEASON'}`)}</p></div>
- ${gsRow()}<div class="row hbp"><button class="btn" data-act="play">PLAY GAME</button>${L?'<button class="btn alt" data-act="sim">SIM GAME</button>':''}</div>
+ ${gsRow()}<div class="row hbp"><button class="btn" data-act="play">${S.lnk?lnPlayLabel():'PLAY GAME'}</button>${L?'<button class="btn alt" data-act="sim">SIM GAME</button>':''}</div>${S.lnk?lnPanel():''}
  <div class="card hbw"><h3>TO DO</h3><div class="hbtd">${todo.join('')}</div></div>${dv}`}
 /* my division, small: rank, color, team, record (the same order as STANDINGS) */
 function hbDiv(L){const t=L.teams[L.me],cf=lgCfg(L),ids=lgOrder(lgDivIds(t.conf,t.div,cf));
@@ -6695,6 +7376,6 @@ function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return
 document.addEventListener('pointerup',fsTry,{capture:true});
 UI.ready=true;fit();openMenu();olBoot();
 requestAnimationFrame(frame);
-window.__pp={FULL,LGFULL,gsResume,LGD,simOppDrv,drvOn,drvSet,drvCtx,drvMix,drvRng,LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:upShift,upShift,stdRelief,stdSetRelief,stdCostR,stdOppLine,RELIEF_SLOPE,RELIEF_CAP,STD_NEAR,teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdN,n:spdN,mult:m,step:SPD_STEP[spdN-1]}},spdMul:SPD_MUL,spdStep:SPD_STEP,czSetColor,czRedraw,czDraw,FIGPV,figPv,setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
+window.__pp={hmPlay,exportCode,bkUnpack,bkCommit,lnMenu,lnLeave,lnFlush,lnBuy,lnPlayLabel,lnHubClick,lnOpen,lnWatch,lnUnwatch,lnAfterGame,lnPlayGo,lnSimGo,lnWaitHub,LN:LNK,LNC,lnDerive,lnPull,lnFind,lnJoin,lnShape,lnCur,lnLast,lnWeeksOf,lnLocalize,lnKeepLocal,lnPanel,lnJoinHtml,FULL,LGFULL,gsResume,LGD,simOppDrv,drvOn,drvSet,drvCtx,drvMix,drvRng,LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:upShift,upShift,stdRelief,stdSetRelief,stdCostR,stdOppLine,RELIEF_SLOPE,RELIEF_CAP,STD_NEAR,teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdN,n:spdN,mult:m,step:SPD_STEP[spdN-1]}},spdMul:SPD_MUL,spdStep:SPD_STEP,czSetColor,czRedraw,czDraw,FIGPV,figPv,setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub};
 })();
 </script></body></html>
