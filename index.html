@@ -4,6 +4,7 @@
 <title>Pixel Pigskin Football</title>
 <meta name="theme-color" content="#1d2a44">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Pixel Pigskin">
 <link rel="manifest" href="manifest.webmanifest">
@@ -439,9 +440,10 @@ html{background:#070a12}
 .gh .dd.hot{background:#ffb52e;color:#10142a}.gh .dd.td{background:#1fae5a;color:#06140b}
 .bt{pointer-events:auto;font:inherit;font-weight:700;font-size:calc(16px*var(--k));min-height:max(44px,calc(48px*var(--k)));min-width:calc(112px*var(--k));padding:0 calc(14px*var(--k));border:3px solid transparent;background:var(--bb);color:var(--bbx);cursor:pointer;white-space:nowrap;text-align:center}
 .bt.p{background:var(--bt);color:var(--btx);border-color:#fff}
-.bt.pz{display:flex;align-items:center;justify-content:center;gap:calc(5px*var(--k));width:max(44px,calc(44px*var(--k)));min-width:max(44px,calc(44px*var(--k)));height:calc(34px*var(--k));min-height:0;padding:0;border-width:0;flex:none;position:relative}
-.bt.pz::after{content:'';position:absolute;left:0;right:0;top:-7px;bottom:-7px} /* the tap area is taller than the drawn button */
-.bt.pz i{display:block;width:calc(7px*var(--k));height:calc(20px*var(--k));background:currentColor}
+.bt.mn{display:flex;align-items:center;justify-content:center;flex:none;position:relative;width:max(52px,calc(58px*var(--k)));min-width:0;height:calc(34px*var(--k));min-height:0;padding:0;border:0;font-size:calc(14px*var(--k));background:#2b3a55;color:#fff;box-shadow:0 calc(3px*var(--k)) 0 #141c2c;margin-right:calc(6px*var(--k))} /* v2.34: MENU, upper left of the banner, the old quiet menu-button look (the v1.8x .btn.alt colors), NOT yellow. Drawn about 31 px tall to fit the banner; the tap area is 44+ px tall (52 on an iPad) through the ::after, as PAUSE had. Hidden (space kept, no taps) from the snap until the play is over. */
+.bt.mn::after{content:'';position:absolute;left:-4px;right:-4px;top:calc(-1*max(0px,(var(--tp) - 34px*var(--k))/2));bottom:calc(-1*max(0px,(var(--tp) - 34px*var(--k))/2))}
+.bt.mn.hide{visibility:hidden;pointer-events:none}
+@media (max-width:640px){.bt.mn{width:44px;margin-right:2px}.gh .bsc{gap:calc(4.5px*var(--k))}.gh .n{margin-right:calc(3.6px*var(--k))}} /* v2.34: on a very small phone (568x320) the left group, MENU included, still stays clear of the centered clock */
 #bPlay{position:absolute;bottom:calc(var(--pb) + 8px);width:calc(128px*var(--kb));min-width:0;height:calc(54px*var(--kb));min-height:0;padding:0;font-size:calc(20px*var(--kb));background:var(--bt);color:var(--btx);border:3px solid #fff}
 /* v2.12 LIVE tag: shown only while the defense phone watches the streamed play (a label in the Press Start font, not a control) */
 #lvtag{position:absolute;display:none;left:calc(var(--pl) + 8px);top:calc(var(--bh) + 6px);padding:4px 8px;background:rgba(8,13,28,.9);border:2px solid #fff;color:#4ee08a;font:10px 'Press Start 2P',monospace;letter-spacing:0;pointer-events:none}
@@ -496,7 +498,7 @@ html{background:#070a12}
 </style></head><body>
 <div id="wrap"><div id="app">
 <canvas id="cbg" width="1" height="1" aria-hidden="true"></canvas><canvas id="c" width="640" height="360"></canvas><canvas id="cfg" width="1" height="1" aria-hidden="true"></canvas><canvas id="ctp" width="640" height="360" aria-hidden="true"></canvas>
-<div id="gh" class="gh" aria-label="Scoreboard"><div class="bsc"><i class="ch" id="ghc1"></i><span class="ab" id="gha1"></span><span class="n us" id="ghs1">0</span><i class="ch" id="ghc2"></i><span class="ab" id="gha2"></span><span class="n" id="ghs2">0</span></div><div class="bmid"><div class="bck" id="ghck"><span class="lab" id="ghq">Q1</span><span class="t" id="ght">0:00</span><i class="dot off" id="ghdot" title="Clock"></i></div><button class="bt pz" id="bPause" aria-label="Pause menu" title="PAUSE"><i></i><i></i></button></div><div class="bdn"><span class="dd" id="ghdd"></span></div></div>
+<div id="gh" class="gh" aria-label="Scoreboard"><div class="bsc"><button class="bt mn" id="bMenu" aria-label="Menu" title="MENU">MENU</button><i class="ch" id="ghc1"></i><span class="ab" id="gha1"></span><span class="n us" id="ghs1">0</span><i class="ch" id="ghc2"></i><span class="ab" id="gha2"></span><span class="n" id="ghs2">0</span></div><div class="bmid"><div class="bck" id="ghck"><span class="lab" id="ghq">Q1</span><span class="t" id="ght">0:00</span><i class="dot off" id="ghdot" title="Clock"></i></div></div><div class="bdn"><span class="dd" id="ghdd"></span></div></div>
 <button class="bt p big hide" id="bPlay">PLAYS</button><div id="lvtag" aria-label="Live view">LIVE</div>
 <div class="shb" id="gpl"></div><div class="shb" id="gpz"></div><div id="pbp" aria-label="Their drive"></div>
 <div id="shell"><nav id="nav" aria-label="Main"></nav>
@@ -531,7 +533,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="2.33"; /* v2.33: LINKED LEAGUES, the player side (src/lk.js): join a commissioner's league by its code, pull it, play and send games. v2.32: no game change (tests only: drvoff pinned to the .611 speed, hlp over http). Helmet logo, jersey trim and number are still drawn in the play designer and the kick scene, so their LOOK rows stay. */ /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.34"; /* v2.34: the game screen: MENU button (upper left, hidden from the snap), RB box yellow, routes 3 px, no tips after the snap, installed app fullscreen / black-translucent. v2.33: LINKED LEAGUES, the player side (src/lk.js): join a commissioner's league by its code, pull it, play and send games. v2.32: no game change (tests only: drvoff pinned to the .611 speed, hlp over http). Helmet logo, jersey trim and number are still drawn in the play designer and the kick scene, so their LOOK rows stay. */ /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -7008,11 +7010,11 @@ function drawRoutes(alpha,live){
   const pts=[{x:r.x,y:r.y}];for(let k=live?r.pi:0;k<r.path.length;k++)pts.push(r.path[k]);
   if(r.cont){const a=pts[pts.length-1],b=pts.length>1?pts[pts.length-2]:{x:a.x-1,y:a.y};const ux=a.x-b.x,uy=a.y-b.y,L=Math.hypot(ux,uy)||1;pts.push({x:a.x+ux/L*5,y:clamp(a.y+uy/L*5,1,39)})}
   if(pts.length<2)return;
-  cx.save();cx.globalAlpha=alpha;cx.strokeStyle=RCG[i];cx.lineWidth=2;cx.setLineDash([5,3]);cx.beginPath();
+  cx.save();cx.globalAlpha=alpha;cx.strokeStyle=RCG[i];cx.lineWidth=3;cx.setLineDash([5,3]);cx.beginPath();
   pts.forEach((q,k)=>k?cx.lineTo(sx(q.x),sy(q.y)-3):cx.moveTo(sx(q.x),sy(q.y)-3));cx.stroke();cx.setLineDash([]);
   const e=pts[pts.length-1],f=pts[pts.length-2],ang=Math.atan2(sy(e.y)-sy(f.y),sx(e.x)-sx(f.x));
   cx.fillStyle=RCG[i];cx.translate(sx(e.x),sy(e.y)-3);cx.rotate(ang);
-  if(r.cont){cx.beginPath();cx.moveTo(1,0);cx.lineTo(-6,-4);cx.lineTo(-6,4);cx.closePath();cx.fill()}else cx.fillRect(-1,-4,3,8);
+  if(r.cont){cx.beginPath();cx.moveTo(1.5,0);cx.lineTo(-9,-6);cx.lineTo(-9,6);cx.closePath();cx.fill()}else cx.fillRect(-1.5,-6,4.5,12); /* v2.34: line 2 -> 3, the arrowhead and the end bar x1.5 */
   cx.restore()})}
 function aimLanding(dx,dy){
  const q=G.qb,px=sx(q.x)-dx*3.4,py=sy(q.y)-dy*1.5;
@@ -7028,10 +7030,11 @@ function drawAim(){
  cx.strokeStyle='#ffd400';cx.lineWidth=2;cx.beginPath();cx.ellipse(lx,ly,catchR()*PPY,catchR()*UNIT,0,0,6.283);cx.stroke();
  let best=null,bd=8;G.recs.forEach((r,i)=>{const k=dst(r,L);if(k<bd){bd=k;best=i}});
  if(best!==null){const r=G.recs[best],g=predictRec(r,d/airSpd(L.x));cx.strokeStyle=RCG[best];cx.lineWidth=2;cx.beginPath();cx.arc(sx(g.x),sy(g.y)-3,5,0,6.283);cx.stroke()}}
+/* v2.34: QB box white (as before), RB box yellow #ffd400 drawn solid (3.58:1 on the lighter turf stripe, 3.01:1 would be the margin at .85), each with its word in its own color */
 function drawSnapHints(){
  const pu=1+Math.sin(G.t*6)*.15,ps=hnStr('pre'),d=FLIP?1:-1; /* v1.79: the boxes always pulse; the PASS and RUN words fade with the pre-snap tip and never sit on another player or the ball */
- for(const[e,l]of[[G.qb,'PASS'],[G.recs[3],'RUN']]){const x=Math.round(sx(e.x)),y=Math.round(sy(e.y));
-  cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.globalAlpha=.85;cx.strokeRect(x-11*pu,y-26*pu,22*pu,31*pu);cx.globalAlpha=1;hnText(l,6,'#ffd400',ps,[[x,y+14,'center'],[x+d*14,y+2,d>0?'left':'right'],[x-d*14,y+2,d>0?'right':'left']],e)}}
+ for(const[e,l,bc,ba]of[[G.qb,'PASS','#fff',.85],[G.recs[3],'RUN','#ffd400',1]]){const x=Math.round(sx(e.x)),y=Math.round(sy(e.y));
+  cx.strokeStyle=bc;cx.lineWidth=1.5;cx.globalAlpha=ba;cx.strokeRect(x-11*pu,y-26*pu,22*pu,31*pu);cx.globalAlpha=1;hnText(l,6,bc,ps,[[x,y+14,'center'],[x+d*14,y+2,d>0?'left':'right'],[x-d*14,y+2,d>0?'right':'left']],e)}}
 function drawScene(){
  const mc=myC(),oc=G.oc,p=G.play;
  const all=[];
@@ -7057,7 +7060,7 @@ function drawOverlay(){
  if(G.mode==='patchoice'){cx.fillStyle='rgba(6,10,20,.85)';cx.fillRect(0,110,W,100);txt('EXTRA POINT OR TWO?',W/2,150,16,'#ffd400','center');txt('KICK = +1 (YOU AIM THE KICK)   -   GO FOR 2 = ONE PLAY FROM THE 2',W/2,180,7,'#b8c4dc','center')}
  const p=G.play;let h='',hs=0;const yb=GMD?FB-6-GI.b:FB-6;let ys=GMD?[yb,FT+22]:[FB+16,FB-6,FT+22]; /* v1.79: every field tip fades with use (see hp.js) and picks a line that is clear of the QB, the receivers and the ball */
  if(G.mode==='presnap'){ys=[yb,FT+22];if(G.down===4){h='4TH DOWN - PUNT, FIELD GOAL, OR DRAG QB / TAP RB TO GO FOR IT';hs=hnStr('fourth')}else{h='STUDY THE ROUTES - DRAG THE QB BACK TO PASS, TAP THE RB TO RUN';hs=hnStr('pre')}}
- else if(G.mode==='live'&&p){if(p.phase==='back'){h='PULL BACK ON THE QB TO AIM - TAP THE FIELD FOR A BULLET';hs=HNL.aim!=null?HNL.aim:hnStr('aim')}else if(p.phase==='run'){h='SWIPE UP OR DOWN TO STEER - JUKE: SPACE';hs=p.type==='run'&&HNL.run!=null?HNL.run:hnStr('run')}}
+ /* v2.34: no tip is drawn from the snap until the next pre-snap (the aim and steer tips of v1.79 are gone; the pre-snap tip says how); HNL and the counters in hp.js stay as they were */
  if(h&&!G.lv){const A=GMD?hintArea():{c:W/2,w:W};let z=7;while(h.length*z>A.w&&z>5)z--; /* v2.06: the tip is centered in the room the corner button leaves, and drops a size when that is narrow */
   hnText(h,z,'#fff',hs,ys.map(y=>[A.c,y,'center']))}
  if(G.rev&&(G.mode==='presnap'||G.mode==='banner'&&!(G.bn&&G.bn.dl)))txt('LAST PLAY: '+G.rev.n+(G.rev.l?'  (SHOWED '+G.rev.l+')':''),8+(GMD?GI.l:0),FT+10,6,G.rev.l?'#ff9f43':'#ffd400');
@@ -7253,6 +7256,7 @@ function ghUpdate(){
  if(G.mode==='presnap'||G.mode==='patchoice'){m='plays';lab='PLAYS'}
  else if(G.mode==='live'&&p&&p.runner){m='juke';lab='JUKE'}
  else if(G.mode==='live'&&p&&p.phase==='back'&&p.type==='pass'){m='bullet';lab='BULLET '+(G.bullet?'ON':'OFF')}
+ ghC('bMenu','bt mn'+((G.mode==='live'||G.mode==='kick'||G.lv)?' hide':'')); /* v2.34: MENU is out of the banner's way from the snap until the play is over, and while the defense phone watches a live play */
  const b=$('bPlay');ghT('bPlay',lab);ghC('bPlay','bt p big '+CBS+(m?'':' hide'));b.dataset.m=m;
  if(m==='bullet')b.setAttribute('aria-pressed',G.bullet?'true':'false');else b.removeAttribute('aria-pressed')}
 /* PLAYS sheet */
@@ -7303,7 +7307,7 @@ function pzSet(){let e=$('pzs');
 $('gpz').addEventListener('click',e=>{if(e.target===$('gpz')){pzClose();return}
  const b=e.target.closest&&e.target.closest('[data-pz]');if(!b)return;const a=b.dataset.pz;
  if(a==='resume')pzClose();else if(a==='set')pzSet();else if(a==='help')hpOpen(true);else if(a==='leave')xpOpen(true)});
-$('bPause').addEventListener('click',()=>{$('bPause').blur();pzOpen()});
+$('bMenu').addEventListener('click',()=>{$('bMenu').blur();pzOpen()}); /* v2.34: MENU (was the PAUSE icon): the same sheet */
 /* portrait turn-sideways prompt: EXIT does what LEAVE GAME does (the same confirm panel; it is shown in place of the prompt and the prompt comes back after KEEP PLAYING) */
 $('tExit').addEventListener('click',()=>{if(DS.on){closeDesigner();return}if(!G){renderHub();return}
  if(XP.on)return;const t=$('turn');t.classList.add('xo');TURN.xp=true;xpOpen(true);if(!XP.on){TURN.xp=false;t.classList.remove('xo')}});
