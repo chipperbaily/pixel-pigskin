@@ -2,7 +2,7 @@
    BUMP CACHE_VERSION whenever you change sw.js, the manifest, an icon or the font (anything in PRECACHE other than index.html).
    index.html itself is fetched network-first, so a new index.html reaches players on their next online visit even without a bump;
    bumping on every release is still harmless and keeps the cache tidy. */
-const CACHE_VERSION = 'pp-v3';   /* v2.34: the manifest changed (fullscreen display_override), so the cached manifest must be replaced */
+const CACHE_VERSION = 'pp-v5';   /* v2.36: bumped for the new index.html (the game page is part of PRECACHE); v2.35 was pp-v4; v2.34 was pp-v3: the manifest changed (fullscreen display_override) */
 const CACHE = 'pixel-pigskin-' + CACHE_VERSION;
 const PRECACHE = [
   './',
