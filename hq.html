@@ -242,7 +242,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=LGE;   /* Node, th
 </script>
 <!-- lg-std.js, byte copy of D:\PigskinLeague\lg-std.js -->
 <script id="src-lg-std">// =============================================================================
-// lg-std.js  -  the rules of the 8-team STANDARD league, in one file.   (round 4)
+// lg-std.js  -  the rules of the STANDARD league, in one file.   (1.4: INJURIES, a setting OFF / LOW / NORMAL, default OFF = byte for byte as before; 1.3: any league shape)
 //
 // What is in here: the league maker (with its 10 hidden burn-in seasons), a
 // team's strength worked out from its starters (the game's lgRt formula) plus
@@ -266,7 +266,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=LGE;   /* Node, th
 //               STD.playSeason(L); STD.offseason(L, STD.newCtx());
 // =============================================================================
 const LGSTD = (function () {
-  const VERSION = 'lg-std 1.2 (round 5)';
+  const VERSION = 'lg-std 1.4 (injuries)';
 
   // ------------------------------------------------------------ small helpers
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -282,16 +282,16 @@ const LGSTD = (function () {
   const PO_WEEK_BASE = 100, PO_FIRST_ROUND = 0;
   // Reserved "week" numbers for everything that is NOT a game (names, growth, retirement ...).
   // Real game weeks are below 200, so these streams can never collide with a game's stream.
-  const K = { MAKER: 1001, SCHED: 1002, GROWTH: 1003, RETIRE: 1004, EDGE: 1005, TIEBREAK: 1006, ID: 1007 };
+  const K = { MAKER: 1001, SCHED: 1002, GROWTH: 1003, RETIRE: 1004, EDGE: 1005, TIEBREAK: 1006, ID: 1007, HURT: 1008 };   // 1.4: HURT = injuries (1006 and 1007 were taken; lg-full uses 1010 to 1015, 1020 to 1031 reserved)
 
   // The engine's lgGame only looks at the league object to ask lgCfg(L).noTie. The REAL engine knows only the game's own
   // formats (NFL, COL) and fails for our "p8", so every game call is given this stub: NFL = ties allowed in the regular
   // season (the playoff games say so themselves with po = true).
-  const GAME_STUB = { fmt: 'NFL' };
+  const GAME_STUB = { fmt: 'NFL' }, GAME_STUB_NOTIE = { fmt: 'COL' };   // COL = no ties in the regular season either (the engine only reads that from it)
   // The small ADAPTER: a Standard league seen in the game's own league shape (L.teams, L.sched, L.rec, numeric L.seed),
   // so the engine's own playWeek can run it. The league seed is our rs. (Used by the tests and by whoever glues this into the game.)
   function engineLeague(L) {
-    return { fmt: 'NFL', seed: L.rs, teams: L.teams.map((t) => ({ id: t.id, conf: t.cf })), sched: L.sch,
+    return { fmt: L.shape && L.shape.k === 'COLLEGE' ? 'COL' : 'NFL', seed: L.rs, teams: L.teams.map((t) => ({ id: t.id, conf: t.cf })), sched: L.sch,
       rec: L.teams.map(() => ({ w: 0, l: 0, t: 0, pf: 0, pa: 0 })), hist: [] };
   }
 
@@ -364,12 +364,27 @@ const LGSTD = (function () {
     }
   }
 
+  // INJURIES (1.4). A hurt player carries p.ou = games he still has to miss (1 to 4); the field is absent when he is fit (and in every league with the setting OFF).
+  // The starters the team ratings read (the same counts derive() uses; the kicker is not read, so he is never hurt):
+  const STARTERS = { QB: 1, RB: 1, TE: 1, WR: 3, OL: 5, DL: 4, LB: 3, DB: 4 };
+  // the chance a starter is hurt after one week (or playoff round), by the league setting; the length is 1 to 4 weeks, even odds each.
+  // NORMAL = about 0.44 starters a team a week (one new injury every 2 to 2.5 weeks, about one man out at a time); LOW = a third of that.
+  const INJ = { LOW: 0.007, NORMAL: 0.02, drop: 2, maxWeeks: 4 };
+  // the man who plays for a hurt starter when the team has nobody behind him (the Standard league): the same ratings, 2 lower, never below 1
+  const standIn = (p) => { const rt = {}; for (const k in p.rt) rt[k] = Math.max(1, Math.round((p.rt[k] - INJ.drop) * 10) / 10); return { rt }; };
+  // one position's starters with the hurt ones swapped out: the next fit man behind them (Full league backups), else a stand-in
+  function fillIn(list, n) {
+    const bench = list.slice(n).filter((p) => !p.ou);
+    return list.slice(0, n).map((p) => (!p.ou ? p : bench.length ? bench.shift() : standIn(p)));
+  }
+
   // A team's offense and defense from its starters: the game's own formula (lgRt).
-  // Not stored in the file, worked out when needed.
+  // Not stored in the file, worked out when needed. A hurt starter (p.ou) is replaced as above; with nobody hurt this is the same code and numbers as before.
   function derive(team) {
     const by = {};
     for (const p of team.ro) (by[p.ps] = by[p.ps] || []).push(p);
     for (const k in by) by[k].sort((a, b) => a.sl - b.sl);
+    if (team.ro.some((p) => p.ou)) for (const k in STARTERS) by[k] = fillIn(by[k], STARTERS[k]);
     const qb = by.QB[0], rb = by.RB[0], te = by.TE[0], wr = by.WR.slice(0, 3);
     const q = (qb.rt.arm + qb.rt.acc) / 2;
     const rc = (wr.reduce((s, w) => s + w.rt.spd + w.rt.cat, 0) + te.rt.spd + te.rt.cat) / 8;
@@ -378,6 +393,23 @@ const LGSTD = (function () {
     const def = mean([...by.DL.slice(0, 4), ...by.LB.slice(0, 3), ...by.DB.slice(0, 4)].map((p) => p.rt.def));
     return { off, def };
   }
+  // who is out on a team (changes nothing): [{ id, nm, ps, sl, out }] (out = games still to miss), the starters first by position order
+  function injured(L, ti) {
+    const out = []; for (const p of L.teams[ti].ro) if (p.ou) out.push({ id: p.id, nm: p.nm, ps: p.ps, sl: p.sl, out: p.ou });
+    return out;
+  }
+  // every hurt player fit again (the offseason, and setting the league to OFF)
+  function healAll(L) { for (const t of L.teams) for (const p of t.ro) if (p.ou) delete p.ou; }
+  // the injury checks (shared with lg-full): the setting, and every p.ou a whole number 1 to 4 on a starter in a league that has the setting on
+  function checkInj(L, bad) {
+    if (L.inj !== undefined && L.inj !== 'LOW' && L.inj !== 'NORMAL') bad.push('the injury setting is ' + L.inj);
+    for (const t of L.teams) for (const p of t.ro) if (p.ou !== undefined) {
+      if (!Number.isInteger(p.ou) || p.ou < 1 || p.ou > INJ.maxWeeks) bad.push(`${p.id} is out ${p.ou} games`);
+      if (!L.inj) bad.push(`${p.id} is hurt in a league with injuries off`);
+      if (!(STARTERS[p.ps] > p.sl)) bad.push(`${p.id} is hurt but is not a starter`);
+    }
+  }
+
   // THE EDGE STEP (kept here, not in the engine): the team edge (times edge.scale) is added to both.
   // This is the pair of numbers the engine's sim is given.
   function effective(team, rules) {
@@ -398,6 +430,188 @@ const LGSTD = (function () {
     return [...weeks, ...weeks.map((g) => g.map(([h, a]) => [a, h]))];
   }
 
+
+  // =========================================================================================================
+  // SHAPES (1.3). A league record may carry L.shape. NO L.shape = the 8-team league above (nothing in that path changed).
+  // shape = { k: 'NFL' | 'COLLEGE' | 'CUSTOM', n teams, nc conferences, dv divisions per conference (0 = none), per teams per division
+  //           (per conference when dv is 0), games a season, po playoff teams, br brackets (2 = one per conference, then a
+  //           cross-conference final; 1 = one bracket), by byes per bracket, hr rounds played at the better seed's park
+  //           (later rounds are neutral), noTie, cn conference names, dn division names }
+  // Team id = conference * perConf + division * per + slot (the game's own numbering).
+  // =========================================================================================================
+  const pow2up = (x) => { let p = 1; while (p < x) p *= 2; return p; };
+  const log2i = (p) => { let r = 0; while ((1 << r) < p) r++; return r; };
+  const CITIES = ['HARBOR','PRAIRIE','GRANITE','MESA','LAKESIDE','SUMMIT','BAYOU','REDWOOD','NEON','IRON','COASTAL','CANYON','TIMBER','DESERT','AMBER','BLUFF','CEDAR','DELTA','EMBER','FROST','GLACIER','HIGHLAND','ISLAND','JADE','MARSH','NORTHERN','ORCHARD','PINE','QUARRY','RIDGE','SILVER','SUNSET','THUNDER','VALLEY','WILLOW','COPPER','CRIMSON','DUSTY','MAPLE','OAK'];
+  const MASCOTS = ['HAWKS','FOXES','GIANTS','SCORPIONS','LOONS','YETIS','BARONS','RANGERS','KNIGHTS','OXEN','COMETS','COBRAS','BADGERS','DRAGONS','WOLVES','BISON','OTTERS','LYNX','MARLINS','MOOSE','PIRATES','ROCKETS','SHARKS','STAGS','VIPERS','WARDENS','COUGARS','HORNETS','MUSTANGS','STORM','BANDITS','PILOTS','MINERS','SPARKS','OWLS','PUMAS','HERONS','CRANES','GATORS','IBEX','WASPS','CROWS','MAMMOTHS','SABERS','PHANTOMS','WRANGLERS','MARAUDERS'];
+  const ROUND_NAMES = { NFL: ['WILD CARD', 'DIVISIONAL', 'CONF FINAL', 'PIGSKIN BOWL'], COLLEGE: ['FIRST ROUND', 'QUARTERFINAL', 'SEMIFINAL', 'NATIONAL TITLE'] };
+  const PRESETS = {
+    NFL: { k: 'NFL', n: 32, nc: 2, dv: 4, per: 4, games: 17, po: 14, br: 2, noTie: false, hr: 3, cn: ['PIXEL CONF', 'GRIDIRON CONF'], dn: ['NORTH', 'SOUTH', 'EAST', 'WEST'] },
+    COLLEGE: { k: 'COLLEGE', n: 60, nc: 6, dv: 0, per: 10, games: 12, po: 12, br: 1, noTie: true, hr: 1, cn: ['ATLANTIC', 'LAKES', 'MOUNTAIN', 'PACIFIC', 'SOUTHERN', 'PLAINS'], dn: [] },
+  };
+  const perConf = (S) => (S.dv ? S.dv * S.per : S.per);
+  const addBy = (S) => { S.by = pow2up(S.po / S.br) - S.po / S.br; return S; };
+  for (const k of Object.keys(PRESETS)) addBy(PRESETS[k]);
+  // The rounds of the playoff: the bracket's rounds, plus the cross-conference final when there are two brackets.
+  const poRounds = (S) => log2i(pow2up(S.po / S.br)) + (S.br === 2 ? 1 : 0);
+
+  // shapeOf('NFL' | 'COLLEGE' | '8' | 'P8' | undefined | { teams, conferences, divisions, games, playoff }) -> { ok, shape, msg }
+  //   '8' / 'P8' / undefined / null -> { ok: true, shape: null } (the 8-team league: store nothing)
+  //   a custom spec is checked and a short plain message says what is wrong ("60 teams can't split into 7 conferences")
+  function shapeOf(spec) {
+    if (spec == null || spec === '8' || spec === 'P8' || spec === 8 || spec === '8 TEAMS') return { ok: true, shape: null, msg: '' };
+    if (typeof spec === 'string') {
+      const k = spec.toUpperCase();
+      if (!PRESETS[k]) return { ok: false, shape: null, msg: `no league shape called ${spec}` };
+      return { ok: true, shape: addBy(clone(PRESETS[k])), msg: '' };
+    }
+    if (spec.k && spec.n && spec.nc && spec.po && spec.games && spec.per !== undefined && spec.by !== undefined) return { ok: true, shape: clone(spec), msg: '' };   // an already finished shape record
+    const fail = (msg) => ({ ok: false, shape: null, msg });
+    const n = spec.teams, nc = spec.conferences, games = spec.games, po = spec.playoff;
+    let dv = spec.divisions === undefined ? 0 : spec.divisions;
+    if (!Number.isInteger(n) || n < 4 || n > 64 || n % 2) return fail(`${n} teams won't work: use an even number from 4 to 64`);
+    if (!Number.isInteger(nc) || nc < 1 || nc > 8) return fail(`${nc} conferences won't work: use 1 to 8`);
+    if (n % nc) return fail(`${n} teams can't split into ${nc} conferences`);
+    const pc = n / nc;
+    if (pc < 2) return fail(`${nc} conferences of ${pc} team is too small: a conference needs at least 2 teams`);
+    if (!Number.isInteger(dv) || dv < 0 || dv > 4) return fail(`${dv} divisions won't work: use 0 to 4 per conference`);
+    if (dv === 1) dv = 0;                                   // one division per conference is just the conference
+    if (dv && pc % dv) return fail(`${pc} teams in a conference can't split into ${dv} divisions`);
+    if (dv && pc / dv < 2) return fail(`${dv} divisions of ${pc / dv} team is too small: a division needs at least 2 teams`);
+    const maxG = Math.min(17, 2 * (n - 1));
+    if (!Number.isInteger(games) || games < 6 || games > 17) return fail(`${games} games won't work: use 6 to 17`);
+    if (games > maxG) return fail(`${n} teams can't play ${games} games: the most is ${maxG}`);
+    if (!Number.isInteger(po) || po < 2 || po > 16) return fail(`${po} playoff teams won't work: use 2 to 16`);
+    if (po > n) return fail(`${po} playoff teams is more than the ${n} teams in the league`);
+    const cn = [], dn = [];
+    for (let c = 0; c < nc; c++) cn.push(nc === 1 ? 'LEAGUE' : 'CONF ' + String.fromCharCode(65 + c));
+    for (let d = 0; d < dv; d++) dn.push('DIV ' + (d + 1));
+    const S = { k: 'CUSTOM', n, nc, dv, per: dv ? pc / dv : pc, games, po, br: 1, noTie: !!spec.noTie, hr: Math.max(0, log2i(pow2up(po)) - 1), cn, dn };
+    return { ok: true, shape: addBy(S), msg: '' };
+  }
+  // the name of playoff round r (0 = the first round played), for the game's screens
+  function roundName(S, r) {
+    if (!S) return ['SEMIFINAL', 'FINAL'][r];
+    if (ROUND_NAMES[S.k]) return ROUND_NAMES[S.k][r];
+    const fromEnd = poRounds(S) - 1 - r;
+    return fromEnd === 0 ? 'FINAL' : fromEnd === 1 ? 'SEMIFINAL' : fromEnd === 2 ? 'QUARTERFINAL' : 'ROUND ' + (r + 1);
+  }
+  function teamOfId(S, id) { const pc = perConf(S), cf = Math.floor(id / pc), inC = id % pc; return { cf, dv: S.dv ? Math.floor(inC / S.per) : 0 }; }
+
+  // 64 teams need names: city + mascot from the game's own lists, drawn from a stream of its own (never the player stream); colors from the index
+  function shapeTeamDefs(S, rng) {
+    const out = [], seen = new Set(); let guard = 0;
+    while (out.length < S.n && guard++ < 20000) {
+      const nm = rng.pick(CITIES) + ' ' + rng.pick(MASCOTS);
+      if (nm.length > 15 || seen.has(nm)) continue;
+      seen.add(nm);
+      const h = Math.round((out.length * 137.508 + rng() * 20) % 360);
+      out.push([nm, hsl(h, 62, 42), hsl((h + 180) % 360, 25, 88)]);
+    }
+    return out;
+  }
+  function hsl(h, s, l) {
+    s /= 100; l /= 100; const k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    const x = (v) => Math.round(v * 255).toString(16).padStart(2, '0'); return '#' + x(f(0)) + x(f(8)) + x(f(4));
+  }
+
+  // The schedule of a shape: g weeks, EVERY team plays once each week (a perfect matching a week, like the game's own NFL schedule).
+  // Games are chosen in this order: division games, then conference games, then the rest (see shapePlan). Weeks are then shuffled.
+  //  * division rivals twice (once at each park) when that is at most 40% of the games, else once
+  //  * conference games: the other conference opponents, each once, up to 1/2 of what is left (3/4 with no divisions)
+  //  * the rest from outside the conference; when a pool runs dry a pair meets a second time, never a third unless nothing else is left
+  // Home and away: every team gets floor or ceil of g/2 home games; a pair that meets twice has one game at each park.
+  function shapePlan(S) {
+    const g = S.games, pc = perConf(S);
+    const D = S.dv ? Math.min(2 * (S.per - 1), Math.floor(g * 0.4)) : 0;
+    const confPool = S.dv ? pc - S.per : pc - 1;
+    const C = S.nc === 1 ? g - D : Math.min(confPool, Math.ceil((g - D) * (S.dv ? 0.5 : 0.75)));
+    return { D, C, R: g - D - C };
+  }
+  function shapeSchedule(S, rng) {
+    const n = S.n, g = S.games, pc = perConf(S), plan = shapePlan(S);
+    const cf = [], dvOf = [];
+    for (let i = 0; i < n; i++) { cf.push(Math.floor(i / pc)); dvOf.push(S.dv ? Math.floor((i % pc) / S.per) : 0); }
+    const cat = (a, b) => (cf[a] !== cf[b] ? 2 : S.dv && dvOf[a] === dvOf[b] ? 0 : 1);
+    const meet = new Uint8Array(n * n), rounds = [];
+    // a group that plays itself (a division, or a conference with no divisions) with an even number of teams: the circle method, so every
+    // round is a perfect matching inside each group and nobody is left out (a random search almost never finds a full round robin of 10)
+    const circleGroups = (size, of) => { const gs = []; for (let k = 0; k < n / size; k++) { const ids = []; for (let i = 0; i < n; i++) if (of(i) === k) ids.push(i); gs.push(rng.shuffle(ids)); } return gs; };
+    const circleRound = (gs, r) => { const out = []; for (const o of gs) { const m = o.length, rest = o.slice(1), q = r % (m - 1), row = [o[0], ...rest.slice(q).concat(rest.slice(0, q))]; for (let i = 0; i < m / 2; i++) out.push([row[i], row[m - 1 - i]]); } return out; };
+    const divCircle = S.dv && S.per % 2 === 0 ? circleGroups(S.per, (i) => Math.floor(i / S.per)) : null;
+    const confCircle = !S.dv && pc % 2 === 0 ? circleGroups(pc, (i) => Math.floor(i / pc)) : null;
+    const stageOf = []; for (let r = 0; r < g; r++) stageOf.push(r < plan.D ? 0 : r < plan.D + plan.C ? 1 : 2);
+    for (let r = 0; r < g; r++) {
+      const s = stageOf[r], rIn = r - (s === 0 ? 0 : s === 1 ? plan.D : plan.D + plan.C), dm = S.per > 1 ? Math.floor(rIn / Math.max(1, S.per - 1)) : 0;
+      const cost = (a, b) => { const c = cat(a, b), m = meet[a * n + b], allowed = s === 0 && c === 0 ? dm : 0;
+        return (c === s ? 0 : c > s ? 3 * (c - s) : 8) + 50 * Math.max(0, m - allowed); };
+      let best = null, bestCost = Infinity;
+      if (s === 0 && divCircle) { best = circleRound(divCircle, rIn); bestCost = 0; }
+      else if (s === 1 && confCircle) { best = circleRound(confCircle, rIn); bestCost = 0; }
+      else for (let attempt = 0; attempt < 40; attempt++) {
+        const order = rng.shuffle([...Array(n).keys()]), used = new Uint8Array(n), pairs = [];
+        for (const t of order) {
+          if (used[t]) continue;
+          let bc = Infinity, cand = [];
+          for (let u = 0; u < n; u++) { if (u === t || used[u]) continue; const c = cost(t, u); if (c < bc) { bc = c; cand = [u]; } else if (c === bc) cand.push(u); }
+          const u = cand[Math.floor(rng() * cand.length)]; used[t] = used[u] = 1; pairs.push([t, u]);
+        }
+        const K = 60 * n;
+        for (let it = 0; it < K; it++) {
+          const i = Math.floor(rng() * pairs.length), j = Math.floor(rng() * pairs.length); if (i === j) continue;
+          const [a, b] = pairs[i], [c, d] = pairs[j], cur = cost(a, b) + cost(c, d), x1 = cost(a, c) + cost(b, d), x2 = cost(a, d) + cost(b, c);
+          if (x1 < cur && x1 <= x2) { pairs[i] = [a, c]; pairs[j] = [b, d]; } else if (x2 < cur) { pairs[i] = [a, d]; pairs[j] = [b, c]; }
+        }
+        const tot = pairs.reduce((s2, [a, b]) => s2 + cost(a, b), 0);
+        if (tot < bestCost) { bestCost = tot; best = pairs; }
+        if (tot === 0) break;
+      }
+      for (const [a, b] of best) { meet[a * n + b]++; meet[b * n + a]++; }
+      rounds.push(best);
+    }
+    // orientation: first meeting of a pair by a coin, a second meeting the other way round
+    const first = new Map(), G = [];     // G: { r, h, a }
+    rounds.forEach((pairs, r) => pairs.forEach(([x, y]) => {
+      const key = Math.min(x, y) * n + Math.max(x, y);
+      let h, a;
+      if (first.has(key)) { const f = G[first.get(key)]; h = f.a; a = f.h; } else { if (rng() < 0.5) { h = x; a = y; } else { h = y; a = x; } first.set(key, G.length); }
+      G.push({ r, h, a });
+    }));
+    const dblKey = (e) => meet[e.h * n + e.a] > 1;
+    const home = new Array(n).fill(0); for (const e of G) home[e.h]++;
+    const lo = Math.floor(g / 2), hi = Math.ceil(g / 2);
+    // move one home game along a path of single-meeting games from a team with too many to one with room (and the other way round)
+    function fix(over) {
+      for (let pass = 0; pass < 2; pass++) {
+        for (const t of [...Array(n).keys()]) {
+          if (over ? home[t] <= hi : home[t] >= lo) continue;
+          const prev = new Map([[t, null]]), q = [t]; let found = -1;
+          while (q.length && found < 0) {
+            const x = q.shift();
+            for (let i = 0; i < G.length && found < 0; i++) {
+              const e = G[i]; if (pass === 0 && dblKey(e)) continue;
+              const from = over ? e.h : e.a, to = over ? e.a : e.h;       // over: x gives a home game to its away opponent; under: x takes one from its home opponent
+              if (from !== x || prev.has(to)) continue;
+              prev.set(to, i); q.push(to);
+              if (over ? home[to] < hi : home[to] > lo) found = to;
+            }
+          }
+          if (found < 0) continue;
+          for (let x = found; prev.get(x) !== null; ) { const e = G[prev.get(x)]; const from = over ? e.h : e.a; [e.h, e.a] = [e.a, e.h]; x = from; }
+          home[t] += over ? -1 : 1; home[found] += over ? 1 : -1;
+          return true;
+        }
+      }
+      return false;
+    }
+    for (let guard = 0; guard < 4 * n * g; guard++) { if (!fix(true) && !fix(false)) break; }
+    const weeks = []; for (let r = 0; r < g; r++) weeks.push([]);
+    for (const e of G) weeks[e.r].push([e.h, e.a]);
+    for (const w of weeks) w.sort((p, q) => Math.min(p[0], p[1]) - Math.min(q[0], q[1]));
+    return rng.shuffle(weeks);
+  }
+  // the schedule of a league record (or of a shape): the 8-team round robin when there is no shape
+  const scheduleFor = (shape, rng) => (shape ? shapeSchedule(shape, rng) : makeSchedule(rng));
+
   const newCtx = () => ({ ever: new Set(), minted: 0, reused: 0 });
   const usedIds = (L) => { const s = new Set(); for (const t of L.teams) for (const p of t.ro) s.add(p.id); for (const [, id] of L.rtd) s.add(id); return s; };
 
@@ -409,9 +623,34 @@ const LGSTD = (function () {
     return { games, wins };
   }
 
+  // shaped leagues: the team count, every team's place, the schedule (one game a week for everyone, g games, home and away within one of even),
+  // the standings (wins = losses over the league) and, when the playoffs are over, a champion
+  function checkShape(L, bad) {
+    const S = L.shape, g = S.games;
+    if (L.teams.length !== S.n) bad.push(`${L.teams.length} teams, the shape says ${S.n}`);
+    L.teams.forEach((t, i) => { const p = teamOfId(S, i); if (t.id !== i || t.cf !== p.cf || t.dv !== p.dv) bad.push(`${t.nm} is in the wrong place (conference ${t.cf}, division ${t.dv})`); });
+    if (L.sch.length !== g) bad.push(`the schedule has ${L.sch.length} weeks, the shape says ${g}`);
+    const home = L.teams.map(() => 0), playedBy = L.teams.map(() => 0);
+    L.sch.forEach((wk, w) => {
+      const seen = new Set();
+      for (const [h, a] of wk) { if (h === a) bad.push(`week ${w + 1}: team ${h} plays itself`); for (const x of [h, a]) { if (seen.has(x)) bad.push(`week ${w + 1}: team ${x} twice`); seen.add(x); playedBy[x]++; } home[h]++; }
+      if (seen.size !== S.n) bad.push(`week ${w + 1}: ${seen.size} teams play, not ${S.n}`);
+    });
+    L.teams.forEach((t, i) => { if (playedBy[i] !== g) bad.push(`${t.nm} plays ${playedBy[i]} games, not ${g}`); if (home[i] < Math.floor(g / 2) || home[i] > Math.ceil(g / 2)) bad.push(`${t.nm} has ${home[i]} home games of ${g}`); });
+    if (L.ph === 'done' || L.wk >= g) {
+      const sum = (k) => L.teams.reduce((s, t) => s + t.rc[k], 0);
+      if (sum(0) !== sum(1)) bad.push(`wins ${sum(0)} are not losses ${sum(1)}`);
+      if (sum(3) !== sum(4)) bad.push('points for and against differ');
+      L.teams.forEach((t) => { const gm = t.rc[0] + t.rc[1] + t.rc[2]; if (gm !== g && L.wk >= g) bad.push(`${t.nm} has ${gm} results, not ${g}`); });
+    }
+    if (L.ph === 'done' && (!L.po || L.po.ch == null)) bad.push('the playoffs are over but there is no champion');
+    if (S.noTie && L.teams.some((t) => t.rc[2] > 0)) bad.push('a tie in a league that has no ties');
+  }
+
   // The checks that need no files. Returns a list of problems (empty = fine).
   function checkLeague(L) {
     const bad = [], rules = L.rules, ids = new Set();
+    checkInj(L, bad);
     for (const t of L.teams) {
       if (t.ro.length !== 23) bad.push(`${t.nm} has ${t.ro.length} players`);
       for (const [pos, n] of rules.positions) {
@@ -428,6 +667,7 @@ const LGSTD = (function () {
       }
     }
     for (const [, id] of L.rtd) if (ids.has(id)) bad.push('retired id is live: ' + id);
+    if (L.shape) checkShape(L, bad);
     return bad;
   }
 
@@ -449,8 +689,9 @@ const LGSTD = (function () {
     // ---- one game. The ONLY place a score is made: the engine's lgGame. Draws depend only on rs, season, week, gameIndex.
     // The home team is first (hfa true = home advantage for it); playoff = no ties (the engine adds 3 for a random side).
     // The engine is handed a small stub in place of the league record (see GAME_STUB); the seed is passed as rs.
-    function scoreGame(L, rt, week, gi, h, a, playoff) {
-      return E.game(GAME_STUB, L.rs, L.ssn, week, gi, rt, h, a, playoff, true);
+    // hfa: true = home advantage for h (the 8-team league always); null = neutral park (the later rounds of a shaped league)
+    function scoreGame(L, rt, week, gi, h, a, playoff, hfa = true) {
+      return E.game(L.shape && L.shape.noTie ? GAME_STUB_NOTIE : GAME_STUB, L.rs, L.ssn, week, gi, rt, h, a, playoff, hfa);
     }
     // the rating function handed to the engine: team id -> { off, def } with the edge already added
     function ratingFn(L) { const eff = L.teams.map((t) => effective(t, L.rules)); return (id) => eff[id]; }
@@ -465,9 +706,93 @@ const LGSTD = (function () {
     }
     // team ids, best first: win share (ties count half), then points difference, then a seeded draw
     function rank(L, tag) {
+      if (L.shape) return shapeTable(L, tag).order;
       const rng = stream(L.rs, L.ssn, K.TIEBREAK, tag), draw = L.teams.map(() => rng());
       const key = (t, i) => [(t.rc[0] + 0.5 * t.rc[2]) / Math.max(1, t.rc[0] + t.rc[1] + t.rc[2]), t.rc[3] - t.rc[4], draw[i]];
       return L.teams.map((t, i) => [i, key(t, i)]).sort((a, b) => b[1][0] - a[1][0] || b[1][1] - a[1][1] || b[1][2] - a[1][2]).map((x) => x[0]);
+    }
+
+    // ---- shaped leagues: standings order and the playoff field (never used when there is no L.shape)
+    // key: win share (ties half), points difference, then the same seeded draw as the 8-team rank; conference win share first where a conference champion is wanted
+    function shapeTable(L, tag) {
+      const rng = stream(L.rs, L.ssn, K.TIEBREAK, tag), draw = L.teams.map(() => rng()), nG = L.sch.length;
+      const pct = L.teams.map((t) => (t.rc[0] + 0.5 * t.rc[2]) / Math.max(1, t.rc[0] + t.rc[1] + t.rc[2])), pd = L.teams.map((t) => t.rc[3] - t.rc[4]);
+      const cw = L.teams.map(() => 0), cg = L.teams.map(() => 0);
+      for (const r of L.res) if (r.wk < nG && L.teams[r.h].cf === L.teams[r.a].cf) { cg[r.h]++; cg[r.a]++; if (r.sc[0] > r.sc[1]) cw[r.h] += 1; else if (r.sc[0] < r.sc[1]) cw[r.a] += 1; else { cw[r.h] += 0.5; cw[r.a] += 0.5; } }
+      const cpct = L.teams.map((t, i) => (cg[i] ? cw[i] / cg[i] : 0));
+      const cmp = (a, b) => pct[b] - pct[a] || pd[b] - pd[a] || draw[b] - draw[a];
+      const cmpConf = (a, b) => cpct[b] - cpct[a] || cmp(a, b);
+      return { cmp, cmpConf, cpct, pct, order: L.teams.map((t, i) => i).sort(cmp) };
+    }
+    // the groups of the standings, each best first: { overall, conf: [[ids]], div: [[[ids]]] } (with no divisions a conference is ordered by its conference record)
+    function standings(L, tag = 0) {
+      const S = L.shape; if (!S) throw new Error('lg-std: standings() is for shaped leagues; the 8-team league uses rank()');
+      const T = shapeTable(L, tag), conf = [], div = [];
+      for (let c = 0; c < S.nc; c++) {
+        const ids = T.order.filter((i) => L.teams[i].cf === c);
+        conf.push(S.dv || S.nc === 1 ? ids : ids.slice().sort(T.cmpConf));
+        div.push(S.dv ? Array.from({ length: S.dv }, (_, d) => ids.filter((i) => L.teams[i].dv === d)) : [ids.slice()]);
+      }
+      return { overall: T.order, conf, div };
+    }
+    // the playoff field: a list of brackets, each a list of team ids in seed order.
+    //  divisions: the division winners first (best record first), then the best of the rest (wild cards);
+    //  no divisions, several conferences: the conference champions (best conference record) + at-large, the best champions take the byes;
+    //  one conference and no divisions: simply the best records.   br 2 = a bracket per conference.
+    function seedBrackets(L, tag) {
+      const S = L.shape, T = shapeTable(L, tag), perB = S.po / S.br, out = [];
+      for (let c = 0; c < S.br; c++) {
+        const pool = T.order.filter((i) => S.br === 1 || L.teams[i].cf === c);
+        let autos = [];
+        if (S.dv) {
+          const groups = new Map(); for (const i of pool) { const k = L.teams[i].cf * 10 + L.teams[i].dv; if (!groups.has(k)) groups.set(k, i); }   // pool is already in order: first = winner
+          autos = [...groups.values()].sort(T.cmp);
+        } else if (S.nc > 1) {
+          const groups = new Map(); for (const i of pool.slice().sort(T.cmpConf)) { if (!groups.has(L.teams[i].cf)) groups.set(L.teams[i].cf, i); }
+          autos = [...groups.values()].sort(T.cmp);
+        }
+        autos = autos.slice(0, perB);
+        const rest = pool.filter((i) => !autos.includes(i)).slice(0, perB - autos.length);
+        if (S.dv || !autos.length) out.push([...autos, ...rest]);
+        else out.push([...autos.slice(0, S.by), ...[...autos.slice(S.by), ...rest].sort(T.cmp)]);
+      }
+      return out;
+    }
+    // the next playoff round of a shaped league, worked out from the seeds and the results so far
+    function shapePoPlan(L) {
+      const S = L.shape, nG = L.sch.length, perB = S.po / S.br, P = pow2up(perB), total = poRounds(S), nbr = log2i(P), b = P - perB;
+      const seeds = L.po ? L.po.seeds : seedBrackets(L, 0), alive = seeds.map((x) => x.slice());
+      for (let r = 0; r < total; r++) {
+        const pairs = [];
+        if (r < nbr) for (const x of alive) { if (r === 0) for (let i = 0; i < (perB - b) / 2; i++) pairs.push([x[b + i], x[perB - 1 - i]]); else for (let i = 0; i < x.length / 2; i++) pairs.push([x[i], x[x.length - 1 - i]]); }
+        else pairs.push([alive[0][0], alive[1][0]]);
+        const rows = L.res.filter((x) => x.wk === nG + r);
+        if (rows.length < pairs.length) return { kind: 'po', week: nG + r, round: r, seeds, pairs, hfa: r < S.hr ? true : null, last: r === total - 1, total };
+        const won = new Set(rows.map((x) => (x.sc[0] > x.sc[1] ? x.h : x.a)));
+        if (r < nbr) for (let c = 0; c < alive.length; c++) alive[c] = alive[c].filter((id, ix) => won.has(id) || (r === 0 && ix < b));
+      }
+      return { kind: 'done', week: null, round: null, pairs: [] };
+    }
+
+    // ---- injuries: between games only. Called once after every regular-season week and every playoff round but the last.
+    // Everyone who was out sits one game off his count; every starter who was fit has a small seeded chance (INJ[L.inj]) to be out 1 to 4 games.
+    // Stream: kind HURT (1008), n = the week (0, 1, 2 ...) or 100 + round. Two draws for EVERY starter, hurt or not, in team and roster order,
+    // so the numbers never depend on who is already hurt. A league with no L.inj does nothing at all (not even a draw).
+    function injuryStep(L, n) {
+      if (!L.inj) return;
+      const rate = INJ[L.inj], rng = stream(L.rs, L.ssn, K.HURT, n);
+      for (const t of L.teams) for (const p of t.ro) {
+        if (!(STARTERS[p.ps] > p.sl)) continue;
+        const a = rng(), b = rng();
+        if (p.ou) { p.ou--; if (!p.ou) delete p.ou; } else if (a < rate) p.ou = 1 + Math.floor(b * INJ.maxWeeks);
+      }
+    }
+    // the league setting: 'OFF' | 'LOW' | 'NORMAL' (a league made with no setting is OFF: the record has no inj field). Turning it OFF makes everyone fit.
+    function setInjuries(L, level) {
+      const v = level == null ? 'OFF' : String(level).toUpperCase();
+      if (v !== 'OFF' && v !== 'LOW' && v !== 'NORMAL') bad('injuries must be OFF, LOW or NORMAL (got ' + level + ')');
+      if (v === 'OFF') { delete L.inj; healAll(L); } else L.inj = v;
+      return L;
     }
 
     // ---- play: one regular-season week, the playoffs, a whole season
@@ -475,12 +800,17 @@ const LGSTD = (function () {
       const rt = ratingFn(L);
       L.sch[w].forEach(([h, a], g) => record(L, w, h, a, scoreGame(L, rt, w, g, h, a, false), false));
       L.wk = w + 1; L.ph = 'reg';
+      injuryStep(L, w);
     }
     // the score of one regular-season game on its own (for tests): same as inside playWeek
     function gameAt(L, w, g) { const [h, a] = L.sch[w][g]; return scoreGame(L, ratingFn(L), w, g, h, a, false); }
 
     // top four by record; 1 v 4 and 2 v 3 (round 0), then the winners (round 1), played at the better seed
     function playPlayoffs(L) {
+      if (L.shape) {    // shaped league: the same rounds the human flow plays, every game from the engine
+        for (let guard = 0; guard < 8; guard++) { const plan = nextGames(L); if (plan.kind !== 'po') break; playRoundSim(L, plan); }
+        return;
+      }
       const rt = ratingFn(L), seeds = rank(L, 0).slice(0, L.rules.league.playoffTeams), wkP = L.sch.length;
       const play = (x, y, round, g) => {
         const [h, a] = seeds.indexOf(x) < seeds.indexOf(y) ? [x, y] : [y, x];
@@ -488,7 +818,9 @@ const LGSTD = (function () {
         record(L, wkP + round, h, a, sc, true);
         return sc[0] > sc[1] ? h : a;
       };
-      const w1 = play(seeds[0], seeds[3], 0, 0), w2 = play(seeds[1], seeds[2], 0, 1), ch = play(w1, w2, 1, 0);
+      const w1 = play(seeds[0], seeds[3], 0, 0), w2 = play(seeds[1], seeds[2], 0, 1);
+      injuryStep(L, PO_WEEK_BASE + 0);
+      const ch = play(w1, w2, 1, 0);
       L.po = { seeds, ch, ru: ch === w1 ? w2 : w1 };
       L.ph = 'done'; L.wk = wkP + 2;
     }
@@ -501,6 +833,7 @@ const LGSTD = (function () {
     // ---- the offseason
     function offseason(L, ctx) {
       const rules = L.rules, s = L.ssn, R = rules.retire;
+      healAll(L);     // injuries do not carry into the next season
       // 1. this season's games and wins per team (regular season and playoffs), from the results
       const { games, wins } = tally(L);
       const report = L.teams.map((t, i) => ({ team: i, retired: [], rookies: [] }));
@@ -537,15 +870,22 @@ const LGSTD = (function () {
       // 6. next season
       L.ssn = s + 1; L.wk = 0; L.ph = 'reg'; L.po = null; L.res = [];
       L.teams.forEach((t) => { t.rc = [0, 0, 0, 0, 0]; });
-      L.sch = makeSchedule(stream(L.rs, L.ssn, K.SCHED));
+      L.sch = scheduleFor(L.shape, stream(L.rs, L.ssn, K.SCHED));
       return { retired, report };
     }
 
-    // ---- the league maker
+    // ---- the league maker (8 teams first; shaped leagues are makeShapedLeague below)
     // Makes the league, then runs `burnIn` hidden seasons so ages and retirements are steady
     // before season 1 is handed back. The season counter starts at 1 (hidden seasons are -9 to 0).
     // `rs` is the league's random seed (a number). It is NOT the game's L.seed (that is the playoff seed map).
-    function makeLeague(rs, rules, ctx = newCtx()) {
+    // shape (4th argument): undefined / null / '8' = the 8-team league (the record has no "shape" field); 'NFL', 'COLLEGE', a custom spec
+    // { teams, conferences, divisions, games, playoff } or a finished shape record. A shape that cannot work throws Error('lg-std: <plain message>').
+    // opts (5th argument, new in 1.4): { injuries: 'OFF' | 'LOW' | 'NORMAL' } (default OFF). The setting is put in the record AFTER the hidden seasons, so
+    // the players, ratings and history of a league are the same whatever the setting; with OFF there is no field at all.
+    function makeLeague(rs, rules, ctx = newCtx(), shapeSpec, opts) {
+      const sh = shapeOf(shapeSpec); if (!sh.ok) bad(sh.msg);
+      const inj = opts && opts.injuries; if (inj != null && !['OFF', 'LOW', 'NORMAL'].includes(String(inj).toUpperCase())) bad('injuries must be OFF, LOW or NORMAL (got ' + inj + ')');
+      if (sh.shape) return setInjuries(makeShapedLeague(rs, rules, ctx, sh.shape), inj);
       rules = clone(rules);
       const rng = stream(rs, 0, K.MAKER), used = new Set();
       const L = { v: 2, dp: 'std', fmt: 'p8', nm: 'PROOF 8', id: 'L' + E.seedFor(rs, 0, K.ID, 0).toString(36).slice(0, 5), cmr: null,
@@ -563,6 +903,31 @@ const LGSTD = (function () {
       L.sch = makeSchedule(stream(rs, L.ssn, K.SCHED));
       for (let k = 0; k < rules.league.burnIn; k++) { playSeason(L); offseason(L, ctx); }
       // hand back season 1: no history, no career lines from the hidden seasons
+      L.ssn = 1; L.hist = []; L.res = [];
+      for (const t of L.teams) for (const p of t.ro) p.cr = [];
+      return setInjuries(L, inj);
+    }
+
+
+    // A league of any shape. Players are made by exactly the same code as in the 8-team league (same stream, same order, per team);
+    // only the teams' names and places in the league, the schedule and the playoffs come from the shape.
+    function makeShapedLeague(rs, rules, ctx, S) {
+      rules = clone(rules);
+      const rng = stream(rs, 0, K.MAKER), used = new Set(), teamRows = shapeTeamDefs(S, stream(rs, 0, K.MAKER, 1));
+      const L = { v: 2, dp: 'std', fmt: 'p' + S.n, shape: S, nm: 'PROOF ' + S.n, id: 'L' + E.seedFor(rs, 0, K.ID, 0).toString(36).slice(0, 5), cmr: null,
+        ssn: 1 - rules.league.burnIn, wk: 0, ph: 'reg', burn: rules.league.burnIn, sch: [], po: null, hist: [], res: [], rs, rules, rtd: [], teams: [] };
+      teamRows.forEach(([nm, c, d], i) => {
+        const taken = new Set(), ro = [];
+        for (const [pos, n] of rules.positions) for (let sl = 0; sl < n; sl++) {
+          const p = newRookie(rng, rules, pos, sl, used, taken, ctx), target = rng.int(21, 34);
+          while (p.ag < target) { p.ag++; applyYear(p, rules, 35, rng); }
+          ro.push(p);
+        }
+        const pl = teamOfId(S, i);
+        L.teams.push({ id: i, nm, cf: pl.cf, dv: pl.dv, ow: 'ai', lk: { c, d }, cr: 0, ed: 0, rc: [0, 0, 0, 0, 0], ro });
+      });
+      L.sch = shapeSchedule(S, stream(rs, L.ssn, K.SCHED));
+      for (let k = 0; k < rules.league.burnIn; k++) { playSeason(L); offseason(L, ctx); }
       L.ssn = 1; L.hist = []; L.res = [];
       for (const t of L.teams) for (const p of t.ro) p.cr = [];
       return L;
@@ -594,6 +959,7 @@ const LGSTD = (function () {
       const nG = L.sch.length;
       if (L.po && L.po.ch != null) return { kind: 'done', week: null, round: null, pairs: [] };
       if (!L.po && L.wk < nG) return { kind: 'reg', week: L.wk, round: null, pairs: L.sch[L.wk].map(([h, a]) => [h, a]) };
+      if (L.shape) return shapePoPlan(L);
       const seeds = L.po ? L.po.seeds : rank(L, 0).slice(0, L.rules.league.playoffTeams);
       const r0 = L.res.filter((r) => r.wk === nG);
       if (r0.length < 2) return { kind: 'po', week: nG, round: 0, seeds, pairs: [[seeds[0], seeds[3]], [seeds[1], seeds[2]]] };
@@ -630,12 +996,12 @@ const LGSTD = (function () {
       return out;
     }
     // the games of the plan, in pair order, ready to record: human ones as given, every other one from the engine (src 'sim')
-    function resolve(L, pairs, byGame, pending, wkEngine, playoff) {
+    function resolve(L, pairs, byGame, pending, wkEngine, playoff, hfa) {
       const rt = ratingFn(L), skip = new Set(pending.map((p) => p.gi)), out = [];
       pairs.forEach(([h, a], gi) => {
         if (skip.has(gi)) return;
         const m = byGame.get(gi);
-        out.push(m ? { gi, h, a, sc: m.sc, src: m.src } : { gi, h, a, sc: scoreGame(L, rt, wkEngine, gi, h, a, playoff), src: 'sim' });
+        out.push(m ? { gi, h, a, sc: m.sc, src: m.src } : { gi, h, a, sc: scoreGame(L, rt, wkEngine, gi, h, a, playoff, hfa), src: 'sim' });
       });
       return out;
     }
@@ -644,12 +1010,19 @@ const LGSTD = (function () {
 
     // what a finished playoff round does to the league (the semifinal results only go into L.res)
     function openPlayoffs(L, seeds) { if (!L.po) L.po = { seeds, ch: null, ru: null }; }
+    const isLast = (plan) => (plan.last !== undefined ? plan.last : plan.round === 1);
+    function playRoundSim(L, plan) {
+      const games = resolve(L, plan.pairs, new Map(), [], PO_WEEK_BASE + PO_FIRST_ROUND + plan.round, true, plan.hfa);
+      openPlayoffs(L, plan.seeds);
+      for (const g of games) record(L, plan.week, g.h, g.a, g.sc, true, g.src);
+      closeRound(L, plan, games);
+    }
     function closeRound(L, plan, games) {
       const nG = L.sch.length;
-      if (plan.round === 1) {
+      if (isLast(plan)) {
         const f = games[0], ch = f.sc[0] > f.sc[1] ? f.h : f.a;
-        L.po.ch = ch; L.po.ru = ch === f.h ? f.a : f.h; L.ph = 'done'; L.wk = nG + 2;
-      } else { L.ph = 'reg'; L.wk = nG; }
+        L.po.ch = ch; L.po.ru = ch === f.h ? f.a : f.h; L.ph = 'done'; L.wk = nG + (plan.total || 2);
+      } else { L.ph = 'reg'; L.wk = nG; injuryStep(L, PO_WEEK_BASE + plan.round); }   // after every round but the last (the offseason clears them)
     }
 
     // ONE regular-season week (the week L.wk). hum = human results; opts = { humans: [team indexes], hold: bool }.
@@ -666,6 +1039,7 @@ const LGSTD = (function () {
       const games = resolve(L, plan.pairs, byGame, [], w, false);
       for (const g of games) record(L, w, g.h, g.a, g.sc, false, g.src);
       L.wk = w + 1; L.ph = 'reg';
+      injuryStep(L, w);
       return { held: false, week: w, games: rows(w, games), pending: [], autoSim: pending, xp: xpOfGames(L, games) };
     }
 
@@ -677,11 +1051,11 @@ const LGSTD = (function () {
       if (plan.kind !== 'po') bad(plan.kind === 'done' ? 'the playoffs are over: run the offseason' : 'the regular season is not finished');
       const byGame = matchHum(L, hum, plan.pairs, true), pending = pendingOf(L, byGame, plan.pairs, opts);
       if (opts.hold && pending.length) return { held: true, round: plan.round, games: [], pending, xp: L.teams.map(() => 0), done: false, ch: null, ru: null };
-      const games = resolve(L, plan.pairs, byGame, [], PO_WEEK_BASE + PO_FIRST_ROUND + plan.round, true);
+      const games = resolve(L, plan.pairs, byGame, [], PO_WEEK_BASE + PO_FIRST_ROUND + plan.round, true, plan.hfa);
       openPlayoffs(L, plan.seeds);
       for (const g of games) record(L, plan.week, g.h, g.a, g.sc, true, g.src);
       closeRound(L, plan, games);
-      return { held: false, round: plan.round, games: rows(plan.week, games), pending: [], autoSim: pending, xp: xpOfGames(L, games), done: plan.round === 1, ch: L.po.ch, ru: L.po.ru };
+      return { held: false, round: plan.round, games: rows(plan.week, games), pending: [], autoSim: pending, xp: xpOfGames(L, games), done: isLast(plan), ch: L.po.ch, ru: L.po.ru };
     }
 
     // Which games of the next week or playoff round have a human team and no entry in hum (changes nothing). [{gi, h, a}]
@@ -717,6 +1091,7 @@ const LGSTD = (function () {
       const games = matchGiven(L, given, plan.pairs, false), w = plan.week;
       for (const g of games) record(L, w, g.h, g.a, g.sc, false, g.src);
       L.wk = w + 1; L.ph = 'reg';
+      injuryStep(L, w);
       return { week: w, games: rows(w, games), xp: xpOfGames(L, games) };
     }
     // The same for a playoff round (semifinals or the final). The given games must be the round's pairs, better seed at home.
@@ -727,17 +1102,17 @@ const LGSTD = (function () {
       openPlayoffs(L, plan.seeds);
       for (const g of games) record(L, plan.week, g.h, g.a, g.sc, true, g.src);
       closeRound(L, plan, games);
-      return { round: plan.round, games: rows(plan.week, games), xp: xpOfGames(L, games), done: plan.round === 1, ch: L.po.ch, ru: L.po.ru };
+      return { round: plan.round, games: rows(plan.week, games), xp: xpOfGames(L, games), done: isLast(plan), ch: L.po.ch, ru: L.po.ru };
     }
 
-    return { stream, makeLeague, playWeek, gameAt, playPlayoffs, playSeason, offseason, applyYear, rank,
+    return { stream, makeLeague, setInjuries, injured, healAll, injuryStep, playWeek, gameAt, playPlayoffs, playSeason, offseason, applyYear, rank, standings, seedBrackets, shapeOf, roundName, PRESETS,
       playWeekWith, playoffRoundWith, applyWeek, applyPlayoffRound, nextGames, pendingGames, xpSoFar,
-      derive, effective, overall, checkLeague, newCtx, engineLeague, engine: E, version: VERSION };
+      derive, effective, overall, checkLeague, newCtx, engineLeague, INJ, STARTERS, engine: E, version: VERSION };
   }
 
   // ROUND 5: the engine-free helpers the Full league (lg-full.js) reuses, handed out as they are (no code in them changed).
-  const parts = { K, TEAM_DEFS, mintId, makeName, stochRound, drawPotential, rookieRatings, newRookie, makeSchedule, usedIds, tally };
-  return { make, derive, effective, overall, checkLeague, newCtx, engineLeague, parts, version: VERSION };
+  const parts = { K, checkInj, healAll, TEAM_DEFS, mintId, makeName, stochRound, drawPotential, rookieRatings, newRookie, makeSchedule, scheduleFor, shapeTeamDefs, teamOfId, checkShape, usedIds, tally };
+  return { make, shapeOf, roundName, PRESETS, shapeSchedule, derive, effective, overall, checkLeague, injured, newCtx, engineLeague, parts, INJ, STARTERS, version: VERSION };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = LGSTD;
 </script>
@@ -752,7 +1127,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LGSTD;
    page makes no network request of any kind. It opens PPSAVE1 backup codes and
    Standard league files as before (read only), and linked leagues from the cloud.
    ===================================================================== */
-var HQ_VERSION = '0.6';
+var HQ_VERSION = '0.8';
 
 /* ---------- small helpers (build page parts without innerHTML, so a
    strange name inside a save can never run as code) ---------- */
@@ -1072,9 +1447,11 @@ function buildStd(J, info){
   var m = {depth:'STANDARD', S:save, save:save, L:J, classic:false, warn:info.warn, from:info.from, teams:[], idMap:{}, std:true,
     rules:rules, starMin:star, gl:[], players:[]};
   m.name = str(J.nm, 'League'); m.fmt = str(J.fmt, '?'); m.season = J.ssn; m.week = J.wk; m.phase = J.ph;
+  m.shape = isObj(J.shape) ? J.shape : null;             /* HQ 0.8: a shaped league (NFL 32, COLLEGE 60, custom); null = the 8-team league, shown as before */
+  m.inj = (J.inj === 'LOW' || J.inj === 'NORMAL') ? J.inj : null;
   m.sched = Array.isArray(J.sch) ? J.sch : []; m.stdRes = Array.isArray(J.res) ? J.res.filter(function(r){ return isObj(r) && Array.isArray(r.sc); }) : [];
   m.hist = Array.isArray(J.hist) ? J.hist.filter(isObj) : [];
-  m.nPo = (rules.league && isNum(rules.league.playoffTeams)) ? rules.league.playoffTeams : 4;
+  m.nPo = m.shape && isNum(m.shape.po) ? m.shape.po : ((rules.league && isNum(rules.league.playoffTeams)) ? rules.league.playoffTeams : 4);
   var maxDv = 0, maxCf = 0;
   arr.forEach(function(t, i){
     t = isObj(t) ? t : {};
@@ -1085,7 +1462,7 @@ function buildStd(J, info){
     (Array.isArray(t.ro) ? t.ro : []).forEach(function(p, k){
       p = isObj(p) ? p : {};
       var rt = isObj(p.rt) ? p.rt : {}, vals = Object.keys(rt).map(function(x){ return rt[x]; }).filter(isNum);
-      team.roster.push({key:k, id:str(p.id, '?'), name:str(p.nm, 'Player ' + (k + 1)), pos:str(p.ps, '?'), sl:num(p.sl),
+      team.roster.push({key:k, id:str(p.id, '?'), name:str(p.nm, 'Player ' + (k + 1)), pos:str(p.ps, '?'), sl:num(p.sl), ou:(isNum(p.ou) && p.ou > 0 ? p.ou : 0),
         rt:rt, age:p.ag, pot:p.pt, xp:p.xp, cr:Array.isArray(p.cr) ? p.cr : [],
         avg:vals.length ? vals.reduce(function(s, x){ return s + x; }, 0) / vals.length : null,
         star:(isNum(p.pt) && p.pt >= star)});
@@ -1102,9 +1479,9 @@ function buildStd(J, info){
   m.meIdx = -1;
   if (save && isNum(save.stm) && m.teams[save.stm | 0]){ m.meIdx = save.stm | 0; m.teams[m.meIdx].mine = true; }
   m.myTeamName = m.meIdx >= 0 ? m.teams[m.meIdx].name : '';
-  m.byDiv = maxDv > 0;
-  m.confNames = Array.isArray(J.cn) ? J.cn : [];
-  m.divNames = Array.isArray(J.dn) ? J.dn : STD_DIV_NAMES; m.divAssumed = !Array.isArray(J.dn);
+  m.byDiv = maxDv > 0 || !!(m.shape && m.shape.dv > 0);
+  m.confNames = Array.isArray(J.cn) ? J.cn : (m.shape && Array.isArray(m.shape.cn) ? m.shape.cn : []);
+  m.divNames = Array.isArray(J.dn) ? J.dn : (m.shape && Array.isArray(m.shape.dn) ? m.shape.dn : STD_DIV_NAMES); m.divAssumed = !Array.isArray(J.dn) && !m.shape;
   m.multiConf = maxCf > 0;
   m.teamCount = m.teams.length;
   m.gl = (save && Array.isArray(save.gl)) ? save.gl.filter(Array.isArray) : [];
@@ -1113,9 +1490,76 @@ function buildStd(J, info){
   m.played = m.teams.reduce(function(s, t){ return s + t.rec.w + t.rec.l + t.rec.t; }, 0);
   m.rank = stdRank(J.rs, J.ssn, m.teams.map(function(t){ return t.rec; }));
   m.place = {}; m.rank.order.forEach(function(ti, i){ m.place[ti] = i + 1; });
-  m.po = poState(m);
+  m.stg = m.shape ? stdGroups(m) : null;
+  m.po = m.shape ? poShaped(m) : poState(m);
   return m;
 }
+
+/* HQ 0.8: the order of a shaped league, as the league makes it: { overall:[team index], conf:[[index]], div:[[[index]]] }, best first.
+   From the engine's own STD.standings when it can run on this record; else worked out here from the same keys (conference record first only with no divisions). */
+function stdGroups(m){
+  try { if (typeof STD !== 'undefined' && STD.standings){ var g = STD.standings(m.L); if (g && Array.isArray(g.overall) && g.overall.length === m.teams.length) return g; } } catch (e){}
+  var S = m.shape, nc = S.nc || 1, dv = S.dv || 0, conf = [], div = [], cw = confRecs(m);
+  for (var c = 0; c < nc; c++){
+    var ids = m.rank.order.filter(function(i){ return m.teams[i].conf === c; });
+    conf.push(dv || nc === 1 ? ids : ids.slice().sort(function(a, b){ return (cw[b].pct - cw[a].pct) || (m.place[a] - m.place[b]); }));
+    var dd = []; for (var d = 0; d < Math.max(1, dv); d++) dd.push(ids.filter(function(i){ return !dv || m.teams[i].div === d; }));
+    div.push(dd);
+  }
+  return {overall:m.rank.order.slice(), conf:conf, div:div};
+}
+/* regular-season record against the team's own conference, by team index: {w, l, t, pct} (the order of a conference with no divisions) */
+function confRecs(m){
+  var nG = m.sched.length, out = m.teams.map(function(){ return {w:0, l:0, t:0, pct:0}; });
+  m.stdRes.forEach(function(r){
+    if (r.wk >= nG) return;
+    var h = m.teams[r.h], a = m.teams[r.a]; if (!h || !a || h.conf !== a.conf) return;
+    if (r.sc[0] > r.sc[1]){ out[r.h].w++; out[r.a].l++; } else if (r.sc[0] < r.sc[1]){ out[r.a].w++; out[r.h].l++; } else { out[r.h].t++; out[r.a].t++; }
+  });
+  out.forEach(function(x){ var g = x.w + x.l + x.t; x.pct = g ? (x.w + 0.5 * x.t) / g : 0; });
+  return out;
+}
+function pow2up(x){ var p = 1; while (p < x) p *= 2; return p; }
+function log2i(p){ var r = 0; while ((1 << r) < p) r++; return r; }
+function roundTitle(m, r){ try { if (typeof STD !== 'undefined' && STD.roundName) return STD.roundName(m.shape, r) || ('ROUND ' + (r + 1)); } catch (e){} return 'ROUND ' + (r + 1); }
+/* HQ 0.8: the playoffs of a shaped league, rebuilt from the seeds (a list of brackets, best seed first) and the playoff results (week = schedule length + round),
+   the same way the league plans them: the top seeds of a bracket skip round 0 (byes), the later rounds pair the best left with the worst left, and the last round
+   of a two-bracket league is the cross-conference final. Rounds that cannot be known yet are listed with no games (TBD). Null before the regular season ends. */
+function poShaped(m){
+  var S = m.shape, L = m.L, nG = m.sched.length, po = isObj(L.po) ? L.po : null, brs = null;
+  if (po && Array.isArray(po.seeds) && Array.isArray(po.seeds[0])) brs = po.seeds;
+  else if (!po && num(L.wk) >= nG && nG){ try { var pl = STD.nextGames(L); if (pl && Array.isArray(pl.seeds) && Array.isArray(pl.seeds[0])) brs = pl.seeds; } catch (e){} }
+  if (!brs) return null;
+  var perB = S.po / S.br, P2 = pow2up(perB), nbr = log2i(P2), b = P2 - perB, total = nbr + (S.br === 2 ? 1 : 0);
+  var alive = brs.map(function(x){ return x.slice(); }), rounds = [], status = {}, byes = {}, seeds = [], seedNo = {}, bracketOf = {};
+  brs.forEach(function(x, bi){ x.forEach(function(id, i){ seeds.push(id); status[id] = 'ALIVE'; seedNo[id] = i + 1; bracketOf[id] = bi; if (b > 0 && i < b) byes[id] = true; }); });
+  function win(r){ return r.sc[0] > r.sc[1] ? r.h : r.a; }
+  function lose(r){ return r.sc[0] > r.sc[1] ? r.a : r.h; }
+  var open = false, current = total - 1, done = false;
+  for (var r = 0; r < total; r++){
+    var rows = m.stdRes.filter(function(x){ return x.wk === nG + r; }), pairs = [], name = roundTitle(m, r);
+    if (open){ rounds.push({r:r, name:name, pairs:[], rows:[], played:false, tbd:true, hfa:null}); continue; }
+    if (r < nbr){ alive.forEach(function(x){
+      if (r === 0){ for (var i = 0; i < (perB - b) / 2; i++) pairs.push([x[b + i], x[perB - 1 - i]]); }
+      else for (var j = 0; j < x.length / 2; j++) pairs.push([x[j], x[x.length - 1 - j]]); }); }
+    else pairs.push([alive[0][0], alive[1][0]]);
+    var games = pairs.map(function(pr){
+      var row = rows.filter(function(x){ return (x.h === pr[0] && x.a === pr[1]) || (x.h === pr[1] && x.a === pr[0]); })[0];
+      return {h:row ? row.h : pr[0], a:row ? row.a : pr[1], r:row || null};
+    });
+    var played = rows.length >= pairs.length;
+    rounds.push({r:r, name:name, pairs:games, rows:rows, played:played, tbd:false, hfa:r < S.hr, byeIds:(r === 0 && b > 0) ? seeds.filter(function(id){ return byes[id]; }) : []});
+    rows.forEach(function(x){ status[lose(x)] = 'OUT (' + name + ')'; });
+    if (!played){ open = true; current = r; continue; }
+    var won = {}; rows.forEach(function(x){ won[win(x)] = true; });
+    if (r < nbr) for (var c = 0; c < alive.length; c++) alive[c] = alive[c].filter(function(id, ix){ return won[id] || (r === 0 && ix < b); });
+    if (r === total - 1){ done = true; rows.forEach(function(x){ status[win(x)] = 'CHAMPION'; status[lose(x)] = 'RUNNER-UP'; }); }
+  }
+  var ch = po && po.ch != null ? po.ch : null, ru = po && po.ru != null ? po.ru : null;
+  if (ch != null){ status[ch] = 'CHAMPION'; if (ru != null) status[ru] = 'RUNNER-UP'; current = total - 1; }
+  return {shaped:true, seeds:seeds, brackets:brs, rounds:rounds, total:total, status:status, byes:byes, seedNo:seedNo, bracketOf:bracketOf, round:current, ch:ch, ru:ru, done:done || ch != null, opened:!!po};
+}
+function seedOf(P, id){ return P.shaped ? (P.seedNo[id] || 0) : P.seeds.indexOf(id) + 1; }
 
 /* where the playoffs stand, from `po` and the playoff rows of `res` (week numbers at or above the schedule length) */
 function poState(m){
@@ -1708,6 +2152,7 @@ function resLine(r, tid){          /* 'W 24-17' or 'L 17-24' for team tid in res
 function stdPhaseText(m){
   var nG = m.sched.length, P = m.po, wp = Math.max(0, num(m.L.wk));
   if (P && P.ch != null) return 'Season complete (the champion is decided)';
+  if (P && P.shaped) return 'Playoffs in progress: ' + (P.rounds[P.round] ? P.rounds[P.round].name.toLowerCase() : 'the final');
   if (P) return 'Playoffs in progress: ' + (P.round === 0 ? 'semifinals' : 'the final');
   if (!m.played) return 'Regular season not started (week 1 is next)';
   if (wp >= nG) return 'Regular season finished, playoffs not started';
@@ -1723,7 +2168,7 @@ function teamBtn(m, id){
 /* ---------- LEAGUE ---------- */
 function vLeagueStd(main){
   var m = state.m, L = m.L, S = m.save, nG = m.sched.length, P = m.po;
-  add(main, [el('h1', null, m.name), el('p', {class:'sub'}, 'Standard 8-team league. Opened from ' + m.from + '.')]);
+  add(main, [el('h1', null, m.name), el('p', {class:'sub'}, 'Standard ' + (m.shape ? m.teamCount : 8) + '-team league' + (m.shape && m.shape.k !== 'CUSTOM' ? ' (' + m.shape.k + ')' : '') + '. Opened from ' + m.from + '.')]);
   if (m.warn) main.appendChild(el('div', {class:'msg warn', role:'alert'}, m.warn));
   if (m.linked) main.appendChild(linkedBanner(m));
   if (S && m.meIdx < 0) main.appendChild(el('div', {class:'msg warn'}, 'This game save does not say which team is mine (stm is missing), so no team is marked.'));
@@ -1737,12 +2182,13 @@ function vLeagueStd(main){
     main.appendChild(cards(cs));
   }
   var rules = m.rules, pairs = [
-    ['Type', 'STANDARD LEAGUE (fmt ' + m.fmt + ')'], ['Teams', String(m.teamCount) + ', in 2 divisions'],
+    ['Type', 'STANDARD LEAGUE (fmt ' + m.fmt + ')'], ['Teams', m.shape ? shapeText(m) : String(m.teamCount) + ', in 2 divisions'],
     ['Season', str(m.season, '-')], ['Phase', stdPhaseText(m)],
     ['Weeks played', Math.min(num(L.wk), nG) + ' of ' + nG]
   ];
   if (P && P.ch != null) pairs.push(['Champion this season', teamLabel(m, P.ch)]);
   if (P && P.ru != null && P.ch != null) pairs.push(['Runner-up this season', teamLabel(m, P.ru)]);
+  if (m.inj) pairs.push(['Injuries', m.inj + ' (a hurt starter shows OUT n WEEKS on the team page)']);
   pairs.push(['Past seasons on record', String(m.hist.length)]);
   pairs.push(['League id', str(L.id, '-')]);
   pairs.push(['Random seed (rs)', str(L.rs, '-')]);
@@ -1752,7 +2198,8 @@ function vLeagueStd(main){
   main.appendChild(kv(pairs));
 
   /* playoffs */
-  if (P){
+  if (P && P.shaped){ main.appendChild(el('h2', null, 'PLAYOFFS')); bracketView(main, m); }
+  else if (P){
     main.appendChild(el('h2', null, 'PLAYOFFS'));
     var prow = P.seeds.map(function(id, i){
       var parts = [];
@@ -1825,6 +2272,7 @@ function vLeagueStd(main){
 
 /* ---------- STANDINGS ---------- */
 function vStandingsStd(main){
+  if (state.m.shape) return vStandingsShaped(main);
   var m = state.m, P = m.po, nPo = m.nPo;
   add(main, [el('h1', null, 'STANDINGS'), el('p', {class:'sub'}, 'All eight teams in the order the league uses. Click a team to open it.')]);
   var order = m.played ? m.rank.order : m.teams.map(function(t){ return t.idx; });
@@ -1872,11 +2320,113 @@ function vStandingsStd(main){
   main.appendChild(keyEl());
 }
 
-/* ---------- TEAM ---------- */
+/* ---------- HQ 0.8: standings and playoffs of a shaped league (NFL 32, COLLEGE 60, custom) ---------- */
+function shapeText(m){
+  var S = m.shape, nc = S.nc || 1;
+  return m.teamCount + ' teams, ' + (nc > 1 ? nc + ' conferences' : 'one league') + (S.dv ? ' of ' + S.dv + ' divisions' : '') + ', ' + S.games + ' games each, ' + S.po + ' make the playoffs' + (S.noTie ? ', no ties' : '');
+}
+function confLabel(m, c){ return str(m.confNames[c], (m.shape && m.shape.nc > 1) ? 'Conference ' + (c + 1) : 'League'); }
+function divLabel(m, d){ return str(m.divNames[d], 'Division ' + String.fromCharCode(65 + (d % 26))); }
+function formatText(m){
+  var S = m.shape, per = S.po / S.br, byes = S.by || 0;
+  var t = S.po + ' teams make the playoffs' + (S.br === 2 ? ': ' + per + ' from each conference, then the two conference winners meet in the final.' : ' in one bracket.');
+  if (S.dv) t += ' A conference sends its ' + S.dv + ' division winners first (best record first), then the best of the rest as wild cards.';
+  else if (S.nc > 1) t += ' The ' + S.nc + ' conference champions (best record inside the conference) go in first, the rest are the best other records.';
+  else t += ' The best records go in.';
+  if (byes) t += ' The top ' + byes + ' seed' + (byes === 1 ? '' : 's') + (S.br === 2 ? ' of each conference' : '') + ' skip the first round (BYE).';
+  t += ' Home advantage goes to the better seed' + (S.hr < log2i(pow2up(per)) + (S.br === 2 ? 1 : 0) ? ' until the late rounds, which are played at a neutral park.' : '.');
+  return t;
+}
+function seedText(m, t){
+  var P = m.po;
+  if (P){
+    var n = seedOf(P, t.id);
+    if (n) return [(P.brackets.length > 1 ? confLabel(m, P.bracketOf[t.id]) + ' ' : '') + 'SEED ' + n + ' ', P.byes[t.id] ? tag('BYE', 'st') : null, P.status[t.id] ? el('span', {class:'note'}, ' ' + P.status[t.id]) : null];
+    return P.opened || P.done ? 'did not qualify' : '';
+  }
+  return (m.projIds && m.projIds[t.id]) ? 'IN (PLAYOFF FIELD NOW)' : '';
+}
+/* the playoff rounds of a shaped league as the phone shows them: round by round, with the byes and the seeds */
+function bracketView(main, m){
+  var P = m.po;
+  if (!P.opened && !P.done) main.appendChild(el('p', {class:'note'}, 'The regular season is over. These are the first games the final standings give; the playoffs open when the next week is played.'));
+  var byeNames = Object.keys(P.byes).map(function(id){ var t = teamById(m, Number(id)); return t ? t.name : id; });
+  if (byeNames.length) main.appendChild(el('p', {class:'note'}, [tag('BYE', 'st'), ' ' + byeNames.join(', ') + ' skip the first round.']));
+  P.rounds.forEach(function(rd){
+    main.appendChild(el('h3', null, rd.name + (rd.tbd ? '' : (rd.hfa ? '  (better seed at home)' : '  (neutral park)'))));
+    if (rd.tbd){ main.appendChild(el('p', {class:'note'}, 'Decided by the games before it.')); return; }
+    main.appendChild(table([
+      {h:'HOME', v:function(g){ return ['(' + (seedOf(P, g.h) || '-') + ') ', teamLabel(m, g.h)]; }},
+      {h:'AWAY', v:function(g){ return ['(' + (seedOf(P, g.a) || '-') + ') ', teamLabel(m, g.a)]; }},
+      {h:'SCORE', v:function(g){ return g.r ? g.r.sc[0] + ' - ' + g.r.sc[1] : 'not played yet'; }, n:true},
+      {h:'WINNER', v:function(g){ return g.r ? teamName(m, g.r.sc[0] > g.r.sc[1] ? g.r.h : g.r.a) : ''; }}
+    ], rd.pairs, {rowClass:function(g){ var a = teamById(m, g.h), b = teamById(m, g.a); return (a && a.mine) || (b && b.mine) ? 'me' : ''; }}));
+  });
+  P.brackets.forEach(function(br, bi){
+    main.appendChild(el('h3', null, (P.brackets.length > 1 ? confLabel(m, bi) + ': ' : '') + 'THE FIELD'));
+    main.appendChild(table([
+      {h:'SEED', v:function(id, i){ return String(i + 1); }, n:true}, {h:'TEAM', v:function(id){ return teamLabel(m, id); }},
+      {h:'', v:function(id){ return P.byes[id] ? tag('BYE', 'st') : null; }}, {h:'STATUS', v:function(id){ return P.status[id] || ''; }}
+    ], br, {rowClass:function(id){ var t = teamById(m, id); return t && t.mine ? 'me' : ''; }}));
+  });
+  if (!P.done) main.appendChild(el('p', {class:'note'}, 'The playoffs are not finished: the champion and runner-up are not decided yet.'));
+}
+function vStandingsShaped(main){
+  var m = state.m, S = m.shape, P = m.po, g = m.stg, nc = S.nc || 1;
+  add(main, [el('h1', null, 'STANDINGS'), el('p', {class:'sub'}, 'All ' + m.teamCount + ' teams in the order the league uses. ' + (nc > 1 ? 'Pick a conference. ' : '') + 'Click a team to open it.')]);
+  if (!m.played) main.appendChild(el('div', {class:'msg warn'}, 'No games have been played this season yet, so there is no order: teams are listed by team number.'));
+  if (!P && m.played){ try { var f = {}; STD.seedBrackets(m.L, 0).forEach(function(b){ b.forEach(function(id){ f[id] = true; }); }); m.projIds = f; } catch (e){ m.projIds = null; } }
+  var tiedAt = {}; m.rank.order.forEach(function(ti, i){ tiedAt[ti] = m.rank.tied[i]; });
+  var cw = confRecs(m);
+  var sel = state.selConf;
+  if (sel !== 'all' && !(isNum(sel) && sel >= 0 && sel < nc)) sel = (m.meIdx >= 0 && nc > 1) ? m.teams[m.meIdx].conf : (nc > 1 ? 0 : 'all');
+  state.selConf = sel;
+  if (nc > 1){
+    var row = el('div', {class:'row', id:'confTabs', role:'tablist'});
+    for (var c = 0; c < nc; c++) (function(c){ row.appendChild(el('button', {type:'button', role:'tab', class:'btn' + (sel === c ? ' pri' : ''), 'data-conf':c, 'aria-selected':sel === c ? 'true' : 'false',
+      onclick:function(){ state.selConf = c; render(); }}, confLabel(m, c))); })(c);
+    row.appendChild(el('button', {type:'button', role:'tab', class:'btn' + (sel === 'all' ? ' pri' : ''), 'data-conf':'all', 'aria-selected':sel === 'all' ? 'true' : 'false',
+      onclick:function(){ state.selConf = 'all'; render(); }}, 'ALL TEAMS'));
+    main.appendChild(row);
+  }
+  function cols(rank, withConf){
+    var c = [{h:'#', v:function(t, i){ return m.played ? String(rank === 'overall' ? m.place[t.idx] : i + 1) : '-'; }, n:true},
+      {h:'TEAM', v:function(t){ return [t.name, t.mine ? tag('MY TEAM', 'me') : null]; }}];
+    if (rank === 'overall') c.push({h:nc > 1 ? 'CONF' : '', v:function(t){ return nc > 1 ? confLabel(m, t.conf) + (S.dv ? ' ' + divLabel(m, t.div) : '') : ''; }});
+    c.push({h:'W-L-T', v:function(t){ return recStr(t.rec); }, n:true}, {h:'PCT', v:function(t){ return pctStr(t.rec); }, n:true});
+    if (withConf) c.push({h:'CONF', v:function(t){ var x = cw[t.idx]; return x.w + '-' + x.l + (x.t ? '-' + x.t : ''); }, n:true});
+    c.push({h:'PF', v:function(t){ return String(t.rec.pf); }, n:true}, {h:'PA', v:function(t){ return String(t.rec.pa); }, n:true},
+      {h:'DIF', v:function(t){ return sgn(t.rec.pf - t.rec.pa); }, n:true}, {h:'PLAYOFFS', v:function(t){ return seedText(m, t); }});
+    if (rank === 'overall') c.push({h:'', v:function(t){ return (m.played && tiedAt[t.idx]) ? el('span', {class:'tag hs', title:'level on win percentage and points difference: the seeded draw decides'}, 'DRAW') : null; }});
+    return c;
+  }
+  var opt = {rowClass:function(t){ return t.mine ? 'me' : ''; }, click:function(t){ state.selTeam = t.idx; go('team'); }};
+  function teamsOf(ids){ return ids.map(function(i){ return m.teams[i]; }); }
+  if (sel === 'all'){
+    main.appendChild(el('h2', null, 'ALL TEAMS (LEAGUE ORDER)'));
+    main.appendChild(table(cols('overall', false), teamsOf(g.overall), opt));
+  } else {
+    main.appendChild(el('h2', null, confLabel(m, sel).toUpperCase()));
+    if (S.dv){
+      (g.div[sel] || []).forEach(function(ids, d){
+        main.appendChild(el('h3', null, divLabel(m, d).toUpperCase() + ' DIVISION'));
+        main.appendChild(table(cols('group', false), teamsOf(ids), opt));
+      });
+    } else {
+      main.appendChild(table(cols('group', nc > 1), teamsOf(g.conf[sel] || []), opt));
+    }
+  }
+  main.appendChild(el('p', {class:'note'}, 'Order (the league\'s own): win share (a tie counts half), then points difference, then a seeded draw worked out from the league seed' + (isNum(m.L.rs) ? '' : ' (this file has no rs, so equal teams are shown in team order)') + '. ' + (!S.dv && nc > 1 ? 'Inside a conference (no divisions) the conference record comes first (CONF column). ' : '') + 'DRAW marks a team level with its neighbour on both, so the draw decided.'));
+  main.appendChild(el('p', {class:'note'}, formatText(m)));
+  main.appendChild(keyEl());
+}
+
+
 function ratingTextStd(p){
   var keys = Object.keys(p.rt).sort(function(a, b){ var x = RT_ORDER.indexOf(a), y = RT_ORDER.indexOf(b); return (x < 0 ? 99 : x) - (y < 0 ? 99 : y); });
   return keys.map(function(k){ return k.toUpperCase() + ' ' + rd(p.rt[k]); }).join('   ') || '-';
 }
+function outText(p){ return 'OUT ' + p.ou + (p.ou === 1 ? ' WEEK' : ' WEEKS'); }
 function progressOf(p){ return (isNum(p.avg) && isNum(p.pot) && p.pot > 0) ? 100 * p.avg / p.pot : null; }
 function vTeamStd(main){
   var m = state.m;
@@ -1895,8 +2445,8 @@ function vTeamStd(main){
   });
   var d = el('div');
   d.appendChild(el('h2', {style:'margin-top:0'}, [swatch(t.col.c), swatch(t.col.d), t.name, t.mine ? tag('MY TEAM', 'me') : null]));
-  var where = groupOf(m, t).label + ' division' + (m.played ? '  |  league place #' + m.place[t.idx] + ' of ' + m.teamCount : '');
-  if (P && P.seeds.indexOf(t.id) >= 0) where += '  |  playoff seed ' + (P.seeds.indexOf(t.id) + 1) + ': ' + P.status[t.id];
+  var where = groupOf(m, t).label + (m.byDiv ? ' division' : '') + (m.played ? '  |  league place #' + m.place[t.idx] + ' of ' + m.teamCount : '');
+  if (P && seedOf(P, t.id) > 0) where += '  |  playoff seed ' + seedOf(P, t.id) + (P.shaped && P.byes[t.id] ? ' (BYE)' : '') + ': ' + P.status[t.id];
   else if (P) where += '  |  did not make the playoffs';
   d.appendChild(el('p', {class:'note'}, where));
   var S = t.str, edge = t.edge;
@@ -1920,6 +2470,8 @@ function vTeamStd(main){
     ['OFF WITH EDGE', eff(S.off), 'what the sim uses for offense'], ['DEF WITH EDGE', eff(S.def), 'what the sim uses for defense']
   ]));
   if (S.off == null || S.def == null) d.appendChild(el('p', {class:'note'}, 'A unit could not be worked out because a starter or a rating is missing.'));
+  var hurt = t.roster.filter(function(p){ return p.ou; });
+  if (hurt.length) d.appendChild(el('p', {class:'note', id:'hurtNote'}, hurt.length + ' starter' + (hurt.length === 1 ? ' is' : 's are') + ' hurt (' + hurt.map(function(p){ return p.pos + ' ' + p.name + ' ' + outText(p).toLowerCase(); }).join(', ') + '). The sim replaces a hurt starter with the next fit player; the unit strengths above still count him.'));
 
   /* the starters */
   d.appendChild(el('h3', null, 'STARTERS'));
@@ -1932,7 +2484,7 @@ function vTeamStd(main){
     if (ps.length){ rows.push({__section:pos + (need ? '  (starters: ' + need + ')' : '')}); ps.forEach(function(p){ rows.push(p); }); }
   });
   d.appendChild(table([
-    {h:'NAME', v:function(p){ return [p.name, p.star ? tag('STAR', 'star') : null, p.starter ? null : tag('BACKUP', 'bk')]; }},
+    {h:'NAME', v:function(p){ return [p.name, p.star ? tag('STAR', 'star') : null, p.starter ? null : tag('BACKUP', 'bk'), p.ou ? tag(outText(p), 'rt') : null]; }},
     {h:'AGE', v:function(p){ return str(p.age, '-'); }, n:true},
     {h:'RATINGS', v:function(p){ return ratingTextStd(p); }},
     {h:'POT', v:function(p){ return rd(p.pot); }, n:true}, {h:'XP', v:function(p){ return str(p.xp, '-'); }, n:true},
@@ -1973,7 +2525,7 @@ function vPlayerStd(main){
   psel.addEventListener('change', function(){ state.selPlayer = {t:sp.t, p:Number(psel.value)}; render(); });
   main.appendChild(el('div', {class:'row'}, [tsel, psel]));
 
-  main.appendChild(el('h2', null, [p.name, p.star ? tag('STAR', 'star') : null, p.starter ? tag('STARTER', 'st') : tag('BACKUP', 'bk'), team.mine ? tag('MY TEAM', 'me') : null]));
+  main.appendChild(el('h2', null, [p.name, p.star ? tag('STAR', 'star') : null, p.starter ? tag('STARTER', 'st') : tag('BACKUP', 'bk'), p.ou ? tag(outText(p), 'rt') : null, team.mine ? tag('MY TEAM', 'me') : null]));
   main.appendChild(el('p', {class:'note'}, [p.pos + ' for ', el('button', {type:'button', class:'lnk', onclick:function(){ state.selTeam = team.idx; go('team'); }}, team.name), '.']));
   var g = progressOf(p);
   main.appendChild(cards([['AGE', str(p.age, '-')], ['POTENTIAL (POT)', rd(p.pot)], ['XP', str(p.xp, '-')], ['DEPTH SLOT', String(p.sl + 1)],
@@ -2005,12 +2557,13 @@ function vPlayerStd(main){
 }
 
 /* ---------- SCHEDULE AND RESULTS ---------- */
-var PO_NAMES = ['SEMIFINALS', 'PIGSKIN BOWL'];       /* the game's own round names */
+var PO_NAMES = ['SEMIFINALS', 'PIGSKIN BOWL'];       /* the game's own round names (the 8-team league) */
+function poName(m, r){ return m.shape ? roundTitle(m, r) : (PO_NAMES[r] || ('Round ' + (r + 1))); }
 function vScheduleStd(main){
   var m = state.m, P = m.po, nW = m.sched.length;
   add(main, [el('h1', null, 'SCHEDULE AND RESULTS'), el('p', {class:'sub'}, 'Week by week. The first team in each game is the home team. Only the current season\'s scores are kept.')]);
   if (!nW){ main.appendChild(el('div', {class:'msg warn'}, 'This league has no schedule stored.')); return; }
-  var nAll = nW + (P ? (P.round >= 1 ? 2 : 1) : 0);   /* weeks, then the playoff rounds that exist (the final once the semifinals are played) */
+  var nAll = nW + (P ? (P.shaped ? P.rounds.filter(function(x){ return !x.tbd; }).length : (P.round >= 1 ? 2 : 1)) : 0);   /* weeks, then the playoff rounds that exist (the final once the semifinals are played) */
   if (state.selWeek == null || state.selWeek >= nAll){
     var w0 = 0;
     if (P) w0 = nAll - 1;
@@ -2018,7 +2571,7 @@ function vScheduleStd(main){
     state.selWeek = w0;
   }
   var w = state.selWeek;
-  function wname(i){ return i < nW ? 'Week ' + (i + 1) : PO_NAMES[i - nW]; }
+  function wname(i){ return i < nW ? 'Week ' + (i + 1) : poName(m, i - nW); }
   var sel = el('select', {id:'weekSel', 'aria-label':'Week'});
   for (var i = 0; i < nAll; i++) sel.appendChild(el('option', {value:i}, wname(i)));
   sel.value = String(w);
@@ -2039,8 +2592,8 @@ function vScheduleStd(main){
       addRow(p[0], p[1], r);
     });
   } else {
-    poPairs(m, w - nW).forEach(function(pr){
-      addRow(pr.h, pr.a, pr.r, ['(' + (P.seeds.indexOf(pr.h) + 1) + ') ', '(' + (P.seeds.indexOf(pr.a) + 1) + ') ']);
+    (P.shaped ? (P.rounds[w - nW] ? P.rounds[w - nW].pairs : []) : poPairs(m, w - nW)).forEach(function(pr){
+      addRow(pr.h, pr.a, pr.r, ['(' + seedOf(P, pr.h) + ') ', '(' + seedOf(P, pr.a) + ') ']);
     });
   }
   main.appendChild(el('h2', null, wname(w).toUpperCase() + ': ALL GAMES'));
@@ -2059,7 +2612,7 @@ function vScheduleStd(main){
     m.stdRes.forEach(function(r){
       if (r.h !== me.id && r.a !== me.id) return;
       var opp = teamById(m, r.h === me.id ? r.a : r.h);
-      mine.push({wk:r.wk, label:r.wk < nW ? 'Week ' + (r.wk + 1) : PO_NAMES[r.wk - nW] || ('Round ' + (r.wk - nW)), opp:opp ? opp.name : '?', site:r.h === me.id ? 'Home' : 'Away', res:resLine(r, me.id), src:r.src});
+      mine.push({wk:r.wk, label:r.wk < nW ? 'Week ' + (r.wk + 1) : poName(m, r.wk - nW), opp:opp ? opp.name : '?', site:r.h === me.id ? 'Home' : 'Away', res:resLine(r, me.id), src:r.src});
     });
     if (mine.length){
       mine.sort(function(a, b){ return a.wk - b.wk; });
@@ -2085,18 +2638,22 @@ var STD_RULES = JSON.parse(document.getElementById('std-rules').textContent);
 var STD = LGSTD.make(LGE);
 
 /* ===== HQ CLOUD LAYER BEGIN =====
+   lg-cloud.js - ONE shared file: HQ (hq.html) and the phone game embed it byte for byte. Version string just below.
    Plain JavaScript: no DOM, no SDK import. It needs these globals, set by the page (or by the emulator test):
    LGE (lg-engine.js), LGSTD (lg-std.js), STD = LGSTD.make(LGE), STD_RULES (the rules object the game embeds).
    Three parts: (1) a thin ADAPTER over Firestore, (2) PURE functions that turn a Standard league into cloud documents and back,
    (3) the CLOUD OPERATIONS (create, resume, read) written against the adapter only. */
 
+var LG_CLOUD_VERSION = 'lg-cloud 1.0 (HQ 0.7: league document + human team documents, any league shape)';
 var CLOUD_SDK_VERSION = '10.14.1';           /* the same Firebase web SDK version the game loads */
-var CLOUD_FORMAT = 1;                        /* meta.v: the format of the cloud documents written by HQ */
+var CLOUD_FORMAT = 1;                        /* meta.v of the OLD layout (one document per team, 8 teams) */
+var CLOUD_FORMAT_BIG = 2;                    /* meta.v of the NEW layout (meta.lay === 2): one league document + one document per HUMAN team */
 /* the league code: 6 characters. The rules accept [A-HJKMNP-Z2-9]; HQ also leaves out B, S and Z (look like 8, 5 and 2) */
 var CODE_ALPHABET = 'ACDEFGHJKMNPQRTUVWXY23456789';
 var CODE_RULE = /^[A-HJKMNP-Z2-9]{6}$/;
 var LG_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-var NTEAMS = 8;
+var NTEAMS = 8;                              /* the OLD layout's team count (and the default of a league without meta.n) */
+var NG_OLD = 14;                             /* regular-season weeks of the 8-team league */
 
 var ENV = {
   now: function(){ return Date.now(); },
@@ -2203,6 +2760,35 @@ function encTeam(t, rtd, up, rules){
   if (up && up.length) d.up = up.slice();
   return d;
 }
+/* ---------- the two layouts ----------
+   LAYOUT 1 (old, never converted): lgs/{lg} = meta, lgs/{lg}/teams/0..7 = one chunk per team, 8 teams.
+   LAYOUT 2 (every new league, any shape; meta.lay === 2): lgs/{lg} = the LEAGUE DOCUMENT: the meta plus ts = { "<idx>": team } for every team the computer runs,
+   plus rtd (retired ids) and, for a shaped league, shape. lgs/{lg}/teams/{idx} exists only for a team a PERSON owns (written by that person; the commissioner
+   rewrites it in the offseason). A team is human when its slot exists. meta.n is the team count (slots 0..n-1). */
+function layoutOf(meta){ return meta && meta.lay === 2 ? 2 : 1; }
+function teamCount(meta){ return layoutOf(meta) === 2 ? meta.n : NTEAMS; }
+function weeksOf(meta){ return layoutOf(meta) === 2 && meta.shape ? meta.shape.games : NG_OLD; }
+/* playoff rounds of a league: 2 for the 8-team league (semifinals, final); a shape: log2 of the bracket size, +1 when there are two brackets (same as lg-std) */
+function roundsOf(meta){
+  var sh = layoutOf(meta) === 2 && meta.shape ? meta.shape : null;
+  if (!sh) return 2;
+  var perB = sh.po / sh.br, P = 1, k = 0;
+  while (P < perB){ P *= 2; k++; }
+  return k + (sh.br === 2 ? 1 : 0);
+}
+/* a computer-run team inside the league document: no baseline, no retired list, no audit list */
+function encTeamLite(t){
+  return { id: String(t.id), nm: t.nm, cf: t.cf, dv: t.dv, ow: t.ow, lk: { c: t.lk.c, d: t.lk.d }, cr: t.cr, ed: t.ed, rc: [0, 0, 0, 0, 0], ro: t.ro.map(encPlayer) };
+}
+/* the other way: a human team document back to the lite form (keeps the roster as the owner left it) */
+function liteOfDoc(d){
+  return { id: String(d.id), nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0], ro: d.ro.map(function(q){ return Object.assign({}, q); }) };
+}
+/* a friend takes a computer team: his team document is a copy of the league document's team plus the audit baseline */
+function humanDocOf(lite, rules){
+  var d = Object.assign({}, lite, { rtd: [], bl: blOf(lite.ro, rules) });
+  return d;
+}
 function decTeam(d, rules, idx){
   if (!d || String(d.id) !== String(idx) || !Array.isArray(d.ro) || !d.lk) throw bad('team chunk ' + idx + ' is damaged or missing');
   return { id: idx, nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0],
@@ -2217,6 +2803,19 @@ function rulesOf(meta){
 function metaOf(L, uid, now){
   return { v: CLOUD_FORMAT, nm: L.nm, rs: L.rs, season: L.ssn, wk: L.wk, ph: L.ph, rules: JSON.stringify(L.rules), commish: uid,
     opts: {}, hold: false, ovr: [], updatedAt: now };
+}
+/* the league document of layout 2: the meta + every team (all of them are computer-run at creation) */
+function metaOf2(L, uid, now){
+  var ts = {}; L.teams.forEach(function(t, i){ ts[String(i)] = encTeamLite(t); });
+  var m = { v: CLOUD_FORMAT_BIG, lay: 2, n: L.teams.length, nm: L.nm, rs: L.rs, season: L.ssn, wk: L.wk, ph: L.ph, rules: JSON.stringify(L.rules), commish: uid,
+    opts: {}, hold: false, ovr: [], updatedAt: now, ts: ts, rtd: rtdStrings(L.rtd) };
+  if (L.shape) m.shape = JSON.parse(JSON.stringify(L.shape));
+  return m;
+}
+/* a short label for a screen: 8 TEAMS, 32 TEAMS (NFL), 60 TEAMS (COLLEGE), 12 TEAMS (CUSTOM) */
+function sizeLabel(meta){
+  var n = teamCount(meta), sh = layoutOf(meta) === 2 && meta.shape ? meta.shape : null;
+  return n + ' TEAMS' + (sh && sh.k !== 'CUSTOM' ? ' (' + sh.k + ')' : (sh ? ' (CUSTOM)' : ''));
 }
 function weekKey(season, wk){ return season + '-' + wk; }
 /* a finished week or playoff round as stored: rows are MAPS { a: home team, b: away team, pa: home points, pb: away points, src } */
@@ -2236,31 +2835,37 @@ function histRowOf(season, d){
   return { s: season, ch: d.ch, ru: d.ru, st: d.st.map(function(x){ return [x.w, x.l, x.t, x.pf, x.pa]; }) };
 }
 
-/* Rebuild the league record L (the shape of lg-std 1.2) from the cloud documents. Nothing is simulated: the stored weeks are applied.
-   meta = the meta doc; teamDocs = 8 chunks (array, index = team); weekDocs = { 'season-week': doc }; histDocs = { 'season': doc } */
+/* Rebuild the league record L (the shape of lg-std 1.3) from the cloud documents. Nothing is simulated: the stored weeks are applied.
+   meta = the meta doc (layout 1) or the league document (layout 2); teamDocs = the n team chunks (array, index = team); weekDocs = { 'season-week': doc };
+   histDocs = { 'season': doc } */
 function buildLeague(meta, teamDocs, weekDocs, histDocs){
-  var rules = rulesOf(meta), K = LGSTD.parts.K, season = meta.season;
+  var rules = rulesOf(meta), K = LGSTD.parts.K, season = meta.season, lay2 = layoutOf(meta) === 2, n = teamCount(meta), shape = lay2 && meta.shape ? meta.shape : null;
   weekDocs = weekDocs || {}; histDocs = histDocs || {};
   var teams = [], rtdAll = [];
-  for (var i = 0; i < NTEAMS; i++){
+  for (var i = 0; i < n; i++){
     var d = teamDocs[i];
     teams.push(decTeam(d, rules, i));
-    (d.rtd || []).forEach(function(s){ var j = s.indexOf(':'); rtdAll.push({ s: Number(s.slice(0, j)), id: s.slice(j + 1), ti: teams.length - 1, n: rtdAll.length }); });
+    if (!lay2) (d.rtd || []).forEach(function(s){ var j = s.indexOf(':'); rtdAll.push({ s: Number(s.slice(0, j)), id: s.slice(j + 1), ti: teams.length - 1, n: rtdAll.length }); });
   }
+  if (lay2) (meta.rtd || []).forEach(function(s){ var j = s.indexOf(':'); rtdAll.push({ s: Number(s.slice(0, j)), id: s.slice(j + 1), ti: 0, n: rtdAll.length }); });
   rtdAll.sort(function(a, b){ return a.s - b.s || a.ti - b.ti || a.n - b.n; });
-  var L = { v: 2, dp: 'std', fmt: 'p8', nm: meta.nm, id: 'L' + LGE.seedFor(meta.rs, 0, K.ID, 0).toString(36).slice(0, 5), cmr: null,
+  var L = { v: 2, dp: 'std', fmt: 'p' + n, nm: meta.nm, id: 'L' + LGE.seedFor(meta.rs, 0, K.ID, 0).toString(36).slice(0, 5), cmr: null,
     ssn: season, wk: 0, ph: 'reg', burn: rules.league.burnIn,
-    sch: LGSTD.parts.makeSchedule(STD.stream(meta.rs, season, K.SCHED)), po: null, hist: [], res: [], rs: meta.rs, rules: rules,
+    sch: shape ? LGSTD.parts.scheduleFor(shape, STD.stream(meta.rs, season, K.SCHED)) : LGSTD.parts.makeSchedule(STD.stream(meta.rs, season, K.SCHED)),
+    po: null, hist: [], res: [], rs: meta.rs, rules: rules,
     rtd: rtdAll.map(function(x){ return [x.s, x.id]; }), teams: teams };
+  if (shape) L.shape = JSON.parse(JSON.stringify(shape));
   Object.keys(histDocs).map(Number).sort(function(a, b){ return a - b; }).forEach(function(s){ L.hist.push(histRowOf(s, histDocs[s])); });
   var nG = L.sch.length, w, applied = 0;
   for (w = 0; w < nG; w++){ var wd = weekDocs[weekKey(season, w)]; if (!wd) break; STD.applyWeek(L, gamesOfDoc(wd)); applied++; }
   for (w = applied; w < nG; w++) if (weekDocs[weekKey(season, w)]) throw bad('week ' + (applied + 1) + ' of season ' + season + ' is missing but a later week is stored');
-  var r0 = weekDocs[weekKey(season, 100)], r1 = weekDocs[weekKey(season, 101)];
-  if ((r0 || r1) && applied < nG) throw bad('a playoff round is stored before the regular season is complete');
-  if (r0) STD.applyPlayoffRound(L, gamesOfDoc(r0));
-  if (r1 && !r0) throw bad('the final is stored without the semifinals');
-  if (r1) STD.applyPlayoffRound(L, gamesOfDoc(r1));
+  var r = 0;
+  if (applied < nG) for (var q0 = 0; q0 < 8; q0++) if (weekDocs[weekKey(season, 100 + q0)]) throw bad('a playoff round is stored before the regular season is complete');
+  while (weekDocs[weekKey(season, 100 + r)]){
+    STD.applyPlayoffRound(L, gamesOfDoc(weekDocs[weekKey(season, 100 + r)]));
+    r++;
+  }
+  for (var q = r + 1; q < r + 8; q++) if (weekDocs[weekKey(season, 100 + q)]) throw bad(q === 1 ? 'the final is stored without the semifinals' : 'a playoff round is stored without the one before it');
   if (L.wk !== meta.wk || L.ph !== meta.ph) throw bad('the league says week ' + meta.wk + ' (' + meta.ph + ') but the stored weeks give week ' + L.wk + ' (' + L.ph + ')');
   return L;
 }
@@ -2269,6 +2874,7 @@ function buildLeague(meta, teamDocs, weekDocs, histDocs){
 var PATH = {
   meta: function(lg){ return 'lgs/' + lg; },
   team: function(lg, i){ return 'lgs/' + lg + '/teams/' + i; },
+  teams: function(lg){ return 'lgs/' + lg + '/teams'; },
   slots: function(lg){ return 'lgs/' + lg + '/slots'; },
   slot: function(lg, i){ return 'lgs/' + lg + '/slots/' + i; },
   week: function(lg, season, wk){ return 'lgs/' + lg + '/weeks/' + weekKey(season, wk); },
@@ -2278,23 +2884,30 @@ var PATH = {
 };
 function normCode(s){ return String(s == null ? '' : s).toUpperCase().replace(/[\s-]+/g, ''); }
 
-/* a new league, planned but not written: a random rs, the league made by the shared lg-std, the meta and the 8 chunks */
-function planCreate(name, uid){
+/* a new league, planned but not written: a random rs, the league made by the shared lg-std (any shape: undefined = 8 teams, 'NFL', 'COLLEGE', a custom
+   spec), then the documents. Every NEW league is layout 2 (opts.layout === 1 only makes the old layout, 8 teams, for the tests). */
+function planCreate(name, uid, shapeSpec, opts){
   name = cleanName(name);
-  var rs = ENV.rs(), L = STD.makeLeague(rs, STD_RULES);
+  var sh = STD.shapeOf(shapeSpec);
+  if (!sh.ok) throw CloudError('bad', sh.msg || 'This league shape does not work.');
+  var layout = opts && opts.layout === 1 ? 1 : 2;
+  if (layout === 1 && sh.shape) throw CloudError('bad', 'The old layout only holds the 8-team league.');
+  var rs = ENV.rs(), L = STD.makeLeague(rs, STD_RULES, STD.newCtx(), sh.shape);
   L.nm = name;
-  return planOf(L, uid, ENV.lg(), ENV.now());
+  return planOf(L, uid, ENV.lg(), ENV.now(), layout);
 }
-function planOf(L, uid, lg, now){
-  return { lg: lg, name: L.nm, rs: L.rs, uid: uid, code: null, done: false,
+function planOf(L, uid, lg, now, layout){
+  if (layout === 2) return { lg: lg, name: L.nm, rs: L.rs, uid: uid, code: null, done: false, layout: 2, nTeams: L.teams.length,
+    meta: metaOf2(L, uid, now), chunks: [] };
+  return { lg: lg, name: L.nm, rs: L.rs, uid: uid, code: null, done: false, layout: 1, nTeams: NTEAMS,
     meta: metaOf(L, uid, now),
     chunks: L.teams.map(function(t, i){ return encTeam(t, i === 0 ? rtdStrings(L.rtd) : [], null, L.rules); }) };
 }
 /* a plan for a league whose meta is already in the cloud (to finish an interrupted creation): the same league, made again from rs */
 function planFromMeta(meta, lg, uid, code){
-  var L = STD.makeLeague(meta.rs, rulesOf(meta));
+  var L = STD.makeLeague(meta.rs, rulesOf(meta), STD.newCtx(), layoutOf(meta) === 2 && meta.shape ? meta.shape : null);
   L.nm = meta.nm;
-  var p = planOf(L, uid, lg, meta.updatedAt);
+  var p = planOf(L, uid, lg, meta.updatedAt, layoutOf(meta));
   p.meta = meta; p.code = code || null;
   return p;
 }
@@ -2305,6 +2918,7 @@ function createOps(plan, withMeta, teamIdx, withCode){
   if (withCode) ops.push({ op: 'set', path: PATH.code(plan.code), data: { lg: plan.lg, commish: plan.uid } });
   return ops;
 }
+function planTeamIdx(plan){ return plan.layout === 2 ? [] : [0, 1, 2, 3, 4, 5, 6, 7]; }
 async function freeCode(ad){
   for (var i = 0; i < 12; i++){
     var c = ENV.code(), g = await ad.get(PATH.code(c));
@@ -2315,7 +2929,7 @@ async function freeCode(ad){
 /* look at what already exists for this plan: { meta, teams:[bool x8], code, codeTaken } */
 async function inspectCreate(ad, plan){
   var m = await ad.get(PATH.meta(plan.lg)), ts = [];
-  for (var i = 0; i < NTEAMS; i++) ts.push(await ad.get(PATH.team(plan.lg, i)));
+  if (plan.layout !== 2) for (var i = 0; i < NTEAMS; i++) ts.push(await ad.get(PATH.team(plan.lg, i)));
   var c = plan.code ? await ad.get(PATH.code(plan.code)) : { exists: false, data: null };
   return { meta: m.exists, teams: ts.map(function(t){ return t.exists; }), code: !!(c.exists && c.data && c.data.lg === plan.lg),
     codeTaken: !!(c.exists && c.data && c.data.lg !== plan.lg) };
@@ -2324,13 +2938,14 @@ function failed(plan, err, wrote){
   var e = CloudError(classify(err) === 'other' ? 'other' : classify(err), cloudMsg(err), err);
   e.plan = plan; e.wrote = wrote; return e;
 }
-/* ONE atomic batch: meta + 8 team chunks + the code (10 writes, 8 getAfter() calls in the rules). Either all of it is there or none.
+/* ONE atomic batch. Layout 2: the league document + the code (2 writes). Layout 1: meta + 8 team chunks + the code (10 writes, 8 getAfter() calls in the rules).
+   Either all of it is there or none.
    On a collision of the code (someone made the same code a moment ago) a new code is drawn and the batch is tried again. */
 async function createLeague(ad, plan){
   var attempt = 0;
   for (;;){
     if (!plan.code){ try { plan.code = await freeCode(ad); } catch (e){ throw failed(plan, e, 'nothing'); } }
-    try { await ad.batch(createOps(plan, true, [0, 1, 2, 3, 4, 5, 6, 7], true)); plan.done = true; return plan; }
+    try { await ad.batch(createOps(plan, true, planTeamIdx(plan), true)); plan.done = true; return plan; }
     catch (err){
       var c;
       try { c = await ad.get(PATH.code(plan.code)); } catch (e2){ throw failed(plan, err, 'unknown'); }
@@ -2348,8 +2963,9 @@ async function resumeCreate(ad, plan){
     if (!plan.code || info.codeTaken){ plan.code = await freeCode(ad); info.code = false; }
     var missing = []; info.teams.forEach(function(ok, i){ if (!ok) missing.push(i); });
     var ops = createOps(plan, !info.meta, missing, !info.code);
-    if (!ops.length){ plan.done = true; return { wrote: 0, already: 2 + NTEAMS, plan: plan }; }
-    try { await ad.batch(ops); plan.done = true; return { wrote: ops.length, already: 2 + NTEAMS - ops.length, plan: plan }; }
+    var total = 2 + planTeamIdx(plan).length;
+    if (!ops.length){ plan.done = true; return { wrote: 0, already: total, plan: plan }; }
+    try { await ad.batch(ops); plan.done = true; return { wrote: ops.length, already: total - ops.length, plan: plan }; }
     catch (err){
       var c; try { c = await ad.get(PATH.code(plan.code)); } catch (e2){ throw failed(plan, err, 'unknown'); }
       if (c.exists && c.data && c.data.lg !== plan.lg && ++attempt < 6){ plan.code = null; continue; }
@@ -2364,24 +2980,53 @@ async function readCode(ad, code){
   var g = await ad.get(PATH.code(code));
   return g.exists ? { code: code, lg: g.data.lg, commish: g.data.commish } : null;
 }
+/* layout 2: the n teams in index order. A team with a slot is read from its own document; a computer team from the league document (ts); a team with
+   neither a slot nor a ts entry is an ORPHAN (its owner left): its own document is used until the commissioner's next advance moves it back into ts. */
+function composeTeams(meta, slots, hd){
+  var n = meta.n, ts = meta.ts || {}, out = [];
+  for (var i = 0; i < n; i++){
+    var k = String(i), d = (slots[k] && hd[k]) ? hd[k] : (ts[k] || hd[k]);
+    if (!d) throw CloudError('data', 'Team ' + (i + 1) + ' of this league is missing in the cloud. If you are the commissioner, the league may be damaged: ask for help before changing anything.');
+    out.push(d);
+  }
+  return out;
+}
+/* layout 2, the tidy-up the commissioner's next write does: a team a person now owns leaves ts (its own document is the truth), an orphan goes back
+   into ts and its document is deleted (a document that has no slot is never kept). Returns { ts, drop: [idx leaving ts], back: [idx put back into ts], del: [idx whose
+   document is deleted], hd: the human documents read } */
+function tidyTs(meta, slots, hd){
+  var ts = Object.assign({}, meta.ts || {}), drop = [], back = [], del = [];
+  for (var i = 0; i < meta.n; i++){
+    var k = String(i);
+    if (slots[k] && hd[k] && ts[k]){ delete ts[k]; drop.push(i); }
+    else if (!slots[k] && hd[k]){ if (!ts[k]){ ts[k] = liteOfDoc(hd[k]); back.push(i); } del.push(i); }
+  }
+  return { ts: ts, drop: drop, back: back, del: del, hd: hd };
+}
 /* everything needed to rebuild the league after the meta doc is known. cache = { weeks, hist } keeps documents that never change. */
 async function readParts(ad, lg, meta, cache){
   cache = cache || { weeks: {}, hist: {} };
-  var season = meta.season, i, p = [];
-  for (i = 0; i < NTEAMS; i++) p.push(ad.get(PATH.team(lg, i)));
+  var lay2 = layoutOf(meta) === 2, n = teamCount(meta), nG = weeksOf(meta), season = meta.season, i, p = [];
+  if (!lay2) for (i = 0; i < n; i++) p.push(ad.get(PATH.team(lg, i)));
+  var humanP = lay2 ? ad.list(PATH.teams(lg)) : null;
   var slotsP = ad.list(PATH.slots(lg));
   function want(key, path){ if (cache.weeks[key]) return null; return ad.get(path).then(function(g){ if (g.exists) cache.weeks[key] = g.data; }); }
-  var wp = [], nG = 14;
+  var wp = [];
   for (i = 0; i < Math.min(meta.wk, nG); i++) wp.push(want(weekKey(season, i), PATH.week(lg, season, i)));
-  if (meta.wk >= nG) wp.push(want(weekKey(season, 100), PATH.week(lg, season, 100)));
-  if (meta.wk >= nG + 2) wp.push(want(weekKey(season, 101), PATH.week(lg, season, 101)));
+  if (lay2){ if (meta.wk >= nG) for (i = 0; i < roundsOf(meta); i++) wp.push(want(weekKey(season, 100 + i), PATH.week(lg, season, 100 + i))); }
+  else {
+    if (meta.wk >= nG) wp.push(want(weekKey(season, 100), PATH.week(lg, season, 100)));
+    if (meta.wk >= nG + 2) wp.push(want(weekKey(season, 101), PATH.week(lg, season, 101)));
+  }
   for (var s = 1; s < season; s++) (function(s){
     if (!cache.hist[s]) wp.push(ad.get(PATH.hist(lg, s)).then(function(g){ if (g.exists) cache.hist[s] = g.data; }));
   })(s);
-  var teamSnaps = await Promise.all(p), slotList = await slotsP;
+  var teamSnaps = await Promise.all(p), slotList = await slotsP, humanList = lay2 ? await humanP : [];
   await Promise.all(wp.filter(Boolean));
-  var teamDocs = teamSnaps.map(function(g, k){ if (!g.exists) throw CloudError('data', 'Team ' + (k + 1) + ' of this league is missing in the cloud. The creation of the league was probably interrupted: if you are the commissioner, press RESUME.'); return g.data; });
   var slots = {}; slotList.forEach(function(d){ slots[d.id] = d.data; });
+  var teamDocs;
+  if (lay2){ var hd = {}; humanList.forEach(function(d){ hd[d.id] = d.data; }); teamDocs = composeTeams(meta, slots, hd); }
+  else teamDocs = teamSnaps.map(function(g, k){ if (!g.exists) throw CloudError('data', 'Team ' + (k + 1) + ' of this league is missing in the cloud. The creation of the league was probably interrupted: if you are the commissioner, press RESUME.'); return g.data; });
   return { teamDocs: teamDocs, slots: slots, weeks: cache.weeks, hist: cache.hist };
 }
 
@@ -2392,15 +3037,22 @@ async function readParts(ad, lg, meta, cache){
 function planWeekNo(plan){ return plan.kind === 'reg' ? plan.week : (plan.kind === 'po' ? 100 + plan.round : null); }
 function ovrKey(season, wkNo, gi){ return season + '-' + wkNo + '-' + gi; }
 function nextStamp(old){ return Math.max(ENV.now(), (old || 0) + 1); }
-function humansOf(slots){ var h = []; for (var i = 0; i < NTEAMS; i++) if (slots[String(i)]) h.push(i); return h; }
-function roundName(plan){
-  if (plan.kind === 'reg') return 'WEEK ' + (plan.week + 1) + ' OF ' + 14;
-  if (plan.kind === 'po') return plan.round === 0 ? 'PLAYOFFS: SEMIFINALS' : 'PLAYOFFS: THE FINAL';
+function humansOf(slots){ return Object.keys(slots).map(Number).filter(function(i){ return i >= 0 && i < 64; }).sort(function(a, b){ return a - b; }); }
+/* shape = L.shape (absent for the 8-team league): a shaped league names its own rounds */
+function roundName(plan, shape){
+  if (plan.kind === 'reg') return 'WEEK ' + (plan.week + 1) + ' OF ' + (shape ? shape.games : NG_OLD);
+  if (plan.kind === 'po'){
+    if (shape) return 'PLAYOFFS: ' + STD.roundName(shape, plan.round);
+    return plan.round === 0 ? 'PLAYOFFS: SEMIFINALS' : 'PLAYOFFS: THE FINAL';
+  }
   return 'SEASON OVER';
 }
-/* the submissions of one week or round: the sub documents of the teams that play in it (a read per team, at most 8) */
-async function readSubs(g, lg, season, wkNo, plan){
-  var teams = []; plan.pairs.forEach(function(p){ teams.push(p[0], p[1]); });
+/* the submissions of one week or round: the sub documents of the teams that play in it (a read per team, at most 8).
+   Layout 2 (humans given): only the games with a person in them are looked at, so a 60-team league reads a handful of documents. */
+async function readSubs(g, lg, season, wkNo, plan, humans){
+  var teams = [], hs = null;
+  if (humans){ hs = {}; humans.forEach(function(i){ hs[i] = 1; }); }
+  plan.pairs.forEach(function(p){ if (!hs || hs[p[0]] || hs[p[1]]) teams.push(p[0], p[1]); });
   var snaps = await Promise.all(teams.map(function(t){ return g.get(PATH.sub(lg, season, wkNo, t)); }));
   var out = []; snaps.forEach(function(sn, i){ if (sn.exists) out.push({ team: teams[i], data: sn.data }); });
   return out;
@@ -2444,19 +3096,33 @@ function weekSituation(L, plan, subs, humans, ovr, season, wkNo, picks){
   subs.forEach(function(s){ if (!out.games.some(function(g){ return g.subs.some(function(x){ return x.team === s.team; }); })) out.strays.push(s.team); });
   return out;
 }
-/* every document the advance needs, read through g.get (a transaction or the adapter); past weeks and history come from the cache */
+/* every document the advance needs, read through g.get (a transaction or the adapter); past weeks and history come from the cache.
+   Layout 2 also returns tidy = what the next write must do with ts (see tidyTs) */
 async function readForAdvance(g, lg, m, cache, noSlots){
   cache = cache || { weeks: {}, hist: {} };
-  var season = m.season, i, tp = [], sp = [];
-  for (i = 0; i < NTEAMS; i++){ tp.push(g.get(PATH.team(lg, i))); if (!noSlots) sp.push(g.get(PATH.slot(lg, i))); }
+  var lay2 = layoutOf(m) === 2, n = teamCount(m), nG = weeksOf(m), season = m.season, i, tp = [], sp = [];
+  if (!lay2) for (i = 0; i < n; i++){ tp.push(g.get(PATH.team(lg, i))); if (!noSlots) sp.push(g.get(PATH.slot(lg, i))); }
+  if (lay2) for (i = 0; i < n; i++) sp.push(g.get(PATH.slot(lg, i)));
   var wp = [];
   function want(key, path){ if (!cache.weeks[key]) wp.push(g.get(path).then(function(x){ if (x.exists) cache.weeks[key] = x.data; })); }
-  for (i = 0; i < Math.min(m.wk, 14); i++) want(weekKey(season, i), PATH.week(lg, season, i));
-  if (m.wk >= 14) want(weekKey(season, 100), PATH.week(lg, season, 100));
-  if (m.wk >= 16) want(weekKey(season, 101), PATH.week(lg, season, 101));
+  for (i = 0; i < Math.min(m.wk, nG); i++) want(weekKey(season, i), PATH.week(lg, season, i));
+  if (lay2){ if (m.wk >= nG) for (i = 0; i < roundsOf(m); i++) want(weekKey(season, 100 + i), PATH.week(lg, season, 100 + i)); }
+  else {
+    if (m.wk >= nG) want(weekKey(season, 100), PATH.week(lg, season, 100));
+    if (m.wk >= nG + 2) want(weekKey(season, 101), PATH.week(lg, season, 101));
+  }
   for (var s = 1; s < season; s++) (function(s){ if (!cache.hist[s]) wp.push(g.get(PATH.hist(lg, s)).then(function(x){ if (x.exists) cache.hist[s] = x.data; })); })(s);
-  var ts = await Promise.all(tp), ss = await Promise.all(sp); await Promise.all(wp);
+  var ts = await Promise.all(tp), ss = await Promise.all(sp);
   var slots = {}; ss.forEach(function(x, k){ if (x.exists) slots[String(k)] = x.data; });
+  if (lay2){
+    var need = [], tsm = m.ts || {};
+    for (i = 0; i < n; i++) if (slots[String(i)] || !tsm[String(i)]) need.push(i);
+    var hs = await Promise.all(need.map(function(k){ return g.get(PATH.team(lg, k)); })), hd = {};
+    hs.forEach(function(x, k){ if (x.exists) hd[String(need[k])] = x.data; });
+    await Promise.all(wp);
+    return { teamDocs: composeTeams(m, slots, hd), slots: slots, weeks: cache.weeks, hist: cache.hist, tidy: tidyTs(m, slots, hd) };
+  }
+  await Promise.all(wp);
   return { teamDocs: ts.map(function(x, k){ if (!x.exists) throw CloudError('data', 'Team ' + (k + 1) + ' is missing in the cloud.'); return x.data; }), slots: slots, weeks: cache.weeks, hist: cache.hist };
 }
 function staleMeta(m, e){ return !e || m.updatedAt !== e.updatedAt || m.wk !== e.wk || m.season !== e.season || m.ph !== e.ph; }
@@ -2484,8 +3150,8 @@ async function advanceWeek(ad, lg, o){
     var wkNo = planWeekNo(plan);
     var cur = await g.get(PATH.week(lg, m.season, wkNo));
     if (cur.exists) throw CloudError('stale', STALE_TEXT);
-    var subs = await readSubs(g, lg, m.season, wkNo, plan);
     var humans = humansOf(parts.slots);
+    var subs = await readSubs(g, lg, m.season, wkNo, plan, layoutOf(m) === 2 ? humans : null);
     var sit = weekSituation(L, plan, subs, humans, m.ovr, m.season, wkNo, o.picks);
     if (sit.conflicts.length) throw CloudError('bad', 'Two players sent different scores for the same game. Choose which one counts (USE THIS ONE) or VOID one of them first.');
     if (sit.ties.length){ var tg = sit.games[sit.ties[0]]; throw CloudError('bad', 'A playoff game cannot end in a tie (' + L.teams[tg.h].nm + ' ' + tg.use.sc[0] + ' - ' + tg.use.sc[1] + ' ' + L.teams[tg.a].nm + '). Ask the players to check the score, or VOID that result.'); }
@@ -2495,10 +3161,11 @@ async function advanceWeek(ad, lg, o){
     var res = plan.kind === 'reg' ? STD.playWeekWith(L, sit.hum, { humans: humans }) : STD.playoffRoundWith(L, sit.hum, { humans: humans });
     if (res.held) throw CloudError('bad', 'The engine held the week (unexpected).');
     var wdoc = weekDocOf(res.games, o.uid, now);
-    var nm = Object.assign({}, m, { wk: L.wk, ph: L.ph, season: L.ssn, hold: false, ovr: [], updatedAt: now });
+    var nm = Object.assign({}, m, { wk: L.wk, ph: L.ph, season: L.ssn, hold: false, ovr: [], updatedAt: now }), writes = 2;
+    if (parts.tidy){ nm.ts = parts.tidy.ts; parts.tidy.del.forEach(function(k){ tx.del(PATH.team(lg, k)); writes++; }); }
     tx.set(PATH.week(lg, m.season, wkNo), wdoc);
     tx.set(PATH.meta(lg), nm);
-    result = { kind: 'advanced', meta: nm, week: wdoc, wkNo: wkNo, games: res.games, autoSim: res.autoSim || [], xp: res.xp, done: !!res.done, ch: res.ch == null ? null : res.ch, ru: res.ru == null ? null : res.ru, reads: reads, writes: 2, plan: plan };
+    result = { kind: 'advanced', meta: nm, week: wdoc, wkNo: wkNo, games: res.games, autoSim: res.autoSim || [], xp: res.xp, done: !!res.done, ch: res.ch == null ? null : res.ch, ru: res.ru == null ? null : res.ru, reads: reads, writes: writes, plan: plan };
   });
   return result;
 }
@@ -2578,13 +3245,29 @@ async function runOffseason(ad, lg, o){
     var season = m.season, hg = await g.get(PATH.hist(lg, season));
     if (hg.exists) throw CloudError('stale', STALE_TEXT);
     var res = STD.offseason(L, STD.newCtx());
-    var now = nextStamp(m.updatedAt), row = L.hist[L.hist.length - 1];
-    var docs = L.teams.map(function(t, i){ return encTeam(t, i === 0 ? rtdStrings(L.rtd) : [], null, L.rules); });
-    docs.forEach(function(d, i){ tx.set(PATH.team(lg, i), d); });
-    tx.set(PATH.hist(lg, season), histDocOf(row, now));
-    var nm = Object.assign({}, m, { season: L.ssn, wk: 0, ph: 'reg', hold: false, ovr: [], updatedAt: now });
-    tx.set(PATH.meta(lg), nm);
-    result = { kind: 'offseason', meta: nm, report: res.report, retired: res.retired, row: row, season: season, reads: reads, writes: 10 };
+    var now = nextStamp(m.updatedAt), row = L.hist[L.hist.length - 1], writes, nm;
+    if (layoutOf(m) === 2){
+      /* the league document gets every computer team (and the orphans); each human team gets its own document rewritten */
+      var ts = {}, hum = parts.slots, nh = 0;
+      L.teams.forEach(function(t, i){
+        var k = String(i);
+        if (hum[k]){ tx.set(PATH.team(lg, i), encTeam(t, [], null, L.rules)); nh++; }
+        else ts[k] = encTeamLite(t);
+      });
+      parts.tidy.del.forEach(function(k){ tx.del(PATH.team(lg, k)); nh++; });
+      tx.set(PATH.hist(lg, season), histDocOf(row, now));
+      nm = Object.assign({}, m, { season: L.ssn, wk: 0, ph: 'reg', hold: false, ovr: [], updatedAt: now, ts: ts, rtd: rtdStrings(L.rtd) });
+      tx.set(PATH.meta(lg), nm);
+      writes = nh + 2;
+    } else {
+      var docs = L.teams.map(function(t, i){ return encTeam(t, i === 0 ? rtdStrings(L.rtd) : [], null, L.rules); });
+      docs.forEach(function(d, i){ tx.set(PATH.team(lg, i), d); });
+      tx.set(PATH.hist(lg, season), histDocOf(row, now));
+      nm = Object.assign({}, m, { season: L.ssn, wk: 0, ph: 'reg', hold: false, ovr: [], updatedAt: now });
+      tx.set(PATH.meta(lg), nm);
+      writes = 10;
+    }
+    result = { kind: 'offseason', meta: nm, report: res.report, retired: res.retired, row: row, season: season, reads: reads, writes: writes };
   });
   return result;
 }
@@ -2656,10 +3339,39 @@ function slotDoc(cur, patch){
   return d;
 }
 async function saveSlot(ad, lg, idx, cur, patch){ var d = slotDoc(cur, patch); await ad.set(PATH.slot(lg, idx), d); return d; }
-function freeSlot(ad, lg, idx){ return ad.del(PATH.slot(lg, idx)); }
+/* free a team (the commissioner). Layout 1: delete the slot. Layout 2: ONE transaction puts the person's team back into the league document (ts), deletes his
+   team document and deletes the slot, so the computer runs the team again with the roster as he left it. */
+async function freeSlot(ad, lg, idx){
+  var mg = await ad.get(PATH.meta(lg));
+  if (!mg.exists || layoutOf(mg.data) !== 2) return ad.del(PATH.slot(lg, idx));
+  await ad.transaction(async function(tx){
+    var m = (await tx.get(PATH.meta(lg))).data, td = await tx.get(PATH.team(lg, idx)), k = String(idx);
+    if (td.exists){
+      var ts = Object.assign({}, m.ts || {}); ts[k] = liteOfDoc(td.data);
+      tx.set(PATH.meta(lg), Object.assign({}, m, { ts: ts, updatedAt: nextStamp(m.updatedAt) }));
+      tx.del(PATH.team(lg, idx));
+    }
+    tx.del(PATH.slot(lg, idx));
+  });
+}
+/* a person takes a team. Layout 1: create the slot. Layout 2: ONE transaction creates the slot AND his team document, copied from the league document's
+   team (ts) with the audit baseline added. The commissioner's next advance drops that team from ts. If the team has an orphan document (its last owner left),
+   only the slot is created and the new owner takes the team as it stands. */
 async function takeSlot(ad, lg, idx, uid, name){
   var d = slotDoc({ uid: uid, g: null, nm: name, since: ENV.now() }, {});
-  await ad.set(PATH.slot(lg, idx), d); return d;
+  var mg = await ad.get(PATH.meta(lg));
+  if (!mg.exists || layoutOf(mg.data) !== 2){ await ad.set(PATH.slot(lg, idx), d); return d; }
+  var k = String(idx), n = mg.data.n;
+  if (!(Number.isInteger(Number(idx)) && idx >= 0 && idx < n)) throw CloudError('bad', 'This league has teams 1 to ' + n + ' only.');
+  await ad.transaction(async function(tx){
+    var m = (await tx.get(PATH.meta(lg))).data, td = await tx.get(PATH.team(lg, idx));
+    if (td.exists){ tx.set(PATH.slot(lg, idx), d); return; }
+    var lite = m.ts && m.ts[k];
+    if (!lite) throw CloudError('exists', 'This team is not open any more. Refresh and look again.');
+    tx.set(PATH.slot(lg, idx), d);
+    tx.set(PATH.team(lg, idx), humanDocOf(lite, rulesOf(m)));
+  });
+  return d;
 }
 /* the history of a league as rows for the screens: [{ s, ch, ru, st }] from the hist documents */
 function championsOf(L){
@@ -2792,12 +3504,24 @@ async function openLeague(lg, code){
   listTouch({lg:lg, nm:cl.meta.nm, code:cl.code, role:cl.role});
   return cl;
 }
+function myTeamIx(slots){
+  var uid = state.auth && state.auth.uid; if (!uid) return -1;
+  var ks = Object.keys(slots || {}); for (var i = 0; i < ks.length; i++) if (slots[ks[i]] && slots[ks[i]].uid === uid) return Number(ks[i]);
+  return -1;
+}
+/* HQ 0.8: opening a league you play in goes straight to your own team page; a league you only run or watch opens CODE AND SLOTS as before */
+function openedView(){
+  var cl = state.cl, mi = cl ? myTeamIx(cl.slots) : -1;
+  if (mi >= 0 && state.m && state.m.teams[mi]){ state.selTeam = mi; state.selPlayer = null; go('team'); } else go('cloud');
+}
 async function applyMeta(cl, meta){
   var parts = await readParts(FB.ad, cl.lg, meta, cl.cache);
   var L = buildLeague(meta, parts.teamDocs, parts.weeks, parts.hist);
   cl.meta = meta; cl.slots = parts.slots; cl.teamDocs = parts.teamDocs; cl.L = L; cl.loadedAt = ENV.now(); cl.err = null;
   cl.role = roleOf(meta);
   var m = buildStd(L, {from:'a linked league', warn:null, save:null}); m.linked = true;
+  var mi = myTeamIx(parts.slots);                        /* HQ 0.8: the team this account owns (a league made on the phone has the commissioner's own slot) */
+  if (mi >= 0){ m.meIdx = mi; m.teams[mi].mine = true; m.myTeamName = m.teams[mi].name; }
   if (state.cl === cl){ var keepTeam = state.selTeam; state.m = m; state.selTeam = (keepTeam != null && m.teams[keepTeam]) ? keepTeam : null; if (state.selTeam == null) state.selPlayer = null; }
 }
 function onMeta(cl, snap){
@@ -2826,14 +3550,15 @@ async function openByCode(codeText){
   if (!rec) throw CloudError('missing', 'No league has the code ' + normCode(codeText) + '. Check the code with the commissioner.');
   var cl = await openLeague(rec.lg, rec.code);
   state.selTeam = null; state.selPlayer = null; state.msg = null;
-  go('cloud');
+  openedView();
   return cl;
 }
 async function openListed(e){
   if (state.auth.kind === 'none'){ if (e.role === 'commissioner') await signInGoogle(); else await signInAnon(); }
   if (e.pending){ await resumePending(e); return; }
   await openLeague(e.lg, e.code);
-  go('cloud');
+  state.selTeam = null; state.selPlayer = null;
+  openedView();
 }
 /* a creation that was started in an earlier visit and never reported as finished */
 async function resumePending(e){
@@ -2931,14 +3656,15 @@ function cloudPanels(main){
       el('div', {class:'row'}, el('button', {type:'button', class:'btn', id:'btnSignOut', disabled:busy, onclick:function(){ signOutNow(); }}, 'SIGN OUT'))]);
   }
   if (state.busy) C.appendChild(el('div', {class:'msg warn', id:'busyMsg', role:'status'}, state.busy));
-  var rows = mineRows(), ms = state.mine.status;
+  var rows = mineRows(), ms = state.mine.status, inAccount = {};
+  (state.mine.rows || []).forEach(function(x){ inAccount[x.lg] = true; });
   var D = el('div', {class:'panel', id:'panelMine'}, [el('h2', null, 'D. MY LEAGUES'),
-    el('p', {class:'note'}, 'The leagues this browser opened after a sign-in (kept only in this browser; SIGN OUT clears the list), plus, after a Google sign-in, the leagues you made on other devices (tag CLOUD).')]);
+    el('p', {class:'note'}, 'The leagues this browser opened after a sign-in (kept only in this browser; SIGN OUT clears the list), plus, after a Google sign-in, every league that belongs to your Google account, whether you made it here or on the phone (tag IN YOUR ACCOUNT).')]);
   if (ms === 'refused') D.appendChild(el('p', {class:'note', id:'mineNote'}, 'The cloud list of your leagues needs the new rules, which are not published yet: only the leagues this browser opened are shown.'));
   else if (ms === 'net') D.appendChild(el('p', {class:'note', id:'mineNote'}, 'The cloud list of your leagues could not be read (connection): only the leagues this browser opened are shown. Sign in again to retry.'));
   if (!rows.length) D.appendChild(el('p', {class:'note'}, 'No leagues yet.'));
   else D.appendChild(table([
-    {h:'LEAGUE', v:function(r){ return [r.nm, r.pending ? tag('NOT FINISHED', 'rt') : null, r.cloud ? tag('CLOUD', 'me') : null]; }}, {h:'CODE', v:function(r){ return r.code || '-'; }},
+    {h:'LEAGUE', v:function(r){ return [r.nm, r.pending ? tag('NOT FINISHED', 'rt') : null, (r.cloud || inAccount[r.lg]) ? tag('IN YOUR ACCOUNT', 'me') : null]; }}, {h:'CODE', v:function(r){ return r.code || '-'; }},
     {h:'ROLE', v:function(r){ return r.role === 'commissioner' ? 'COMMISSIONER' : 'WATCHING'; }}, {h:'LAST OPENED', v:function(r){ return r.t ? fmtDate(r.t) : '-'; }},
     {h:'', v:function(r){ return el('span', null, [
       el('button', {type:'button', class:'btn pri', 'data-lg':r.lg, disabled:busy, onclick:function(){ runBusy(r.pending ? 'Finishing the league...' : (state.auth.kind === 'none' ? 'Signing in...' : 'Opening the league...'), async function(){ await openListed(r); }); }}, r.pending ? 'FINISH' : 'OPEN'),
@@ -2949,7 +3675,7 @@ function cloudPanels(main){
 
 /* ---------- CREATE A LEAGUE ---------- */
 function vCreate(main){
-  add(main, [el('h1', null, 'CREATE A LEAGUE'), el('p', {class:'sub'}, 'A new 8-team Standard league in the cloud. You become its commissioner. Friends join with the code.')]);
+  add(main, [el('h1', null, 'CREATE A LEAGUE'), el('p', {class:'sub'}, 'A new Standard league in the cloud: 8 teams, 32 teams (NFL) or 60 teams (COLLEGE). You become its commissioner. Friends join with the code.')]);
   if (state.msg) main.appendChild(el('div', {class:'msg ' + state.msg.kind, role:'alert'}, state.msg.text));
   var cr = state.create, busy = !!state.busy;
   if (cr && cr.error){
@@ -2962,20 +3688,22 @@ function vCreate(main){
     if (state.busy) main.appendChild(el('div', {class:'msg warn', role:'status'}, state.busy));
     return;
   }
+  var sizeSel = el('select', {id:'sizeSel', class:'name-in', 'aria-label':'League size', onchange:function(e){ state.sizeInput = e.target.value; }},
+    [['8', '8 TEAMS'], ['NFL', '32 TEAMS (NFL)'], ['COLLEGE', '60 TEAMS (COLLEGE)']].map(function(o){ return el('option', {value:o[0], selected:(state.sizeInput || '8') === o[0]}, o[1]); }));
   var box = el('input', {type:'text', id:'nameBox', class:'name-in', maxlength:'40', placeholder:'LEAGUE NAME', 'aria-label':'League name', value:state.nameInput || '', oninput:function(e){ state.nameInput = e.target.value; }});
-  main.appendChild(el('div', {class:'panel'}, [el('h2', null, 'NAME THE LEAGUE'), el('div', {class:'row'}, [box,
+  main.appendChild(el('div', {class:'panel'}, [el('h2', null, 'NAME THE LEAGUE'), el('div', {class:'row'}, [box, sizeSel,
     el('button', {type:'button', class:'btn pri', id:'btnCreate', disabled:busy, onclick:function(){
       var nm; try { nm = cleanName(box.value); } catch (e){ setMsg('err', e.message); render(); return; }
       runBusy('Building the league (about a second) and writing it to the cloud...', async function(){
         await new Promise(function(r){ setTimeout(r, 30); });
-        var plan = planCreate(nm, state.auth.uid);
+        var plan = planCreate(nm, state.auth.uid, (state.sizeInput && state.sizeInput !== '8') ? state.sizeInput : null);
         state.create = {plan:plan, error:null};
         listTouch({lg:plan.lg, nm:plan.name, code:null, role:'commissioner', pending:true});
         try { await createLeague(FB.ad, plan); }
         catch (err){ state.create.error = err.plan ? err : failed(plan, err, 'unknown'); if (plan.code) listTouch({lg:plan.lg, nm:plan.name, code:plan.code, role:'commissioner', pending:true}); return; }
         await finishCreate(plan, null);
       }); }}, 'CREATE LEAGUE')]),
-    el('p', {class:'note'}, 'HQ draws a random league seed, makes the league with the same code the game uses, and writes it in ONE batch: the league record, the 8 team chunks and the league code (10 writes). Then it shows the code. If a write fails, nothing is half done: you get a RESUME button.')]));
+    el('p', {class:'note'}, 'HQ draws a random league seed, makes the league with the same code the game uses, and writes it in ONE batch of 2 documents: the LEAGUE DOCUMENT (the league record and every computer-run team) and the league code. A team gets its own document only when a person takes it. Then HQ shows the code. If a write fails, nothing is half done: you get a RESUME button. A 32 or 60 team league takes a few seconds to build. HQ 0.7 creates, advances and rolls these leagues over; its standings and playoff pictures for them are still the 8-team ones (fixed in a later HQ).')]));
   if (state.busy) main.appendChild(el('div', {class:'msg warn', id:'busyMsg', role:'status'}, state.busy));
 }
 
@@ -2994,11 +3722,11 @@ function vCloud(main){
   add(main, [el('div', {class:'row'}, [el('span', {class:'note'}, 'LEAGUE CODE'), el('span', {class:'codebig', id:'leagueCode'}, cl.code || '-'),
     cl.code && navigator.clipboard ? el('button', {type:'button', class:'btn', id:'btnCopy', onclick:function(){ try { navigator.clipboard.writeText(cl.code); } catch (e){} }}, 'COPY') : null,
     joinTag(cl)])]);
-  var claimed = 0; for (var i = 0; i < NTEAMS; i++) if (cl.slots[String(i)]) claimed++;
-  main.appendChild(cards([['SEASON', String(cl.meta.season)], ['PHASE', stdPhaseText(m)], ['TEAMS CLAIMED', claimed + ' OF ' + NTEAMS], ['LIVE UPDATES', cl.live ? 'ON' : 'OFF'],
+  var NT = teamCount(cl.meta), claimed = 0; for (var i = 0; i < NT; i++) if (cl.slots[String(i)]) claimed++;
+  main.appendChild(cards([['SEASON', String(cl.meta.season)], ['PHASE', stdPhaseText(m)], ['LEAGUE', sizeLabel(cl.meta)], ['TEAMS CLAIMED', claimed + ' OF ' + NT], ['LIVE UPDATES', cl.live ? 'ON' : 'OFF'],
     ['CHECKED', new Date(cl.loadedAt).toISOString().slice(11, 19) + ' UTC']]));
-  main.appendChild(el('h2', null, 'THE 8 TEAMS: OPEN OR CLAIMED'));
-  var rows = []; for (var k = 0; k < NTEAMS; k++) rows.push(k);
+  main.appendChild(el('h2', null, 'THE ' + NT + ' TEAMS: OPEN OR CLAIMED'));
+  var rows = []; for (var k = 0; k < NT; k++) rows.push(k);
   main.appendChild(table([
     {h:'#', v:function(k){ return String(k + 1); }, n:true}, {h:'TEAM', v:function(k){ return m.teams[k].name; }},
     {h:'STATUS', v:function(k){ return cl.slots[String(k)] ? tag('CLAIMED', 'st') : tag('OPEN', 'bk'); }},
@@ -3061,7 +3789,7 @@ function doAdvance(cl, mode){
     var w = state.wk, picks = w ? w.picks : {};
     var r = await advanceWeek(FB.ad, cl.lg, {uid:state.auth.uid, expect:expectNow(cl), picks:picks, mode:mode, cache:cl.cache});
     var names = cl.L.teams.map(function(t){ return t.nm; });
-    if (r.kind === 'advanced') state.wkReport = {kind:'advanced', names:names, label:roundName(r.plan), games:r.games, reads:r.reads, writes:r.writes, done:r.done, ch:r.ch, ru:r.ru, autoSim:r.autoSim};
+    if (r.kind === 'advanced') state.wkReport = {kind:'advanced', names:names, label:roundName(r.plan, cl.L.shape), games:r.games, reads:r.reads, writes:r.writes, done:r.done, ch:r.ch, ru:r.ru, autoSim:r.autoSim};
     else if (r.kind === 'held') state.wkReport = {kind:'held', names:names, missing:r.missing, reads:r.reads};
     else state.wkReport = {kind:'unheld', reads:r.reads};
     reloadWeek();
@@ -3084,7 +3812,7 @@ function vWeek(main){
   if (cl.err) main.appendChild(el('div', {class:'msg err', role:'alert'}, cl.err));
   if (!state.wk || state.wk.lg !== cl.lg || state.wk.stamp !== meta.updatedAt) loadWeek(cl);
   var w = state.wk, ctx = weekCtx(cl), plan = ctx.plan;
-  main.appendChild(cards([['SEASON', String(meta.season)], ['NOW', roundName(plan)], ['WAITING (HOLD)', meta.hold ? 'YES' : 'NO'], ['SIM MARKS', String((meta.ovr || []).length)]]));
+  main.appendChild(cards([['SEASON', String(meta.season)], ['NOW', roundName(plan, L.shape)], ['WAITING (HOLD)', meta.hold ? 'YES' : 'NO'], ['SIM MARKS', String((meta.ovr || []).length)]]));
   if (meta.hold) main.appendChild(el('div', {class:'msg warn', id:'holdNote'}, 'The league is WAITING: the games stay open until the commissioner advances. Advancing clears this.'));
   if (state.offReport) main.appendChild(offseasonReport(state.offReport));
   var rep = state.wkReport;
@@ -3104,7 +3832,7 @@ function vWeek(main){
     main.appendChild(el('div', {class:'msg ok', id:'seasonOver'}, 'The season is over. Champion: ' + (L.po && L.po.ch != null ? teamName(L, L.po.ch) : '-') + (L.po && L.po.ru != null ? ', runner-up: ' + teamName(L, L.po.ru) : '') + '. The next step is the OFFSEASON.'));
     if (isC){
       var ob = el('div', {class:'panel', id:'offPanel'}, [el('h2', null, 'OFFSEASON'),
-        el('p', null, 'Every player gets a year older and may grow, some retire and are replaced by rookies, the season is saved to the history, and season ' + (meta.season + 1) + ' starts at week 1. This cannot be undone. All 8 team chunks, the league record and the history entry are written together (10 writes).')]);
+        el('p', null, 'Every player gets a year older and may grow, some retire and are replaced by rookies, the season is saved to the history, and season ' + (meta.season + 1) + ' starts at week 1. This cannot be undone. ' + (layoutOf(meta) === 2 ? 'The league document (every computer team), the document of each team a person owns and the history entry are written together.' : 'All 8 team chunks, the league record and the history entry are written together (10 writes).'))]);
       if (state.offConfirm) ob.appendChild(el('div', {class:'row'}, [el('button', {type:'button', class:'btn danger', id:'btnOffYes', disabled:!!state.busy, onclick:function(){ state.offConfirm = false; doOffseason(cl); }}, 'YES, RUN THE OFFSEASON'),
         el('button', {type:'button', class:'btn', onclick:function(){ state.offConfirm = false; render(); }}, 'NOT YET')]));
       else ob.appendChild(el('div', {class:'row'}, el('button', {type:'button', class:'btn pri', id:'btnOffseason', disabled:!!state.busy, onclick:function(){ state.offConfirm = true; render(); }}, 'OFFSEASON')));
@@ -3115,7 +3843,7 @@ function vWeek(main){
   if (!w || w.loading){ main.appendChild(el('p', {class:'note', id:'weekLoading'}, 'Reading the submissions...')); return; }
   if (w.err) main.appendChild(el('div', {class:'msg err', role:'alert'}, w.err));
   var humans = humansOf(cl.slots), sit = weekSituation(L, plan, w.subs, humans, meta.ovr, meta.season, ctx.wkNo, w.picks);
-  main.appendChild(el('h2', null, roundName(plan) + ': THE GAMES'));
+  main.appendChild(el('h2', null, roundName(plan, L.shape) + ': THE GAMES'));
   main.appendChild(el('p', {class:'note'}, 'A person is a team with a claimed slot. A result sent by a player is a submission. Scores are home - away. Honor system: HQ cannot check a score.'));
   function subLine(g, x){
     var ign = g.sim || !x.okGi, picked = g.use && g.use.team === x.team && (g.status === 'picked' || g.status === 'played');
@@ -3163,7 +3891,7 @@ function vWeek(main){
     if (meta.hold && !pend.length) btns.push(el('button', {type:'button', class:'btn', id:'btnUnhold', disabled:!!state.busy, onclick:function(){ doAdvance(cl, 'unhold'); }}, 'CLEAR THE WAIT'));
     btns.push(el('button', {type:'button', class:'btn', id:'btnWeekRefresh', disabled:!!state.busy, onclick:function(){ reloadWeek(); refreshLeague(cl, null); }}, 'REFRESH THE WEEK'));
     adv.appendChild(el('div', {class:'row'}, btns));
-    adv.appendChild(el('p', {class:'note'}, 'Pressing ADVANCE reads all 8 team chunks again (friends spend credits between weeks), plays the week once and writes the week and the new league record together. If another window advanced first, nothing is written.'));
+    adv.appendChild(el('p', {class:'note'}, (layoutOf(meta) === 2 ? 'Pressing ADVANCE reads the league document and the documents of the teams people own again (friends spend credits between weeks), plays the week once and writes the week and the new league document together. If another window advanced first, nothing is written.' : 'Pressing ADVANCE reads all 8 team chunks again (friends spend credits between weeks), plays the week once and writes the week and the new league record together. If another window advanced first, nothing is written.')));
   }
   main.appendChild(adv);
 }
@@ -3181,7 +3909,8 @@ function vAudit(main){
   add(main, [el('h1', null, 'AUDIT: CREDIT UPGRADES'), el('p', {class:'sub'}, 'Every friend writes a line into his team\'s `up` list when he spends credits. HQ compares each roster with the ratings the commissioner wrote (the baseline) and flags any change that no line explains. This is an honor system: the cloud cannot look inside a roster.')]);
   if (state.msg) main.appendChild(el('div', {class:'msg ' + state.msg.kind, role:'alert'}, state.msg.text));
   var res = [], bad = 0, nob = 0;
-  for (var i = 0; i < NTEAMS; i++){
+  for (var i = 0; i < teamCount(cl.meta); i++){
+    if (layoutOf(cl.meta) === 2 && !cl.slots[String(i)]) continue;                  /* layout 2: only a team a person owns has its own document to audit */
     var bl = baselineFor(cl, i), au = auditTeam(cl.teamDocs[i], rules, bl);
     var flagged = au.changes.filter(function(c){ return !c.explained; }).length + au.unmatched.length;
     res.push({i:i, au:au, flagged:flagged}); bad += flagged; if (au.noBaseline) nob++;
@@ -3221,7 +3950,7 @@ function offseasonReport(o){
   box.appendChild(table([{h:'TEAM', v:function(r){ return o.names[r.team]; }},
     {h:'RETIRED', v:function(r){ return r.retired.length ? r.retired.map(function(p){ return p.ps + ' ' + p.nm + ' (' + p.ag + ')'; }).join(', ') : '-'; }},
     {h:'ROOKIES', v:function(r){ return r.rookies.length ? r.rookies.map(function(p){ return p.ps + ' ' + p.nm + ' (' + p.ag + ')'; }).join(', ') : '-'; }}], o.report));
-  box.appendChild(el('p', {class:'note'}, 'Written in one commit: ' + o.writes + ' documents (8 team chunks with a fresh baseline, the league record, the history entry). ' + o.reads + ' documents were read inside the transaction.'));
+  box.appendChild(el('p', {class:'note'}, 'Written in one commit: ' + o.writes + ' documents (' + (layoutOf(o.meta) === 2 ? 'the league document, the teams people own with a fresh baseline, the history entry' : '8 team chunks with a fresh baseline, the league record, the history entry') + '). ' + o.reads + ' documents were read inside the transaction.'));
   box.appendChild(el('button', {type:'button', class:'btn', id:'btnOffOk', onclick:function(){ state.offReport = null; render(); }}, 'OK'));
   return box;
 }
@@ -3278,7 +4007,7 @@ function vChamps(main){
   if (!c.rows.length){ main.appendChild(el('p', {id:'noHistory'}, 'No season has been finished yet. The first row appears after the first OFFSEASON.')); return; }
   main.appendChild(table([{h:'SEASON', v:function(r){ return String(r.s); }, n:true}, {h:'CHAMPION', v:function(r){ return teamName(L, r.ch); }}, {h:'RUNNER-UP', v:function(r){ return teamName(L, r.ru); }},
     {h:'CHAMPION RECORD', v:function(r){ var x = r.st[r.ch]; return x ? x[0] + '-' + x[1] + '-' + x[2] + '  (' + x[3] + '-' + x[4] + ')' : '-'; }}], c.rows));
-  var teams = []; for (var i = 0; i < NTEAMS; i++) teams.push(i);
+  var teams = []; for (var i = 0; i < teamCount(cl.meta); i++) teams.push(i);
   teams.sort(function(a, b){ return (c.titles[b] || 0) - (c.titles[a] || 0) || (c.runner[b] || 0) - (c.runner[a] || 0) || a - b; });
   main.appendChild(el('h2', null, 'TITLES'));
   main.appendChild(table([{h:'TEAM', v:function(i){ return [teamName(L, i), who(cl, i) ? tag('PERSON: ' + who(cl, i), 'me') : null]; }}, {h:'TITLES', v:function(i){ return String(c.titles[i] || 0); }, n:true}, {h:'FINALS LOST', v:function(i){ return String(c.runner[i] || 0); }, n:true}], teams));
