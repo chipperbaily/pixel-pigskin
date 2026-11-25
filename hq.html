@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pixel Pigskin HQ v0.8</title>
+<title>Pixel Pigskin HQ v0.11</title>
 <style>
 /* Pixel Pigskin HQ v0.3: plain dark theme, system fonts only. */
 :root{
@@ -23,6 +23,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
 #menu button:hover:not([disabled]){background:var(--panel2)}
 #menu button.on{background:var(--yel);color:#111;border-color:var(--yel);font-weight:700}
 #menu button[disabled]{opacity:.4;cursor:not-allowed}
+#menu .lgname.top{margin-top:0;padding:8px 2px 6px}
+#menu .grp{margin:14px 0 4px;padding-top:8px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;letter-spacing:.08em}
 #menu .lgname{color:var(--muted);font-size:13px;margin-top:auto;padding-top:12px;word-break:break-word}
 #right{flex:1;min-width:0;display:flex;flex-direction:column}
 main{flex:1;padding:20px 28px 28px;max-width:1800px;width:100%}
@@ -122,6 +124,38 @@ input.name-in{width:min(24em,100%)}
 .subline{margin:.2em 0}
 .subline .btn{margin-left:.5em;padding:0 .6em}
 .aboutbox{white-space:pre-wrap;border:2px solid var(--line);padding:.8em;margin:.6em 0;max-width:46em;font:inherit}
+
+/* HQ 0.9: the home screen's collapsed extras */
+details.more{margin-top:20px;border:1px solid var(--line);border-radius:6px;padding:0 12px 12px}
+details.more summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--muted);font-weight:700;letter-spacing:.04em;font-size:13px}
+
+/* HQ 0.9: uniforms */
+#lookCard canvas.uni{display:block;background:#2a7030;width:100%;max-width:340px;height:auto}
+#lookCard .pvrow{margin:8px 0}#lookCard .pvrow b{display:block;margin-bottom:4px}
+.btn.swb{display:inline-flex;align-items:center;gap:8px;min-height:48px;text-align:left}
+.btn.swb.on{outline:3px solid var(--yel)}
+.btn.swb .swbox{display:block;width:26px;height:26px;border:2px solid #fff;flex:none}
+.btn.swb small{color:var(--muted);font-size:11px}
+#lookCard .pal{background:#0a0f1d;padding:8px;margin:8px 0}
+#lookCard .palg{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px;margin:6px 0}
+#lookCard .palg button.pk{min-width:44px;min-height:44px;padding:0;font-weight:700;font-size:18px;border:2px solid #fff;cursor:pointer}
+/* HQ 0.10: PLAYBOOK */
+.pbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin:12px 0}
+.pbcard{display:flex;flex-direction:column;gap:4px;align-items:stretch;background:var(--panel);color:var(--text);border:2px solid var(--line);padding:6px;min-height:44px;cursor:pointer;text-align:left}
+.pbcard:hover,.pbcard:focus-visible{border-color:var(--yel)}
+.pbdia{display:block;width:100%;height:auto;max-width:100%}
+.pbname{font-weight:700;letter-spacing:.04em}
+.pbkind{color:var(--muted);font-size:.8em}
+.pbbig{max-width:560px;margin:10px 0}
+/* HQ 0.11: PLAYBOOK, DEFENSE */
+.dfcv{display:block;width:100%;height:auto;image-rendering:pixelated;background:#2a6034}
+.dfcard .dfcv{max-width:240px;margin:0 auto}
+.dfbig{position:relative;max-width:480px;margin:10px 0}
+.dfbig .dfcv{width:100%}
+.dfov{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+.dfkey{margin:6px 0 10px 18px;padding:0;color:var(--muted);font-size:.9em}
+#dfKeyBox{margin:8px 0}
+#dfKeyBox summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700}
 </style>
 </head>
 <body>
@@ -1127,7 +1161,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LGSTD;
    page makes no network request of any kind. It opens PPSAVE1 backup codes and
    Standard league files as before (read only), and linked leagues from the cloud.
    ===================================================================== */
-var HQ_VERSION = '0.8';   /* filled in by build.mjs from package.json "version" (major.minor): the ONE place to bump it */
+var HQ_VERSION = '0.11';   /* filled in by build.mjs from package.json "version" (major.minor): the ONE place to bump it */
 
 /* ---------- small helpers (build page parts without innerHTML, so a
    strange name inside a save can never run as code) ---------- */
@@ -1647,7 +1681,7 @@ function slotName(m, slot){ var p = m.players[slot]; return p ? p.name : SLOT_PO
 /* =====================================================================
    4. APP STATE AND SCREENS
    ===================================================================== */
-var state = {m:null, view:'open', msg:null, pending:null, selTeam:null, selPlayer:null, selSeason:null, selWeek:null, groupFilter:'all', histSeason:null,
+var state = {m:null, look:null, view:'open', msg:null, pending:null, selTeam:null, selPlayer:null, selSeason:null, selWeek:null, groupFilter:'all', histSeason:null,
   auth:{kind:'none'}, cl:null, create:null, busy:null, list:[], mine:{status:'none', rows:[]}};
 
 /* ---------- OPEN A LEAGUE (start screen) ---------- */
@@ -1693,7 +1727,7 @@ function adopt(obj, info){
   }
   leaveLinked(); state.m = m; state.pending = null; state.selTeam = null; state.selPlayer = null; state.selSeason = null; state.selWeek = null; state.groupFilter = 'all'; state.histSeason = null;
   setMsg(null, null);
-  go('league');
+  go(m.classic ? 'league' : 'standings');
 }
 function readFile(file){
   return new Promise(function(res, rej){
@@ -1735,8 +1769,8 @@ function sampleStd(){
 }
 
 function vOpen(main){
-  add(main, [el('h1', null, 'OPEN A LEAGUE'),
-    el('p', {class:'sub'}, 'Backup codes and files are read in this browser tab only: nothing is uploaded and no network request is made. The online parts (panels C and D) connect only after you press a button there.')]);
+  add(main, [el('h1', null, 'MY LEAGUES'),
+    el('p', {class:'sub'}, state.auth.kind === 'google' ? 'Open a league to see its standings, or make a new one.' : 'Sign in to see your leagues.')]);
   if (state.msg) main.appendChild(el('div', {class:'msg ' + state.msg.kind, role:'alert'}, state.msg.text));
 
   /* A. backup code */
@@ -1766,8 +1800,11 @@ function vOpen(main){
     el('p', {class:'note'}, 'The sample is a tiny 2-team Standard league made by hand, only for trying the screens.'),
     drop
   ]);
-  main.appendChild(el('div', {class:'panels'}, [panelA, panelB]));
   cloudPanels(main);
+  var more = el('details', {id:'moreWays', class:'more'}, [el('summary', null, 'OTHER WAYS TO OPEN A LEAGUE (BACKUP CODE, LEAGUE FILE, BUILT-IN SAMPLE)'),
+    el('p', {class:'note'}, 'Backup codes and files are read in this browser tab only: nothing is uploaded and no network request is made.'),
+    el('div', {class:'panels'}, [panelA, panelB])]);
+  if (state.pending) more.open = true;
 
   /* picking one league out of an all-leagues backup */
   if (state.pending){
@@ -1785,6 +1822,7 @@ function vOpen(main){
       {h:'', v:function(r){ return el('button', {type:'button', class:'btn pri', 'data-slot':r.i, onclick:function(){ adopt(r.s, {warn:state.pending.warn, from:'a backup of all leagues (slot ' + (r.i + 1) + ')'}); }}, 'OPEN'); }}
     ], rows));
   }
+  main.appendChild(more);
 }
 
 /* ---------- LEAGUE ---------- */
@@ -2271,10 +2309,17 @@ function vLeagueStd(main){
 }
 
 /* ---------- STANDINGS ---------- */
+/* HQ 0.9: a button to your own team under the STANDINGS title, when this account (or the save) has one */
+function myTeamLink(main){
+  var m = state.m;
+  if (!m || m.meIdx == null || m.meIdx < 0 || !m.teams[m.meIdx] || m.classic) return;
+  main.appendChild(el('div', {class:'row'}, el('button', {type:'button', class:'btn pri', id:'btnMyTeam', 'data-team':m.meIdx, onclick:function(){ state.selTeam = m.meIdx; state.selPlayer = null; go('team'); }}, 'MY TEAM: ' + m.teams[m.meIdx].name)));
+}
 function vStandingsStd(main){
   if (state.m.shape) return vStandingsShaped(main);
   var m = state.m, P = m.po, nPo = m.nPo;
   add(main, [el('h1', null, 'STANDINGS'), el('p', {class:'sub'}, 'All eight teams in the order the league uses. Click a team to open it.')]);
+  myTeamLink(main);
   var order = m.played ? m.rank.order : m.teams.map(function(t){ return t.idx; });
   if (!m.played) main.appendChild(el('div', {class:'msg warn'}, 'No games have been played this season yet, so there is no order: teams are listed by team number.'));
   var tiedAt = {}; m.rank.order.forEach(function(ti, i){ tiedAt[ti] = m.rank.tied[i]; });
@@ -2374,6 +2419,7 @@ function bracketView(main, m){
 function vStandingsShaped(main){
   var m = state.m, S = m.shape, P = m.po, g = m.stg, nc = S.nc || 1;
   add(main, [el('h1', null, 'STANDINGS'), el('p', {class:'sub'}, 'All ' + m.teamCount + ' teams in the order the league uses. ' + (nc > 1 ? 'Pick a conference. ' : '') + 'Click a team to open it.')]);
+  myTeamLink(main);
   if (!m.played) main.appendChild(el('div', {class:'msg warn'}, 'No games have been played this season yet, so there is no order: teams are listed by team number.'));
   if (!P && m.played){ try { var f = {}; STD.seedBrackets(m.L, 0).forEach(function(b){ b.forEach(function(id){ f[id] = true; }); }); m.projIds = f; } catch (e){ m.projIds = null; } }
   var tiedAt = {}; m.rank.order.forEach(function(ti, i){ tiedAt[ti] = m.rank.tied[i]; });
@@ -2453,6 +2499,7 @@ function vTeamStd(main){
   d.appendChild(cards([['W-L-T', recStr(t.rec)], ['PF', String(t.rec.pf)], ['PA', String(t.rec.pa)], ['DIF', sgn(t.rec.pf - t.rec.pa)],
     ['OFF', f2(t.off)], ['DEF', f2(t.def)], ['EDGE', edge == null ? '-' : String(edge)]]));
   if (t.owner && t.owner !== 'ai') d.appendChild(el('p', {class:'note'}, 'Owner: a human team.'));
+  if (typeof lookCard === 'function') lookCard(d, m, t);                                   /* HQ 0.9: the uniforms (the phone's HOME, AWAY, WHITE from two colors) */
 
   /* the unit strengths, with how each is made */
   d.appendChild(el('h3', null, 'UNIT STRENGTHS (THE GAME\'S FORMULA, WORKED OUT HERE; NOT STORED IN THE FILE)'));
@@ -3509,10 +3556,9 @@ function myTeamIx(slots){
   var ks = Object.keys(slots || {}); for (var i = 0; i < ks.length; i++) if (slots[ks[i]] && slots[ks[i]].uid === uid) return Number(ks[i]);
   return -1;
 }
-/* HQ 0.8: opening a league you play in goes straight to your own team page; a league you only run or watch opens CODE AND SLOTS as before */
+/* HQ 0.9: every league opens on the STANDINGS (click a team to see it; your own team is marked). The code and the slots live under CODE AND SLOTS. */
 function openedView(){
-  var cl = state.cl, mi = cl ? myTeamIx(cl.slots) : -1;
-  if (mi >= 0 && state.m && state.m.teams[mi]){ state.selTeam = mi; state.selPlayer = null; go('team'); } else go('cloud');
+  state.selTeam = null; state.selPlayer = null; go('standings');
 }
 async function applyMeta(cl, meta){
   var parts = await readParts(FB.ad, cl.lg, meta, cl.cache);
@@ -3599,20 +3645,29 @@ function viewOK(id){
   return !!state.m;
 }
 var VIEWS = [
-  ['open', 'OPEN A LEAGUE'], ['create', 'CREATE A LEAGUE'], ['cloud', 'CODE AND SLOTS'], ['week', 'THE WEEK'], ['audit', 'AUDIT'], ['champs', 'CHAMPIONS AND HISTORY'], ['about', 'ABOUT THIS LEAGUE'], ['league', 'LEAGUE'], ['standings', 'STANDINGS'], ['team', 'TEAM'],
-  ['player', 'PLAYER'], ['schedule', 'SCHEDULE AND RESULTS'], ['stats', 'MY STATS']
+  ['open', 'MY LEAGUES'], ['create', 'CREATE A LEAGUE'], ['cloud', 'CODE AND SLOTS'], ['week', 'THE WEEK'], ['audit', 'AUDIT'], ['champs', 'CHAMPIONS AND HISTORY'], ['about', 'ABOUT THIS LEAGUE'], ['league', 'LEAGUE'], ['standings', 'STANDINGS'], ['team', 'TEAM'],
+  ['player', 'PLAYER'], ['schedule', 'SCHEDULE AND RESULTS'], ['stats', 'MY STATS'], ['playbook', 'PLAYBOOK']
 ];
 function go(v){ state.view = v; render(); window.scrollTo(0, 0); }
+/* HQ 0.9: the menu leads with what people look at. MY LEAGUES (home), then, with a league open, STANDINGS, TEAM, SCHEDULE, PLAYER, MY STATS, LEAGUE;
+   the code, the slots, the week and the other commissioner pages sit together under their own small heading at the bottom. */
+var MENU_TOP = ['open', 'create'], MENU_LEAGUE = ['standings', 'team', 'schedule', 'player', 'stats', 'playbook', 'league'], MENU_ADMIN = ['cloud', 'week', 'audit', 'champs', 'about'];
 function renderMenu(){
   var nav = document.getElementById('menu'); nav.textContent = '';
   nav.appendChild(el('div', {class:'brand'}, 'PIXEL PIGSKIN HQ'));
-  VIEWS.forEach(function(v){
-    var dis = !viewOK(v[0]);
-    if (dis && (v[0] === 'create' || v[0] === 'cloud' || v[0] === 'week' || v[0] === 'audit' || v[0] === 'champs' || v[0] === 'about')) return;      /* the online entries only appear when they can be used */
-    nav.appendChild(el('button', {type:'button', class:state.view === v[0] ? 'on' : '', disabled:dis, 'data-view':v[0],
-      'aria-current':state.view === v[0] ? 'page' : null, onclick:function(){ go(v[0]); }}, v[1]));
-  });
-  if (state.m) nav.appendChild(el('div', {class:'lgname'}, [state.m.name, el('br'), state.m.linked ? 'Linked Standard league' : (state.m.depth + ' league' + (state.m.std ? (state.m.save ? ' (game save)' : ' (file)') : ''))]));
+  var label = {}; VIEWS.forEach(function(v){ label[v[0]] = v[1]; });
+  function btn(id){
+    var dis = !viewOK(id);
+    if (dis && (id === 'create' || MENU_ADMIN.indexOf(id) >= 0 || MENU_LEAGUE.indexOf(id) >= 0)) return false;      /* an entry only appears when it can be used */
+    nav.appendChild(el('button', {type:'button', class:state.view === id ? 'on' : '', disabled:dis, 'data-view':id,
+      'aria-current':state.view === id ? 'page' : null, onclick:function(){ go(id); }}, label[id]));
+    return true;
+  }
+  MENU_TOP.forEach(btn);
+  if (state.m) nav.appendChild(el('div', {class:'lgname top'}, [state.m.name, el('br'), state.m.linked ? 'Linked Standard league' : (state.m.depth + ' league' + (state.m.std ? (state.m.save ? ' (game save)' : ' (file)') : ''))]));
+  MENU_LEAGUE.forEach(btn);
+  var adm = MENU_ADMIN.filter(function(id){ return viewOK(id); });
+  if (adm.length){ nav.appendChild(el('div', {class:'grp'}, 'CODE AND ADMIN')); MENU_ADMIN.forEach(btn); }
   if (state.auth.kind !== 'none'){
     var a = state.auth, who = a.kind === 'google' ? (a.email || a.name || 'Google account') : (a.kind === 'anon' ? 'watching (anonymous)' : 'signed in');
     nav.appendChild(el('div', {class:'who', id:'whoBox'}, [el('span', null, a.kind === 'google' ? 'SIGNED IN AS' : 'SIGNED IN'), el('b', null, who)]));
@@ -3622,7 +3677,7 @@ function renderMenu(){
 function render(){
   renderMenu();
   var main = document.getElementById('main'); main.textContent = '';
-  var fn = {open:vOpen, create:vCreate, cloud:vCloud, week:vWeek, audit:vAudit, champs:vChamps, about:vAbout, league:vLeague, standings:vStandings, team:vTeam, player:vPlayer, schedule:vSchedule, stats:vStats}[state.view];
+  var fn = {open:vOpen, create:vCreate, cloud:vCloud, week:vWeek, audit:vAudit, champs:vChamps, about:vAbout, league:vLeague, standings:vStandings, team:vTeam, player:vPlayer, schedule:vSchedule, stats:vStats, playbook:vPlaybook}[state.view];
   if (!viewOK(state.view)) fn = vOpen;
   fn(main);
   document.getElementById('foot').textContent = 'Pixel Pigskin HQ v' + HQ_VERSION + '  |  ' + STD.version + '  |  ' +
@@ -3636,18 +3691,17 @@ function codeBox(){
 }
 function cloudPanels(main){
   var a = state.auth, busy = !!state.busy;
-  var C = el('div', {class:'panel', id:'panelCloud'}, [el('h2', null, 'C. LINKED LEAGUES (ONLINE)')]);
+  var C = el('div', {class:'panel', id:'panelCloud'}, [el('h2', null, a.kind === 'none' ? 'SIGN IN' : 'YOUR ACCOUNT')]);
   if (a.kind === 'none'){
-    add(C, [el('p', {class:'note'}, 'A linked league lives in the cloud and is made by a commissioner. Nothing connects until you press a button here. SIGN IN WITH GOOGLE gives the commissioner tools. WATCH A LEAGUE signs in without a name (only on this page) and shows a league read only.'),
-      el('div', {class:'row'}, el('button', {type:'button', class:'btn pri', id:'btnGoogle', disabled:busy, onclick:function(){ runBusy('Signing in with Google...', async function(){ await signInGoogle(); setMsg('ok', 'Signed in as ' + (state.auth.email || state.auth.name || 'a Google account') + '.'); }); }}, 'SIGN IN WITH GOOGLE (COMMISSIONER TOOLS)')),
-      el('p', {class:'note'}, 'To watch a league, type its code:'),
+    add(C, [el('p', {class:'note'}, 'Sign in with Google to see your leagues, the ones you made on the phone too, and to make new ones. Nothing connects until you press a button.'),
+      el('div', {class:'row'}, el('button', {type:'button', class:'btn pri', id:'btnGoogle', disabled:busy, onclick:function(){ runBusy('Signing in with Google...', async function(){ await signInGoogle(); setMsg('ok', 'Signed in as ' + (state.auth.email || state.auth.name || 'a Google account') + '.'); }); }}, 'SIGN IN WITH GOOGLE')),
+      el('p', {class:'note'}, 'A friend with a league code can watch a league without signing in:'),
       el('div', {class:'row'}, [codeBox(), el('button', {type:'button', class:'btn', id:'btnWatch', disabled:busy, onclick:function(){
         var code = normCode(state.codeInput);
         if (!CODE_RULE.test(code)){ setMsg('err', 'A league code has 6 letters and digits (for example K7M2QX).'); render(); return; }
         runBusy('Opening the league...', async function(){ await signInAnon(); await openByCode(code); }); }}, 'WATCH A LEAGUE')])]);
   } else {
     add(C, [el('p', null, [a.kind === 'google' ? 'Signed in as ' : 'Signed in without a name (read only). ', el('b', null, a.kind === 'google' ? (a.email || a.name || 'a Google account') : '')]),
-      a.kind === 'google' ? el('div', {class:'row'}, el('button', {type:'button', class:'btn pri', id:'btnCreateGo', disabled:busy, onclick:function(){ go('create'); }}, 'CREATE A LEAGUE')) : null,
       el('p', {class:'note'}, 'Open a league by its code (you see it as commissioner if it is yours, otherwise read only):'),
       el('div', {class:'row'}, [codeBox(), el('button', {type:'button', class:'btn', id:'btnOpenCode', disabled:busy, onclick:function(){
         var code = normCode(state.codeInput);
@@ -3658,19 +3712,22 @@ function cloudPanels(main){
   if (state.busy) C.appendChild(el('div', {class:'msg warn', id:'busyMsg', role:'status'}, state.busy));
   var rows = mineRows(), ms = state.mine.status, inAccount = {};
   (state.mine.rows || []).forEach(function(x){ inAccount[x.lg] = true; });
-  var D = el('div', {class:'panel', id:'panelMine'}, [el('h2', null, 'D. MY LEAGUES'),
-    el('p', {class:'note'}, 'The leagues this browser opened after a sign-in (kept only in this browser; SIGN OUT clears the list), plus, after a Google sign-in, every league that belongs to your Google account, whether you made it here or on the phone (tag IN YOUR ACCOUNT).')]);
+  var D = el('div', {class:'panel', id:'panelMine'}, [el('h2', null, 'MY LEAGUES'),
+    a.kind === 'google' ? el('div', {class:'row'}, el('button', {type:'button', class:'btn pri', id:'btnCreateGo', disabled:busy, onclick:function(){ go('create'); }}, 'CREATE A LEAGUE')) : null,
+    el('p', {class:'note'}, 'Every league in your Google account, made here or on the phone (tag IN YOUR ACCOUNT), and the leagues this browser opened (SIGN OUT clears that list). OPEN shows the standings.')]);
   if (ms === 'refused') D.appendChild(el('p', {class:'note', id:'mineNote'}, 'The cloud list of your leagues needs the new rules, which are not published yet: only the leagues this browser opened are shown.'));
   else if (ms === 'net') D.appendChild(el('p', {class:'note', id:'mineNote'}, 'The cloud list of your leagues could not be read (connection): only the leagues this browser opened are shown. Sign in again to retry.'));
   if (!rows.length) D.appendChild(el('p', {class:'note'}, 'No leagues yet.'));
   else D.appendChild(table([
-    {h:'LEAGUE', v:function(r){ return [r.nm, r.pending ? tag('NOT FINISHED', 'rt') : null, (r.cloud || inAccount[r.lg]) ? tag('IN YOUR ACCOUNT', 'me') : null]; }}, {h:'CODE', v:function(r){ return r.code || '-'; }},
+    {h:'LEAGUE', v:function(r){ return [r.nm, r.pending ? tag('NOT FINISHED', 'rt') : null, (r.cloud || inAccount[r.lg]) ? tag('IN YOUR ACCOUNT', 'me') : null]; }},
     {h:'ROLE', v:function(r){ return r.role === 'commissioner' ? 'COMMISSIONER' : 'WATCHING'; }}, {h:'LAST OPENED', v:function(r){ return r.t ? fmtDate(r.t) : '-'; }},
     {h:'', v:function(r){ return el('span', null, [
       el('button', {type:'button', class:'btn pri', 'data-lg':r.lg, disabled:busy, onclick:function(){ runBusy(r.pending ? 'Finishing the league...' : (state.auth.kind === 'none' ? 'Signing in...' : 'Opening the league...'), async function(){ await openListed(r); }); }}, r.pending ? 'FINISH' : 'OPEN'),
       ' ', r.cloud ? null : el('button', {type:'button', class:'btn', 'data-rm':r.lg, disabled:busy, onclick:function(){ listRemove(r.lg); render(); }}, 'REMOVE')]); }}
   ], rows));
-  main.appendChild(el('div', {class:'panels', style:'margin-top:16px'}, [C, D]));
+  /* HQ 0.9: the home screen. Signed out: sign in first (and the leagues this browser remembers, if any). Signed in: MY LEAGUES first, the account box under it. */
+  if (a.kind === 'none') main.appendChild(el('div', {class:'panels'}, rows.length ? [C, D] : [C]));
+  else main.appendChild(el('div', {class:'panels'}, [D, C]));
 }
 
 /* ---------- CREATE A LEAGUE ---------- */
@@ -4028,6 +4085,588 @@ function vAbout(main){
   main.appendChild(el('pre', {id:'aboutText', class:'aboutbox'}, txt));
   if (navigator.clipboard) main.appendChild(el('button', {type:'button', class:'btn', id:'btnCopyAbout', onclick:function(){ try { navigator.clipboard.writeText(txt); } catch (e){} }}, 'COPY THIS TEXT'));
 }
+
+/* ---------- HQ 0.9: UNIFORMS. The phone's way: pick PRIMARY and SECONDARY, the game builds HOME, AWAY and (when neither color is white) WHITE.
+   The figures are drawn with the same shapes as the game's players (side view, "ready" and "3-point" stances). The cloud keeps the two colors and the team name
+   (lk.c, lk.d, nm); the piece-by-piece wardrobe of the phone is not stored in a cloud league yet. ---------- */
+var UF = (function(){
+  function shade(h, k){ var n = parseInt(h.slice(1), 16), f = function(v){ return Math.max(0, Math.min(255, Math.round(v * k))); };
+    return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(f).map(function(v){ return v.toString(16).padStart(2, '0'); }).join(''); }
+  function full(h){ h = String(h || ''); if (/^#[0-9a-fA-F]{3}$/.test(h)) h = '#' + h[1] + h[1] + h[2] + h[2] + h[3] + h[3]; return /^#[0-9a-fA-F]{6}$/.test(h) ? h.toLowerCase() : '#777777'; }
+  function lum(h){ var n = parseInt(h.slice(1), 16), f = function(v){ v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); };
+    return .2126 * f((n >> 16) & 255) + .7152 * f((n >> 8) & 255) + .0722 * f(n & 255); }
+  function contrast(a, b){ var x = lum(a), y = lum(b), hi = Math.max(x, y), lo = Math.min(x, y); return (hi + .05) / (lo + .05); }
+  function numCol(base, alt){ return contrast(base, alt) >= 3 ? alt : (lum(base) > .4 ? '#111827' : '#ffffff'); }
+  function mk(base, trim, stripe){ return {helmet:{shell:base, stripe:stripe, mask:'#cfd6e4', logo:stripe}, jersey:{main:base, trim:trim, number:numCol(base, trim), sleeve:null},
+    pants:{main:base, stripe:stripe}, socks:{main:base, stripe:stripe}, gloves:'#ffffff', shoes:'#15151a'}; }
+  function mkHome(P, S){ return mk(P, S, S); }
+  function mkAway(P, S){ var B = contrast(P, S) < 1.6 ? '#ffffff' : S; return mk(B, P, P); }
+  function mkWhite(P){ return mk('#ffffff', P, P); }
+  function isWhite(h){ return lum(h) >= .75; }
+  function needWhite(P, S){ return !(isWhite(P) || isWhite(S) || isWhite(mkAway(P, S).jersey.main)); }
+  /* the set a team gets from its two colors */
+  function build(c, d){ c = full(c); d = full(d); return {home:mkHome(c, d), away:mkAway(c, d), white:needWhite(c, d) ? mkWhite(c) : null, close:contrast(c, d)}; }
+
+  /* ----- skeleton (the game's, facing right) ----- */
+  var L1 = 3.7, L2 = 3.5, TORSO = 4.4, UA = 2.9, FA = 2.6;
+  var POSES = {ready:{lean:.55, hd:.30, tilt:0, legs:[[.85, 1.05], [.15, .55]], arms:[[.75, 1.35], [.45, 1.15]]}, p3:{lean:1.18, hd:.62, tilt:-.28, legs:[[.95, 1.18], [-.30, .32]], arms:[[.30, .70], [.15, 1.05]]}};
+  function frac(a, b, t){ return {x:a.x + (b.x - a.x) * t, y:a.y + (b.y - a.y) * t}; }
+  function solve(kind){
+    var P = POSES[kind], hip = {x:0, y:0}, sh = {x:TORSO * Math.sin(P.lean), y:-TORSO * Math.cos(P.lean)}, hd = P.hd, head = {x:sh.x + 2.5 * Math.sin(hd), y:sh.y - 2.5 * Math.cos(hd)};
+    var legs = P.legs.map(function(ab){ var a = ab[0], b = ab[1], k = {x:L1 * Math.sin(a), y:L1 * Math.cos(a)}, bb = a - b, an = {x:k.x + L2 * Math.sin(bb), y:k.y + L2 * Math.cos(bb)};
+      var t = Math.max(-.2, Math.min(.75, -bb * .5)), heel = {x:an.x - .9 * Math.cos(t), y:an.y - .9 * Math.sin(t) + .2}, toe = {x:an.x + 1.9 * Math.cos(t), y:an.y + 1.9 * Math.sin(t) + .2};
+      return {k:k, an:an, heel:heel, toe:toe, t:t}; });
+    var arms = P.arms.map(function(uf){ var e = {x:sh.x + UA * Math.sin(uf[0]), y:sh.y + UA * Math.cos(uf[0])}; return {e:e, w:{x:e.x + FA * Math.sin(uf[1]), y:e.y + FA * Math.cos(uf[1])}}; });
+    var low = -1e9, minx = 1e9, maxx = -1e9, pts = [hip, sh, head, {x:head.x + 3.4, y:head.y}, {x:head.x - 3.2, y:head.y}];
+    legs.forEach(function(l){ pts.push(l.k, l.an, l.heel, l.toe); low = Math.max(low, l.heel.y + .5, l.toe.y + .5); });
+    arms.forEach(function(a){ pts.push(a.e, a.w); }); pts.forEach(function(p){ minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); });
+    return {P:P, hip:hip, sh:sh, head:head, legs:legs, arms:arms, tx:-(minx + maxx) / 2, ty:-low, tilt:P.tilt || 0};
+  }
+  /* ----- drawing (the game's new natural body) ----- */
+  function pal(u, tone){ var H = u.helmet.shell, J = u.jersey.main, SL = u.jersey.sleeve || J, P = u.pants.main, S = u.socks.main;
+    return {H:H, hk:shade(H, .78), hl:shade(H, 1.16), hs:u.helmet.stripe, m:u.helmet.mask, lg:u.helmet.logo || u.helmet.stripe, J:J, jl:shade(J, 1.18), jk:shade(J, .78), t:u.jersey.trim, tk:shade(u.jersey.trim, .78), n:u.jersey.number,
+      sl:SL, slk:shade(SL, .76), P:P, pk:shade(P, .74), q:u.pants.stripe, S:S, sk:shade(S, .78), c:u.socks.stripe, ck:shade(u.socks.stripe, .78), g:u.gloves, gk:shade(u.gloves, .78), b:u.shoes, bk:shade(u.shoes, .78),
+      skin:tone, skd:shade(tone, .8), e:'#1a1a1a'}; }
+  function circ(c, x, y, r, col, ol){ if (ol){ c.beginPath(); c.arc(x, y, r, 0, 7); c.lineWidth = ol.w * 2; c.strokeStyle = ol.col(col); c.stroke(); } c.beginPath(); c.arc(x, y, r, 0, 7); c.fillStyle = col; c.fill(); }
+  function limb(c, a, b, wa, wb, col, ol){
+    var dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    function quad(){ c.beginPath(); c.moveTo(a.x + nx * wa / 2, a.y + ny * wa / 2); c.lineTo(b.x + nx * wb / 2, b.y + ny * wb / 2); c.lineTo(b.x - nx * wb / 2, b.y - ny * wb / 2); c.lineTo(a.x - nx * wa / 2, a.y - ny * wa / 2); c.closePath(); }
+    if (ol){ c.strokeStyle = ol.col(col); c.lineWidth = ol.w * 2; c.lineJoin = 'round'; quad(); c.stroke(); c.beginPath(); c.arc(a.x, a.y, wa / 2, 0, 7); c.stroke(); c.beginPath(); c.arc(b.x, b.y, wb / 2, 0, 7); c.stroke(); }
+    c.fillStyle = col; quad(); c.fill(); c.beginPath(); c.arc(a.x, a.y, wa / 2, 0, 7); c.fill(); c.beginPath(); c.arc(b.x, b.y, wb / 2, 0, 7); c.fill();
+  }
+  function poly(c, pts, col, ol, join){ c.beginPath(); pts.forEach(function(p, i){ if (i) c.lineTo(p.x, p.y); else c.moveTo(p.x, p.y); }); c.closePath();
+    if (ol){ c.lineJoin = join || 'round'; c.miterLimit = 2.2; c.lineWidth = ol.w * 2; c.strokeStyle = ol.col(col); c.stroke(); } c.fillStyle = col; c.fill(); }
+  function tap(a, b, wa, wb){ var dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    return [{x:a.x + nx * wa / 2, y:a.y + ny * wa / 2}, {x:b.x + nx * wb / 2, y:b.y + ny * wb / 2}, {x:b.x - nx * wb / 2, y:b.y - ny * wb / 2}, {x:a.x - nx * wa / 2, y:a.y - ny * wa / 2}]; }
+  function sm(c, pts){ var n = pts.length, mid = function(a, b){ return {x:(a.x + b.x) / 2, y:(a.y + b.y) / 2}; }; c.beginPath(); var m0 = mid(pts[n - 1], pts[0]); c.moveTo(m0.x, m0.y);
+    for (var i = 0; i < n; i++){ var p = pts[i], m = mid(p, pts[(i + 1) % n]); c.quadraticCurveTo(p.x, p.y, m.x, m.y); } c.closePath(); }
+  function sfill(c, pts, col, ol){ sm(c, pts); if (ol){ c.lineJoin = 'round'; c.lineWidth = ol.w * 2; c.strokeStyle = ol.col(col); c.stroke(); } c.fillStyle = col; c.fill(); }
+  function head3(c, S, pl, ol){
+    c.save(); c.translate(S.head.x, S.head.y); c.rotate(S.tilt); var H = pl.H;
+    if (ol){ c.beginPath(); c.ellipse(0, 0, 3.0, 2.7, 0, 0, 7); c.lineWidth = ol.w * 2; c.strokeStyle = ol.col(H); c.stroke(); }
+    c.beginPath(); c.ellipse(0, 0, 3.0, 2.7, 0, 0, 7); c.fillStyle = H; c.fill();
+    c.beginPath(); c.ellipse(-.8, .55, 2.1, 1.9, 0, 0, 7); c.fillStyle = pl.hk; c.fill();
+    c.beginPath(); c.ellipse(-.6, -1.1, 1.3, .8, 0, 0, 7); c.fillStyle = pl.hl; c.fill();
+    c.beginPath(); c.ellipse(0, 0, 2.3, 2.0, 0, Math.PI * 1.1, Math.PI * 1.9); c.lineWidth = .7; c.strokeStyle = pl.hs; c.stroke();
+    poly(c, [{x:.1, y:-1.55}, {x:.65, y:-1.0}, {x:.1, y:-.45}, {x:-.45, y:-1.0}], pl.lg, null);
+    c.beginPath(); c.ellipse(1.55, .9, 1.3, 1.1, 0, 0, 7); c.fillStyle = pl.skin; c.fill();
+    c.beginPath(); c.arc(1.75, .7, .32, 0, 7); c.fillStyle = pl.e; c.fill();
+    c.beginPath(); c.moveTo(1.7, -.35); c.lineTo(3.1, .6); c.lineTo(3.0, 2.1); c.lineTo(1.4, 2.2); c.moveTo(1.5, 1.05); c.lineTo(3.05, 1.15); c.lineWidth = .7; c.strokeStyle = pl.m; c.stroke();
+    c.beginPath(); c.arc(-.7, .5, .42, 0, 7); c.fillStyle = pl.e; c.fill(); c.restore();
+  }
+  function leg4(c, l, hip, pl, far, ol){
+    var k = l.k, an = l.an, Sc = far ? pl.sk : pl.S, Pc = far ? pl.pk : pl.P, Cc = far ? pl.ck : pl.c, Bc = far ? pl.bk : pl.b, below = frac(k, an, .2);
+    limb(c, an, frac(k, an, .1), 1.75, 2.0, Sc, ol);
+    poly(c, tap(frac(k, an, .5), frac(k, an, .58), 1.94, 1.9), Cc, null); poly(c, tap(frac(k, an, .67), frac(k, an, .73), 1.9, 1.86), Cc, null);
+    var t = l.t, d = {x:Math.cos(t), y:Math.sin(t)}, n = {x:-Math.sin(t), y:Math.cos(t)};
+    var P = function(a2, b2){ return {x:an.x + d.x * a2 + n.x * b2, y:an.y + d.y * a2 + n.y * b2}; };
+    sfill(c, [P(-.85, -.15), P(.3, -.3), P(1.3, .0), P(1.6, .45), P(1.45, .72), P(-.85, .72)], Bc, ol);
+    poly(c, [P(-.8, .54), P(1.5, .54), P(1.42, .7), P(-.8, .7)], shade(Bc, 1.6), null);
+    var nrm = function(a, b){ var dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1; return {x:-dy / L, y:dx / L}; }, n1 = nrm(hip, k), n2 = nrm(k, below), nk = {x:(n1.x + n2.x) / 2, y:(n1.y + n2.y) / 2};
+    var off = function(p, nn, w){ return {x:p.x + nn.x * w, y:p.y + nn.y * w}; };
+    poly(c, [off(hip, n1, 1.65), off(k, nk, 1.3), off(below, n2, 1.15), off(below, n2, -1.15), off(k, nk, -1.3), off(hip, n1, -1.65)], Pc, ol, 'round');
+    c.beginPath(); c.arc(hip.x, hip.y, 1.65, 0, 7); c.fillStyle = Pc; c.fill();
+    poly(c, tap(frac(k, an, .14), below, 2.28, 2.26), shade(Pc, .82), null);
+    if (!far) limb(c, frac(hip, k, .1), frac(k, an, .1), .7, .7, pl.q, null);
+  }
+  function arm4(c, sp, a, pl, far, ol){
+    var sl = far ? pl.slk : pl.sl, tr = far ? pl.tk : pl.t, ol2 = ol && !far ? {w:ol.w, col:function(x){ return shade(x, .72); }} : ol;
+    limb(c, sp, a.e, 2.05, 1.75, sl, ol2); limb(c, frac(sp, a.e, .66), frac(sp, a.e, .86), 1.86, 1.78, tr, null);
+    limb(c, a.e, a.w, 1.4, 1.2, far ? pl.skd : pl.skin, ol); circ(c, a.w.x, a.w.y, .88, far ? pl.gk : pl.g, ol);
+  }
+  function drawFig(c, S, pl, ol){
+    c.save(); c.translate(S.tx, S.ty); c.lineJoin = 'round';
+    var hip = S.hip, sh = S.sh, L = TORSO, len = Math.hypot(sh.x - hip.x, sh.y - hip.y) || 1, u = {x:(sh.x - hip.x) / len, y:(sh.y - hip.y) / len}, f = {x:-u.y, y:u.x};
+    var Q = function(a, b){ return {x:hip.x + u.x * a + f.x * b, y:hip.y + u.y * a + f.y * b}; };
+    var sp = Q(L - .85, .25), drop = {x:sp.x - sh.x, y:sp.y - sh.y};
+    var arms = S.arms.map(function(a){ return {e:{x:a.e.x + drop.x * .6, y:a.e.y + drop.y * .6}, w:a.w}; });
+    arm4(c, Q(L - .85, -.3), arms[1], pl, true, ol); leg4(c, S.legs[1], hip, pl, true, ol);
+    sfill(c, [Q(.9, 1.65), Q(.9, -1.65), Q(-.6, -2.0), Q(-1.4, -1.3), Q(-1.4, 1.3), Q(-.5, 1.85)], pl.P, ol);
+    leg4(c, S.legs[0], hip, pl, false, ol);
+    limb(c, Q(L - .6, .3), S.head, 1.7, 1.6, pl.skd, ol);
+    sfill(c, [Q(-.3, 1.9), Q(1.4, 1.7), Q(2.9, 1.95), Q(L - .7, 2.05), Q(L + .05, 1.35), Q(L + .15, .2), Q(L - .1, -1.2), Q(L - .8, -2.05), Q(2.4, -1.95), Q(1.0, -1.75), Q(-.3, -2.0)], pl.J, ol);
+    limb(c, Q(1.3, .25), Q(L - 1.1, .35), 1.0, 1.35, pl.jl, null);
+    poly(c, tap(Q(-.1, 0), Q(.4, 0), 3.75, 3.85), pl.t, null);
+    poly(c, tap(Q(1.6, .35), Q(3.1, .35), .55, .55), pl.n, null); poly(c, tap(Q(1.6, 1.2), Q(3.1, 1.2), .55, .55), pl.n, null);
+    c.save(); c.translate(S.head.x, S.head.y); c.scale(.9, .9); c.translate(-S.head.x, -S.head.y); head3(c, S, pl, ol); c.restore();
+    arm4(c, sp, arms[0], pl, false, ol); c.restore();
+  }
+  var OLS = {w:.45, col:function(c){ return shade(c, .5); }}, TONES = ['#d9a066', '#a8693a', '#d9a066', '#a8693a'], STANCES = ['ready', 'ready', 'p3', 'ready'];
+  /* four players in one uniform on a canvas; z = pixels per unit. Safe where there is no canvas (it returns false). */
+  function paint(canvas, u, z){
+    z = z || 5; var W = 17 * 4 * z, H = 23 * z, x = null;
+    try { canvas.width = W; canvas.height = H; canvas.style.width = '100%'; canvas.style.maxWidth = (W) + 'px'; canvas.style.height = 'auto'; x = canvas.getContext && canvas.getContext('2d'); } catch (e){ x = null; }
+    if (!x || !x.ellipse) return false;
+    try {
+      x.clearRect(0, 0, W, H);
+      for (var i = 0; i < 4; i++){ x.save(); x.translate((i * 17 + 8.5) * z, 21 * z); x.scale(z, z); x.fillStyle = 'rgba(0,0,0,.28)'; x.beginPath(); x.ellipse(0, .2, 5, 1.1, 0, 0, 7); x.fill();
+        drawFig(x, solve(STANCES[i]), pal(u, TONES[i]), OLS); x.restore(); }
+    } catch (e){ return false; }
+    return true;
+  }
+  var PAL = ['#ffffff', '#e8e8e8', '#9aa3b2', '#4b5563', '#111827', '#000000', '#2b66ff', '#1d4ed8', '#0ea5e9', '#14b8a6', '#16a34a', '#84cc16', '#ffd400', '#f59e0b', '#f97316', '#e23b4a', '#b91c1c', '#7f1d1d', '#db2777', '#9333ea', '#6d28d9', '#78350f', '#c9a227', '#c0c0c0'];
+  return {build:build, full:full, paint:paint, contrast:contrast, lum:lum, PAL:PAL};
+})();
+
+/* ---------- the UNIFORMS card on the team page (editable for the commissioner) ---------- */
+function lookDraft(m, t){
+  var cl = state.cl, key = (cl ? cl.lg : 'file') + ':' + t.idx, L = state.look;
+  if (!L || L.key !== key){ L = state.look = {key:key, idx:t.idx, nm:t.name, c:UF.full(t.col.c), d:UF.full(t.col.d), open:null, hex:'', base:{nm:t.name, c:UF.full(t.col.c), d:UF.full(t.col.d)}}; }
+  return L;
+}
+function lookDirty(L){ return L.nm !== L.base.nm || L.c !== L.base.c || L.d !== L.base.d; }
+async function saveLook(idx, look){
+  var cl = state.cl, uid = state.auth && state.auth.uid, k = String(idx), nm = cleanName(look.nm), lk = {c:UF.full(look.c), d:UF.full(look.d)};
+  if (!cl || !uid) throw CloudError('denied', 'Sign in with Google as the commissioner of this league first.');
+  await FB.ad.transaction(async function(tx){
+    var mg = await tx.get(PATH.meta(cl.lg));
+    if (!mg.exists) throw CloudError('missing', 'This league does not exist in the cloud.');
+    var meta = mg.data;
+    if (meta.commish !== uid) throw CloudError('denied', 'Only the commissioner can change a team\'s name and colors.');
+    var tg = await tx.get(PATH.team(cl.lg, idx));        /* a team a person owns has its own document (the truth); a computer team lives in the league document */
+    if (tg.exists){
+      tx.set(PATH.team(cl.lg, idx), Object.assign({}, tg.data, {nm:nm, lk:lk}));
+    } else if (layoutOf(meta) === 2 && meta.ts && meta.ts[k]){
+      var ts = Object.assign({}, meta.ts); ts[k] = Object.assign({}, ts[k], {nm:nm, lk:lk});
+      tx.set(PATH.meta(cl.lg), Object.assign({}, meta, {ts:ts, updatedAt:nextStamp(meta.updatedAt)}));
+    } else throw CloudError('missing', 'Team ' + (idx + 1) + ' is not in the cloud.');
+  });
+}
+function lookSwatchBtn(label, which, L, busy){
+  var hex = L[which];
+  return el('button', {type:'button', class:'btn swb' + (L.open === which ? ' on' : ''), 'data-pal':which, disabled:busy, 'aria-label':label + ' ' + hex, onclick:function(){ L.open = (L.open === which) ? null : which; L.hex = ''; render(); }},
+    [el('span', {class:'swbox', style:'background:' + hex}), el('span', null, [label, el('br'), el('small', null, hex.toUpperCase())])]);
+}
+function lookPalette(L, busy){
+  var which = L.open, cur = L[which], box = el('div', {class:'pal', id:'lookPal'});
+  box.appendChild(el('b', null, 'PICK A COLOR: ' + (which === 'c' ? 'PRIMARY' : 'SECONDARY')));
+  var g = el('div', {class:'palg'});
+  UF.PAL.forEach(function(h){ g.appendChild(el('button', {type:'button', class:'pk', 'data-hex':h, 'aria-label':h, style:'background:' + h + ';color:' + (UF.lum(h) > .4 ? '#000' : '#fff'), disabled:busy,
+    onclick:function(){ L[which] = h; render(); }}, cur === h ? '✓' : ''));
+  });
+  box.appendChild(g);
+  var hexIn = el('input', {type:'text', id:'lookHex', class:'name-in', maxlength:'7', placeholder:'#RRGGBB', 'aria-label':'Hex color', value:L.hex || '', oninput:function(e){ L.hex = e.target.value; }});
+  var native = el('input', {type:'color', id:'lookNative', value:cur, style:'position:absolute;opacity:0;width:1px;height:1px', onchange:function(e){ L[which] = UF.full(e.target.value); render(); }});
+  box.appendChild(el('div', {class:'row'}, [hexIn,
+    el('button', {type:'button', class:'btn', id:'lookHexOk', onclick:function(){ var v = String(L.hex || '').trim(); if (v[0] !== '#') v = '#' + v; if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)){ L[which] = UF.full(v); L.hex = ''; render(); } }}, 'USE HEX'),
+    el('label', {class:'btn'}, ['ANY COLOR', native]),
+    el('button', {type:'button', class:'btn', onclick:function(){ L.open = null; render(); }}, 'DONE')]));
+  return box;
+}
+function lookCard(main, m, t){
+  if (!t || !t.col) return;
+  var cl = state.cl, mine = !!(cl && cl.role === 'commissioner' && m.linked), busy = !!state.busy, L = lookDraft(m, t);
+  var set = UF.build(mine ? L.c : t.col.c, mine ? L.d : t.col.d);
+  var card = el('div', {class:'panel', id:'lookCard'}, [el('h2', null, 'UNIFORMS')]);
+  var rows = [['HOME', set.home], ['AWAY', set.away]]; if (set.white) rows.push(['WHITE', set.white]);
+  rows.forEach(function(r){ var cv = el('canvas', {class:'uni', 'data-uni':r[0], 'aria-label':r[0] + ' uniform of ' + t.name}); card.appendChild(el('div', {class:'pvrow'}, [el('b', null, r[0]), cv])); setTimeout(function(){ UF.paint(cv, r[1], 5); }, 0); });
+  card.appendChild(el('p', {class:'note', id:'lookNote'}, 'HOME is the primary color with secondary stripes; AWAY is the reverse' + (set.white ? '; neither color is white, so a third WHITE uniform is added, with the primary color as its trim.' : '.') + ' The phone builds the same three from the same two colors.'));
+  if (!mine){
+    card.appendChild(el('p', {class:'note', id:'lookRO'}, m.linked ? 'Only the commissioner can change a team\'s name and colors for now.' : 'A file or backup is read only here: the colors are shown, not changed.'));
+    main.appendChild(card); return;
+  }
+  var nameIn = el('input', {type:'text', id:'lookName', class:'name-in', maxlength:'40', 'aria-label':'Team name', value:L.nm, disabled:busy, oninput:function(e){ L.nm = e.target.value; var b = document.getElementById('btnLookSave'); if (b) b.disabled = !!state.busy || !lookDirty(L) || !String(L.nm).trim(); }});
+  card.appendChild(el('div', {class:'row'}, [el('span', {class:'note'}, 'TEAM NAME'), nameIn]));
+  card.appendChild(el('div', {class:'row'}, [lookSwatchBtn('PRIMARY', 'c', L, busy), lookSwatchBtn('SECONDARY', 'd', L, busy),
+    el('button', {type:'button', class:'btn', id:'btnLookRandom', disabled:busy, onclick:function(){
+      var a, b, n = 0, r = ENV.ints(2 * 60); do { a = UF.PAL[r[2 * n] % UF.PAL.length]; b = UF.PAL[r[2 * n + 1] % UF.PAL.length]; n++; } while ((UF.contrast(a, b) < 2 || a === b) && n < 59);
+      L.c = a; L.d = b; render(); }}, 'RANDOM COLORS')]));
+  if (L.open) card.appendChild(lookPalette(L, busy));
+  var cr = UF.contrast(L.c, L.d);
+  if (cr < 1.6) card.appendChild(el('div', {class:'msg warn', id:'lookWarn'}, 'PRIMARY and SECONDARY are almost the same color, so the stripes will not show and AWAY falls back to a white uniform.'));
+  else if (cr < 3) card.appendChild(el('div', {class:'msg warn', id:'lookWarn'}, 'PRIMARY and SECONDARY are close: the stripes will be faint.'));
+  card.appendChild(el('div', {class:'row'}, [
+    el('button', {type:'button', class:'btn pri', id:'btnLookSave', disabled:busy || !lookDirty(L) || !String(L.nm).trim(), onclick:function(){
+      runBusy('Saving the look...', async function(){ await saveLook(L.idx, L); var cl2 = state.cl; state.look = null; await refreshLeague(cl2, null); setMsg('ok', 'Saved: ' + cleanName(L.nm) + '.'); }); }}, 'SAVE'),
+    el('button', {type:'button', class:'btn', id:'btnLookReset', disabled:busy || !lookDirty(L), onclick:function(){ L.nm = L.base.nm; L.c = L.base.c; L.d = L.base.d; L.open = null; render(); }}, 'UNDO')]));
+  card.appendChild(el('p', {class:'note'}, 'SAVE writes the name and the two colors to the league in the cloud; friends and the phone see them at their next refresh. The piece-by-piece wardrobe of the phone (single helmets, jerseys, pants, socks, your own extra uniforms) is not kept in a cloud league yet.'));
+  main.appendChild(card);
+}
+
+/* ---------- HQ 0.10: PLAYBOOK. View only for now. The routes are drawn exactly the way the phone game works them out (the route tree and routePath are copied from the game's
+   play designer, pd.js, unchanged), so a diagram here is the diagram on the phone. Two sources: the game's standard library (35 plays, embedded below as data) and,
+   when a league was opened from a game save, that save's own playbook (S.plays). A cloud league carries no playbook yet, so it shows the library.
+   Editing needs plays stored in the cloud league (lg-cloud + rules + the phone), which is a later, shared change. ---------- */
+var PB = (function(){
+  var RT = [{t:'flat',n:'1',l:'FLAT',d:10},{t:'slant',n:'2',l:'SLANT',d:9},{t:'comeback',n:'3',l:'COMEBACK',d:14},{t:'curl',n:'4',l:'CURL',d:10},{t:'out',n:'5',l:'OUT',d:10},{t:'in',n:'6',l:'IN',d:10},
+    {t:'corner',n:'7',l:'CORNER',d:12},{t:'post',n:'8',l:'POST',d:12},{t:'go',n:'9',l:'GO',d:22},{t:'hitch',n:'0',l:'HITCH',d:6},{t:'block',n:'B',l:'BLOCK',d:0}];
+  var RTD = {}; RT.forEach(function(r){ RTD[r.t] = r; });
+  var PL = ['WR 1', 'WR 2', 'WR 3', 'RB', 'TE'], RC = ['#4ee08a', '#4ea3ff', '#ffd400', '#ff7ad9', '#c792ff'];
+  var BASE = [[-1, 5], [-1, 35], [-1, 28], [-5, 15.5], [-1, 11]];
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+  /* route tree -> points. Break direction: "outside" is toward the nearest sideline, FLIP reverses it */
+  function routePath(sp, x, y){
+    var D = sp.d, o = (y < 20 ? -1 : 1) * (sp.f ? -1 : 1), pts = [], cont = true, px = x, py = y;
+    function add(dx, dy){ px += dx; py = clamp(py + dy, 2, 38); pts.push({x:px, y:py}); }
+    switch (sp.t){
+      case 'go': add(D, 0); break;
+      case 'flat': add(1.5, 0); add(1.5, o * D); break;
+      case 'slant': add(2, 0); add(D * .8, -o * D * .5); break;
+      case 'hitch': add(D, 0); add(-1.5, 0); cont = false; break;
+      case 'curl': add(D, 0); add(-3.5, -o * 1.5); cont = false; break;
+      case 'comeback': add(D, 0); add(-4.5, o * 3); cont = false; break;
+      case 'out': add(D, 0); add(0, o * 8); break;
+      case 'in': add(D, 0); add(0, -o * 12); break;
+      case 'corner': add(D, 0); add(8, o * 9); break;
+      case 'post': add(D, 0); add(10, -o * 6); break;
+      default: cont = false;
+    }
+    return {pts:pts, cont:cont};
+  }
+  function mkSpec(t, x, y){ return {x:x, y:y, t:t, d:RTD[t].d, f:0}; }
+  /* an entry of a play is a route type, or [type, depth, flip] */
+  function mkPlay(name, a){ return {name:name, p:a.map(function(e, i){ var t = Array.isArray(e) ? e[0] : e, d = Array.isArray(e) ? e[1] : 0, f = Array.isArray(e) ? e[2] : 0, s = mkSpec(t, BASE[i][0], BASE[i][1]); if (d) s.d = d; if (f) s.f = 1; return s; }) }; }
+  /* WR 1 (wide left), WR 2 (wide right), WR 3 (right slot), RB, TE (left, next to the tackle) */
+  var NFLC = [
+    mkPlay('SMASH',[['hitch',6],['hitch',6],['corner',12],'flat',['corner',12]]),
+    mkPlay('FOUR VERTS',[['go',22],['go',22],['go',22],'flat',['go',20]]),
+    mkPlay('MESH',[['go',22],['hitch',6],['in',5],'flat',['in',6]]),
+    mkPlay('CURL FLAT',[['curl',12],['curl',12],'flat','flat','flat']),
+    mkPlay('STICK',[['go',22],['go',22],['flat',8],['flat',8],['hitch',5]]),
+    mkPlay('LEVELS',[['in',13],['go',22],'flat','flat',['in',6]]),
+    mkPlay('FLOOD',[['post',12],['corner',14],['out',8],['flat',6,1],['in',5]]),
+    mkPlay('DAGGER',[['curl',10],['in',15],['go',22],'flat',['go',18]]),
+    mkPlay('YANKEE',[['post',14],['in',16],['hitch',6],'flat',['hitch',6]]),
+    mkPlay('QUICK SLANTS',[['slant',9],['slant',9],['slant',7],'flat',['hitch',5]]),
+    mkPlay('HITCHES',[['hitch',6],['hitch',6],['hitch',6],'flat',['hitch',5]]),
+    mkPlay('SAIL',[['go',22],['out',10],['corner',14],'flat',['out',6]]),
+    mkPlay('DRIVE',[['in',6],['in',12],['curl',10],'flat',['hitch',5]]),
+    mkPlay('DOUBLE POST',[['post',14],['post',14],['go',22],'flat',['curl',8]]),
+    mkPlay('WHEEL',[['curl',10],['curl',10],['out',8],['go',16],['hitch',5]]),
+    mkPlay('COMEBACKS',[['comeback',16],['comeback',16],['comeback',14],'flat',['curl',8]]),
+    mkPlay('TE SEAM',[['out',8],['out',8],['curl',9],'flat',['go',22]]),
+    mkPlay('CORNER POST',[['corner',14],['post',14],['hitch',6],'flat',['in',8]]),
+    mkPlay('DEEP CROSS',[['in',14],['in',10],['go',22],'flat',['curl',8]]),
+    mkPlay('CURL COMEBACK',[['curl',14],['comeback',16],['curl',10],'flat',['out',6]]),
+    mkPlay('HAIL MARY',[['go',30],['go',30],['go',28],['go',22],['go',26]]),
+    mkPlay('BUBBLE SCREEN',['block','block',['flat',3],'flat','block']),
+    mkPlay('SLANT AND GO',[['go',22],['slant',8],['slant',8],'flat',['hitch',5]]),
+    /* v1.59 */
+    mkPlay('TRIPS BUNCH',[['out',8],['slant',8],['curl',10],'flat',['hitch',5]]),
+    mkPlay('SCISSORS',[['post',14],['corner',14],['in',8],'flat',['curl',8]]),
+    mkPlay('DRAGON',[['in',12],['go',22],['out',10],['flat',6,1],['in',6]]),
+    mkPlay('DOUBLE MOVE',[['go',22],['comeback',14],['out',10],'flat',['hitch',5]]),
+    mkPlay('SHALLOW',[['in',5],['in',5],['in',8],['flat',4],['in',5]]),
+    mkPlay('OUT AND UP',[['out',8],['go',24],['out',8],'flat',['go',20]]),
+    mkPlay('BOOT',[['go',22],['flat',6,1],['in',10],['curl',6],['out',8]]),
+    mkPlay('TE SCREEN',['block','block','block','flat',['flat',3]]),
+    mkPlay('FADE STOP',[['go',16],['hitch',10],['go',16],'flat',['hitch',8]]),
+    mkPlay('POST WHEEL',[['post',12],['curl',10],['go',16],['go',18],['out',8]]),
+    mkPlay('ALL CURLS',[['curl',12],['curl',12],['curl',10],['curl',6],['curl',8]]),
+    mkPlay('ALL OUTS',[['out',10],['out',10],['out',8],['flat',6],['out',8]])
+  ];
+  /* a play read from a game save: kept only when it can be drawn (five specs, known route types, numbers in range) */
+  function cleanPlay(q){
+    if (!q || typeof q.name !== 'string' || !Array.isArray(q.p) || !q.p.length) return null;
+    var out = [];
+    for (var i = 0; i < 5; i++){
+      var s = q.p[i];
+      if (!s && i === 4) s = mkSpec('curl', BASE[4][0], BASE[4][1]);           /* plays saved before the tight end was added get a TE curl, as on the phone */
+      if (!s || !RTD[s.t] || !isNum(s.x) || !isNum(s.y) || !isNum(s.d)) return null;
+      out.push({x:clamp(s.x, -12, 30), y:clamp(s.y, 0, 40), t:s.t, d:clamp(s.d, 0, 40), f:s.f ? 1 : 0});
+    }
+    return {name:q.name.slice(0, 14), p:out};
+  }
+  function savePlays(save){
+    if (!save || !Array.isArray(save.plays)) return [];
+    var r = []; save.plays.forEach(function(q){ var c = cleanPlay(q); if (c) r.push(c); }); return r;
+  }
+  /* grouped by the deepest route (HQ's own grouping): QUICK 6 yards or less, MEDIUM 7 to 14, DEEP 15 and up; SCREEN: blockers and a short throw.
+     A flat does not count: its depth is how far it runs sideways. */
+  function deepest(p){ return p.p.reduce(function(a, s){ return (s.t === 'block' || s.t === 'flat') ? a : Math.max(a, s.d); }, 0); }
+  function kind(p){
+    if (/SCREEN/.test(p.name) || p.p.filter(function(s){ return s.t === 'block'; }).length >= 2) return 'SCREEN';
+    var d = deepest(p); return d <= 6 ? 'QUICK' : (d <= 14 ? 'MEDIUM' : 'DEEP');
+  }
+  function sv(tag, attrs, kids){
+    var n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    if (attrs) Object.keys(attrs).forEach(function(k){ n.setAttribute(k, attrs[k]); });
+    if (kids) kids.forEach(function(c){ n.appendChild(c); });
+    return n;
+  }
+  /* the diagram: offense moves to the right, the blue line is the line of scrimmage, five linemen, the QB in white, receivers 1 to 5 in the phone's colors */
+  function diagram(play, W, H, big){
+    var X = function(v){ return (v + 9.5) * W / 33; }, Y = function(v){ return v * H / 40; }, k = big ? 2.2 : 1;
+    var svg = sv('svg', {viewBox:'0 0 ' + W + ' ' + H, width:W, height:H, class:'pbdia', role:'img',
+      'aria-label':play.name + ': ' + play.p.map(function(s, i){ return PL[i] + ' ' + RTD[s.t].l.toLowerCase(); }).join(', ')});
+    svg.appendChild(sv('rect', {x:0, y:0, width:W, height:H, fill:'#2e7d32'}));
+    for (var j = 1; j < 7; j += 2) svg.appendChild(sv('rect', {x:X(-9.5 + j * 5), y:0, width:5 * W / 33, height:H, fill:'#2a7030'}));
+    svg.appendChild(sv('rect', {x:X(0) - k / 2 - .5, y:0, width:k + 1, height:H, fill:'#4aa3ff'}));
+    [14, 17, 20, 23, 26].forEach(function(y){ svg.appendChild(sv('rect', {x:X(-1) - 2.5 * k, y:Y(y) - 2.5 * k, width:5 * k, height:5 * k, fill:'#8a97c8'})); });
+    svg.appendChild(sv('rect', {x:X(-5) - 2.5 * k, y:Y(20) - 2.5 * k, width:5 * k, height:5 * k, fill:'#f4f4f8'}));
+    play.p.forEach(function(s, i){
+      var r = routePath(s, s.x, s.y), g = sv('g', {'data-rcv':i, stroke:RC[i], fill:RC[i]});
+      if (r.pts.length){
+        var d = 'M' + X(s.x).toFixed(1) + ' ' + Y(s.y).toFixed(1), px = X(s.x), py = Y(s.y), lx = px, ly = py;
+        r.pts.forEach(function(p){ px = lx; py = ly; lx = X(p.x); ly = Y(p.y); d += ' L' + lx.toFixed(1) + ' ' + ly.toFixed(1); });
+        g.appendChild(sv('path', {d:d, fill:'none', 'stroke-width':1.6 * k, 'stroke-linejoin':'round'}));
+        var a = Math.atan2(ly - py, lx - px), z = 4 * k;
+        if (r.cont) g.appendChild(sv('polygon', {points:[[lx + Math.cos(a) * z, ly + Math.sin(a) * z], [lx + Math.cos(a + 2.5) * z, ly + Math.sin(a + 2.5) * z], [lx + Math.cos(a - 2.5) * z, ly + Math.sin(a - 2.5) * z]].map(function(q){ return q[0].toFixed(1) + ',' + q[1].toFixed(1); }).join(' '), stroke:'none'}));
+        else g.appendChild(sv('line', {x1:(lx + Math.cos(a + 1.571) * 3.5 * k).toFixed(1), y1:(ly + Math.sin(a + 1.571) * 3.5 * k).toFixed(1), x2:(lx + Math.cos(a - 1.571) * 3.5 * k).toFixed(1), y2:(ly + Math.sin(a - 1.571) * 3.5 * k).toFixed(1), 'stroke-width':1.6 * k}));
+      } else g.appendChild(sv('rect', {x:(X(s.x) + 4 * k).toFixed(1), y:(Y(s.y) - 4 * k).toFixed(1), width:2 * k, height:8 * k, stroke:'none'}));      /* a blocker: a short bar in front */
+      g.appendChild(sv('rect', {x:(X(s.x) - 2.5 * k).toFixed(1), y:(Y(s.y) - 2.5 * k).toFixed(1), width:6 * k, height:6 * k, stroke:'none'}));
+      if (big){ var t = sv('text', {x:(X(s.x) - 2.5 * k).toFixed(1), y:(Y(s.y) - 7).toFixed(1), fill:RC[i], stroke:'none', 'font-size':13, 'font-weight':700, 'text-anchor':'middle'}); t.textContent = String(i + 1); g.appendChild(t); }
+      svg.appendChild(g);
+    });
+    return svg;
+  }
+  return {RT:RT, RTD:RTD, PL:PL, RC:RC, BASE:BASE, routePath:routePath, mkPlay:mkPlay, lib:NFLC, seed:function(){ return [mkPlay('QUICK SLANTS', ['slant', 'slant', 'slant', 'flat', 'hitch']), mkPlay('FOUR GOS', ['go', 'go', 'go', 'flat', 'go']), mkPlay('CURL FLAT', ['curl', 'curl', 'out', 'flat', 'flat']), mkPlay('DEEP SHOTS', ['post', 'corner', 'go', 'hitch', 'curl'])]; },
+    savePlays:savePlays, kind:kind, deepest:deepest, diagram:diagram};
+})();
+
+var PBKINDS = ['ALL', 'QUICK', 'MEDIUM', 'DEEP', 'SCREEN'];
+function pbSources(){
+  var m = state.m, own = m ? PB.savePlays(m.save) : [], src = [];
+  if (own.length) src.push({id:'save', label:'THIS SAVE\'S PLAYBOOK', plays:own});
+  src.push({id:'lib', label:'STANDARD LIBRARY', plays:PB.lib});
+  return src;
+}
+function vPlaybook(main){
+  var src = pbSources(), pb = state.pb;
+  if (!pb || pb.m !== state.m) pb = state.pb = {m:state.m, src:'', kind:'ALL', sel:-1, side:(pb && pb.side) || 'OFF', dsel:''};         /* a different league starts from its own list */
+  var cur = src.filter(function(s){ return s.id === pb.src; })[0] || src[0]; pb.src = cur.id;
+  var plays = cur.plays;
+  var shown = plays.map(function(p, i){ return {p:p, i:i, k:PB.kind(p)}; }).filter(function(r){ return pb.kind === 'ALL' || r.k === pb.kind; });
+  if (pb.sel >= plays.length) pb.sel = -1;
+  add(main, el('h1', null, 'PLAYBOOK'));
+  var sr = el('div', {class:'row', id:'pbSide'});
+  [['OFF', 'OFFENSE'], ['DEF', 'DEFENSE']].forEach(function(o){ sr.appendChild(el('button', {type:'button', class:'btn' + ((pb.side || 'OFF') === o[0] ? ' pri' : ''), 'data-side':o[0], 'aria-pressed':(pb.side || 'OFF') === o[0], onclick:function(){ pb.side = o[0]; render(); }}, o[1])); });
+  add(main, sr);
+  if (pb.side === 'DEF'){ vDefenseBook(main, pb); return; }
+  add(main, el('p', {class:'note'}, 'The plays the phone game calls, drawn the way it draws them. Receivers 1 to 5 are WR 1, WR 2, WR 3, the running back and the tight end; the blue line is the line of scrimmage and the offense moves to the right. A bar across the end of a route means the receiver stops there; an arrow means the route keeps going. Viewing only for now.'));
+  if (src.length > 1){
+    var row = el('div', {class:'row', id:'pbSrc'});
+    src.forEach(function(s){ row.appendChild(el('button', {type:'button', class:'btn' + (s.id === cur.id ? ' pri' : ''), 'data-src':s.id, onclick:function(){ pb.src = s.id; pb.sel = -1; render(); }}, s.label + ' (' + s.plays.length + ')')); });
+    add(main, row);
+  } else add(main, el('p', {class:'note', id:'pbSrcNote'}, (state.m && state.m.save ? 'This save has no playbook of its own, so this is the game\'s standard library' : 'A cloud league does not carry a playbook, so this is the game\'s standard library') + ' (' + plays.length + ' plays).'));
+  var kr = el('div', {class:'row', id:'pbKinds'});
+  PBKINDS.forEach(function(k){ var n = k === 'ALL' ? plays.length : plays.filter(function(p){ return PB.kind(p) === k; }).length;
+    kr.appendChild(el('button', {type:'button', class:'btn' + (pb.kind === k ? ' pri' : ''), 'data-kind':k, onclick:function(){ pb.kind = k; render(); }}, k + ' (' + n + ')')); });
+  add(main, kr);
+  if (pb.sel >= 0){
+    var p = plays[pb.sel], at = shown.map(function(r){ return r.i; }).indexOf(pb.sel);
+    var det = el('div', {class:'pbdet', id:'pbDetail'});
+    add(det, el('h2', null, p.name + ' '));
+    det.firstChild.appendChild(tag(PB.kind(p)));
+    add(det, el('div', {class:'row'}, [
+      el('button', {type:'button', class:'btn', id:'pbBack', onclick:function(){ pb.sel = -1; render(); }}, 'BACK TO ALL PLAYS'),
+      el('button', {type:'button', class:'btn', id:'pbPrev', disabled:at <= 0, onclick:function(){ pb.sel = shown[at - 1].i; render(); }}, 'PREVIOUS'),
+      el('button', {type:'button', class:'btn', id:'pbNext', disabled:at < 0 || at >= shown.length - 1, onclick:function(){ pb.sel = shown[at + 1].i; render(); }}, 'NEXT')]));
+    add(det, el('div', {class:'pbbig'}, PB.diagram(p, 560, 400, true)));
+    add(det, table([
+      {h:'', v:function(r){ return el('b', {style:'color:' + PB.RC[r.i]}, String(r.i + 1)); }},
+      {h:'RECEIVER', v:function(r){ return PB.PL[r.i]; }},
+      {h:'LINES UP', v:function(r){ return (r.s.y < 20 ? 'LEFT' : 'RIGHT') + ', ' + (r.s.x >= 0 ? 'ON THE LINE' : Math.round(-r.s.x * 10) / 10 + ' YD BEHIND IT'); }},
+      {h:'ROUTE', v:function(r){ return PB.RTD[r.s.t].l; }},
+      {h:'DEPTH', v:function(r){ return r.s.t === 'block' ? '-' : r.s.d + ' YD'; }, n:true},
+      {h:'BREAKS', v:function(r){ return r.s.t === 'block' ? '-' : (r.s.f ? 'FLIPPED' : 'STANDARD'); }}
+    ], p.p.map(function(s, i){ return {s:s, i:i}; })));
+    add(det, el('p', {class:'note'}, 'STANDARD: the break goes toward the nearest sideline for flat, out, corner and comeback, toward the middle for in, slant and post. FLIPPED turns it the other way. Editing plays here comes later; for now, design them on the phone, in the playbook, between games.'));
+    add(main, det);
+    return;
+  }
+  var grid = el('div', {class:'pbgrid', id:'pbGrid'});
+  shown.forEach(function(r){
+    grid.appendChild(el('button', {type:'button', class:'pbcard', 'data-play':r.i, 'aria-label':'Open ' + r.p.name, onclick:function(){ pb.sel = r.i; render(); window.scrollTo(0, 0); }},
+      [PB.diagram(r.p, 180, 130, false), el('span', {class:'pbname'}, r.p.name), el('span', {class:'pbkind'}, r.k)]));
+  });
+  add(main, shown.length ? grid : el('p', {class:'note'}, 'No plays of that kind in this playbook.'));
+}
+
+/* ---------- HQ 0.11: PLAYBOOK, DEFENSE. The game's own defense cards, ported: the scheme table DEFD (14 schemes), the families and the BEST VS / WEAK VS text (dcTags), and the card
+   drawing (ddLayout, drawDefCard, the pixel shapes), all copied from the game (index.html, v2.30) without changes and compared with it in tests/hq-v011-defense.test.mjs.
+   Square = lineman, circle = linebacker, triangle = back; ring = zone; dashed line and box = man; arrow = extra rusher; red with a gold outline = defense,
+   white square = offense, yellow = QB. A linebacker may still pick up the RB or the TE at the snap, and before the snap the game may show another look (disguise). ---------- */
+var DF = (function(){
+  var clamp = function(v, a, b){ return Math.max(a, Math.min(b, v)); };
+const FM={ol:[14,17,20,23,26],olx:-1,qb:[-5,20],dl:[12,18,22,28],dlx:1.3,rc:[[-1,5],[-1,35],[-1.2,28],[-5,15.5],[-1,11]]};
+const PAL={dark:'#0b0f1a',light:'#f4f4f8',red:'#ff6b6b',redHi:'#ffa3a3',redLo:'#c23b3b',gold:'#ffe14d',man:'#ffd400',rush:'#c79bff',turf0:'#2a6034',turf1:'#2f6b3a',los:'#8cbcff'};
+const DC_FAM={c3:'Z',c2:'Z',t2:'Z',c4:'Z',c6:'Z',c1:'M',c2m:'M',c0:'P',b1:'P',fz:'P',six:'P',sb:'P',bear:'B',pv:'V'};
+const DC_GRP=[['ZONE','Z'],['MAN','M'],['PRESSURE','P'],['SPECIAL','BV']];
+/* factors on [pTD, pFG, pTO] by family and drive style */
+const DC_F={
+ Z:{PASS:[.95,1,1],RUN:[1.12,1,1]},
+ M:{PASS:[.90,1,1.15],RUN:[1.10,1,.95]},
+ P:{PASS:[1.10,.90,1.45],RUN:[.88,1,1.15]},
+ B:{PASS:[1.07,1,1],RUN:[.85,1,1.20]}};
+const DC_C4RUN=[1.18,1,1]; /* COVER 4 has a light box */
+const DC_PV_LATE=[.60,1.40,.90],DC_PV_EARLY=[1.30,1.10,.80];
+function dcFactors(id,style,lateLead){
+ const f=DC_FAM[id];if(!f)return[1,1,1];
+ if(f==='V')return lateLead?DC_PV_LATE:DC_PV_EARLY;
+ if(id==='c4'&&style==='RUN')return DC_C4RUN;
+ return(DC_F[f][style]||DC_F[f].PASS)}
+function dcTags(id){
+ const f=DC_FAM[id];if(f==='V')return['ANY CALL, WHEN YOU LEAD LATE','ANY CALL, EARLY IN THE GAME'];
+ const a=dcFactors(id,'PASS')[0],b=dcFactors(id,'RUN')[0];
+ return a<=b?['PASS','RUN']:['RUN','PASS']}
+const DD_W=120,DD_H=128,DD_MIN=10;
+const ddX=x=>Math.round(124-(x+7)*3),ddY=y=>Math.round(y*3);
+function ddR(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,h)}
+function ddLine(c,x0,y0,x1,y1,col,t,dash){const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0),1);c.fillStyle=col;for(let i=0;i<=n;i++){if(dash&&(i%(dash[0]+dash[1]))>=dash[0])continue;c.fillRect(Math.round(x0+(x1-x0)*i/n)-(t>>1),Math.round(y0+(y1-y0)*i/n)-(t>>1),t,t)}}
+function ddBase(c){c.imageSmoothingEnabled=false;ddR(c,0,0,DD_W,DD_H,PAL.turf0);
+ for(let k=0;k<8;k++){if(k&1)ddR(c,0,ddX(5*k)-15,DD_W,15,PAL.turf1)}
+ for(let x=5;x<=30;x+=5)ddR(c,0,ddX(x),DD_W,1,'rgba(255,255,255,.5)');
+ ddR(c,0,ddX(0),DD_W,2,PAL.los)}
+function ddZone(c,cx,cy,r){
+ for(let y=Math.max(0,cy-r-2);y<=Math.min(DD_H-1,cy+r+2);y++)for(let x=Math.max(0,cx-r-2);x<=Math.min(DD_W-1,cx+r+2);x++){
+  const d=Math.hypot(x-cx,y-cy);let col=null;
+  if(d<=r-2.5)col='rgba(255,255,255,.16)';else if(d<=r-1.5)col=PAL.dark;else if(d<=r+.5)col=PAL.red;else if(d<=r+1.5)col=PAL.dark;
+  if(col){c.fillStyle=col;c.fillRect(x,y,1,1)}}}
+const DD_SH={sq:['#####','#####','#####','#####','#####'],ci:['.###.','#####','#####','#####','.###.'],tr:['..#..','.###.','.###.','#####','#####']};
+function ddDef(c,x,y,kind){const bm=DD_SH[kind],px=x-2,py=y-2,on=(i,j)=>j>=0&&j<5&&i>=0&&i<5&&bm[j][i]==='#';
+ for(let j=-1;j<=5;j++)for(let i=-1;i<=5;i++){let near=false;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)if(on(i+di,j+dj))near=true;if(near&&!on(i,j)){c.fillStyle=PAL.gold;c.fillRect(px+i,py+j,1,1)}}
+ for(let j=0;j<5;j++)for(let i=0;i<5;i++)if(on(i,j)){c.fillStyle=(i+j<=1)?PAL.redHi:(i+j>=7?PAL.redLo:PAL.red);c.fillRect(px+i,py+j,1,1)}}
+/* nudge the movable defenders apart so no two shapes overlap (the four linemen and the zone rings stay put) */
+function ddSpread(items){for(let it=0;it<200;it++){let moved=false;
+  for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++){const p=items[i],q=items[j];if(p.fix&&q.fix)continue;let dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy);if(d>=DD_MIN)continue;moved=true;
+   if(d<.01){dx=(j%2?1:-1);dy=.3;d=Math.hypot(dx,dy)}const k=(DD_MIN-d)/d,w=p.fix||q.fix?1:.5;if(!p.fix){p.x-=dx*k*w;p.y-=dy*k*w}if(!q.fix){q.x+=dx*k*w;q.y+=dy*k*w}}
+  items.forEach(p=>{p.x=Math.min(DD_W-6,Math.max(6,p.x));p.y=Math.min(DD_H-6,Math.max(6,p.y))});if(!moved)break}
+ items.forEach(p=>{p.x=Math.round(p.x);p.y=Math.round(p.y)})}
+function ddOff(c,x,y,col){ddR(c,x-3,y-3,7,7,PAL.dark);ddR(c,x-2,y-2,5,5,col||'#fff')}
+function ddArrow(c,x0,y0,x1,y1,t){{const L0=Math.hypot(x1-x0,y1-y0)||1;x0=Math.round(x0+(x1-x0)/L0*6);y0=Math.round(y0+(y1-y0)/L0*6)}
+ ddLine(c,x0,y0,x1,y1,PAL.dark,t+2);ddLine(c,x0,y0,x1,y1,PAL.rush,t);
+ const a=Math.atan2(y1-y0,x1-x0),L=9,p=[[x1,y1],[x1-L*Math.cos(a-.55),y1-L*Math.sin(a-.55)],[x1-L*Math.cos(a+.55),y1-L*Math.sin(a+.55)]].map(q=>[Math.round(q[0]),Math.round(q[1])]);
+ ddLine(c,p[1][0],p[1][1],p[0][0],p[0][1],PAL.dark,5);ddLine(c,p[2][0],p[2][1],p[0][0],p[0][1],PAL.dark,5);
+ ddLine(c,p[1][0],p[1][1],p[0][0],p[0][1],PAL.rush,3);ddLine(c,p[2][0],p[2][1],p[0][0],p[0][1],PAL.rush,3)}
+/* the layout of one card: every defender's pixel spot and what is drawn for it. Pure (no drawing, no randomness), so the tests can check it. */
+function ddLayout(def){
+ const R=FM.rc.map(q=>({x:q[0],y:q[1]})),line=[],zones=[],men=[],arrows=[];
+ const dl=FM.dl.map(y=>({x:ddY(y),y:ddX(FM.dlx),fix:1,k:'sq'}));
+ const mv=[...def.lb.map(q=>({q,k:'ci'})),...def.db.map(q=>({q,k:'tr'}))].map(o=>{const a=o.q.al(0,R);return{x:ddY(a.y),y:ddX(a.x),k:o.k,as:o.q.as}});
+ ddSpread([...dl,...mv]);
+ mv.forEach(o=>{const a=o.as;if(a&&a.z)zones.push({cx:ddY(a.z[1]),cy:ddX(a.z[0]),r:Math.round(a.z[2]*3),o});else if(a&&a.m!=null){const t=R[a.m]||R[0];men.push({o,tx:ddY(t.y),ty:ddX(t.x)})}else if(!a)arrows.push(o)});
+ return{R,dl,mv,zones,men,arrows,all:[...dl,...mv]}}
+function drawDefCard(c,def){const L=ddLayout(def);ddBase(c);
+ L.zones.forEach(z=>ddZone(c,z.cx,z.cy,z.r));
+ L.zones.forEach(z=>{const o=z.o;if(Math.hypot(z.cx-o.x,z.cy-o.y)>8){ddLine(c,o.x,o.y,z.cx,z.cy,'rgba(11,15,26,.7)',3,[2,2]);ddLine(c,o.x,o.y,z.cx,z.cy,PAL.redHi,1,[2,2])}});
+ FM.ol.forEach(y=>ddOff(c,ddY(y),ddX(FM.olx)));L.R.forEach(q=>ddOff(c,ddY(q.y),ddX(q.x)));ddOff(c,ddY(FM.qb[1]),ddX(FM.qb[0]),PAL.man);
+ L.men.forEach(m=>{const o=m.o;ddLine(c,o.x,o.y,m.tx,m.ty,PAL.dark,4);ddLine(c,o.x,o.y,m.tx,m.ty,PAL.man,2,[4,2]);
+  ddR(c,m.tx-5,m.ty-5,11,1,PAL.man);ddR(c,m.tx-5,m.ty+5,11,1,PAL.man);ddR(c,m.tx-5,m.ty-5,1,11,PAL.man);ddR(c,m.tx+5,m.ty-5,1,11,PAL.man)});
+ L.all.forEach(o=>ddDef(c,o.x,o.y,o.k));
+ L.arrows.forEach(o=>ddArrow(c,o.x,o.y,ddY(FM.qb[1]),ddX(FM.qb[0]+1.5),3));
+ return L}
+const AT=(x,y)=>(l,R)=>({x:l+x,y}),ACROSS=(i,x)=>(l,R)=>({x:l+x,y:R[i].y});
+const DEFD=[
+ {id:'c1',name:'COVER 1 MAN',hi:1,dbw:.9,lbw:.4,
+  lb:[{al:AT(4.5,11),as:{m:3}},{al:AT(4.5,20),as:{z:[9,15,6]}},{al:AT(4.5,26),as:{z:[9,26,6]}}],
+  db:[{al:ACROSS(0,7),as:{m:0}},{al:ACROSS(1,7),as:{m:1}},{al:ACROSS(2,7),as:{m:2}},{al:AT(14,20),as:{z:[20,20,10]}}]},
+ {id:'c3',name:'COVER 3',hi:1,dbw:1.1,lbw:.4,
+  lb:[{al:AT(4.5,9),as:{z:[7,9,7]}},{al:AT(4.5,17),as:{z:[9,17,5.5]}},{al:AT(4.5,23),as:{z:[9,23,5.5]}}],
+  db:[{al:ACROSS(0,8),as:{z:[19,7,9]}},{al:ACROSS(1,8),as:{z:[19,33,9]}},{al:ACROSS(2,5),as:{z:[7,31,7]}},{al:AT(14,20),as:{z:[20,20,9]}}]},
+ {id:'t2',name:'TAMPA 2',hi:2,dbw:1,lbw:.4,
+  lb:[{al:AT(4.5,13),as:{z:[8,13,6]}},{al:AT(4.5,20),as:{z:[18,20,6]}},{al:AT(4.5,27),as:{z:[8,27,6]}}],
+  db:[{al:ACROSS(0,5),as:{z:[5,6,6]}},{al:ACROSS(1,5),as:{z:[5,34,6]}},{al:AT(12,11),as:{z:[19,10,10]}},{al:AT(12,29),as:{z:[19,30,10]}}]},
+ {id:'c4',name:'COVER 4',hi:2,dbw:.6,lbw:.4,
+  lb:[{al:AT(4.5,10),as:{z:[8,10,7]}},{al:AT(4.5,20),as:{z:[8,20,7]}},{al:AT(4.5,30),as:{z:[8,30,7]}}],
+  db:[{al:ACROSS(0,8),as:{z:[18,5,6]}},{al:ACROSS(1,8),as:{z:[18,35,6]}},{al:AT(9,15),as:{z:[18,15,6]}},{al:AT(9,25),as:{z:[18,25,6]}}]},
+ {id:'c0',name:'0 BLITZ',hi:0,dbw:1.2,lbw:.2,
+  lb:[{al:AT(2.5,14),as:null},{al:AT(2.5,20),as:null},{al:AT(2.5,26),as:null}],
+  db:[{al:ACROSS(0,4),as:{m:0}},{al:ACROSS(1,4),as:{m:1}},{al:ACROSS(2,4),as:{m:2}},{al:AT(5,15.5),as:{m:3}}]},
+ /* ---- more coverages (v1.30) ---- */
+ {id:'c2',name:'COVER 2',hi:2,dbw:1,lbw:.4,
+  lb:[{al:AT(4.5,12),as:{z:[7,12,5.5]}},{al:AT(4.5,20),as:{z:[12,20,5]}},{al:AT(4.5,28),as:{z:[7,28,5.5]}}],
+  db:[{al:ACROSS(0,5),as:{z:[5,6,6]}},{al:ACROSS(1,5),as:{z:[5,34,6]}},{al:AT(12,11),as:{z:[19,10,10]}},{al:AT(12,29),as:{z:[19,30,10]}}]},
+ {id:'c2m',name:'COVER 2 MAN',hi:2,dbw:1,lbw:.5,
+  lb:[{al:AT(4.5,13),as:{z:[8,13,6]}},{al:AT(4.5,20),as:{z:[11,20,6]}},{al:AT(4.5,27),as:{z:[8,27,6]}}],
+  db:[{al:ACROSS(0,7),as:{m:0}},{al:ACROSS(1,7),as:{m:1}},{al:AT(12,11),as:{z:[19,10,10]}},{al:AT(12,29),as:{z:[19,30,10]}}]},
+ {id:'c6',name:'COVER 6',hi:2,dbw:.8,lbw:.4,
+  lb:[{al:AT(4.5,10),as:{z:[8,10,7]}},{al:AT(4.5,20),as:{z:[8,20,7]}},{al:AT(4.5,29),as:{z:[8,29,6]}}],
+  db:[{al:ACROSS(0,8),as:{z:[18,5,6]}},{al:ACROSS(1,5),as:{z:[5,34,6]}},{al:AT(9,15),as:{z:[18,14,6]}},{al:AT(12,29),as:{z:[19,30,10]}}]},
+ {id:'pv',name:'PREVENT',hi:2,w:.35,dbw:1.8,lbw:1,
+  lb:[{al:AT(5,10),as:{z:[13,10,7]}},{al:AT(5,20),as:{z:[13,20,7]}},{al:AT(5,30),as:{z:[13,30,7]}}],
+  db:[{al:ACROSS(0,10),as:{z:[26,6,7]}},{al:ACROSS(1,10),as:{z:[26,34,7]}},{al:AT(15,14),as:{z:[24,14,7]}},{al:AT(15,26),as:{z:[24,26,7]}}]},
+ /* ---- blitzes (v1.30): who rushes is in the as:null entries ---- */
+ {id:'b1',name:'COVER 1 BLITZ',hi:1,dbw:.9,lbw:.3,
+  lb:[{al:AT(4.5,11),as:{m:3}},{al:AT(2.5,20),as:null},{al:AT(4.5,26),as:{z:[8,22,7]}}],
+  db:[{al:ACROSS(0,7),as:{m:0}},{al:ACROSS(1,7),as:{m:1}},{al:ACROSS(2,7),as:{m:2}},{al:AT(14,20),as:{z:[20,20,10]}}]},
+ {id:'fz',name:'FIRE ZONE',hi:1,dbw:1.1,lbw:.3,
+  lb:[{al:AT(2.5,14),as:null},{al:AT(4.5,17),as:{z:[8,13,7]}},{al:AT(4.5,24),as:{z:[8,26,7]}}],
+  db:[{al:ACROSS(0,8),as:{z:[19,7,9]}},{al:ACROSS(1,8),as:{z:[19,33,9]}},{al:ACROSS(2,5),as:{z:[7,31,7]}},{al:AT(14,20),as:{z:[20,20,9]}}]},
+ {id:'six',name:'6-MAN PRESSURE',hi:1,dbw:1,lbw:.25,
+  lb:[{al:AT(2.5,14),as:null},{al:AT(4.5,20),as:{m:3}},{al:AT(2.5,26),as:null}],
+  db:[{al:ACROSS(0,7),as:{m:0}},{al:ACROSS(1,7),as:{m:1}},{al:ACROSS(2,7),as:{m:2}},{al:AT(14,20),as:{z:[20,20,10]}}]},
+ /* v1.57: CORNER BLITZ was removed: a corner or deep safety no longer blitzes straight from the secondary. A back that does blitz (SAFETY BLITZ, 46 BEAR) lines up at linebacker depth and never disguises. */
+ {id:'sb',name:'SAFETY BLITZ',hi:1,dbw:1,lbw:.3,
+  lb:[{al:AT(4.5,9),as:{z:[7,9,7]}},{al:AT(4.5,20),as:{z:[9,20,6]}},{al:AT(4.5,31),as:{z:[7,31,7]}}],
+  db:[{al:ACROSS(0,8),as:{z:[19,7,9]}},{al:ACROSS(1,8),as:{z:[19,33,9]}},{al:AT(5,24),as:null},{al:AT(14,20),as:{z:[20,20,9]}}]},
+ {id:'bear',name:'46 BEAR',hi:0,dbw:1.2,lbw:.1,
+  lb:[{al:AT(4,12),as:{m:3}},{al:AT(2.5,18),as:null},{al:AT(4.5,26),as:{z:[10,22,8]}}],
+  db:[{al:ACROSS(0,6.5),as:{m:0}},{al:ACROSS(1,6.5),as:{m:1}},{al:AT(2.5,23),as:null},{al:ACROSS(2,6.5),as:{m:2}}]}];
+  return {DEFD:DEFD, FM:FM, PAL:PAL, DC_FAM:DC_FAM, DC_GRP:DC_GRP, dcTags:dcTags, dcFactors:dcFactors, ddLayout:ddLayout, drawDefCard:drawDefCard, DD_W:DD_W, DD_H:DD_H};
+})();
+
+/* the card pictures are drawn once per scheme on an off-screen canvas and copied onto the page's canvases (as the game does) */
+var DFCACHE = {};
+function dfCardCanvas(id){
+  if (DFCACHE[id]) return DFCACHE[id];
+  var d = DF.DEFD.filter(function(x){ return x.id === id; })[0]; if (!d) return null;
+  var cv = document.createElement('canvas'); cv.width = DF.DD_W; cv.height = DF.DD_H;
+  var cx = cv.getContext && cv.getContext('2d'); if (cx) DF.drawDefCard(cx, d);
+  return DFCACHE[id] = cv;
+}
+function dfPaint(cv, id){
+  var src = dfCardCanvas(id), c = cv.getContext && cv.getContext('2d');
+  if (!src || !c) return;
+  c.imageSmoothingEnabled = false; c.clearRect(0, 0, DF.DD_W, DF.DD_H); c.drawImage(src, 0, 0);
+}
+function dfCanvas(id, label, cls){ var cv = el('canvas', {width:DF.DD_W, height:DF.DD_H, class:'dfcv' + (cls ? ' ' + cls : ''), role:'img', 'aria-label':label, 'data-dcv':id}); dfPaint(cv, id); return cv; }
+var DF_FAMNAME = {Z:'ZONE', M:'MAN', P:'PRESSURE', B:'SPECIAL', V:'SPECIAL'};
+var DF_SHELL = ['NO DEEP SAFETY', 'ONE DEEP SAFETY', 'TWO DEEP SAFETIES'];
+function dfSide(y){ return y < 14 ? 'LEFT' : (y > 26 ? 'RIGHT' : 'MIDDLE'); }
+function dfJob(as){
+  if (!as) return 'RUSHES THE QUARTERBACK';
+  if (as.m != null) return 'MAN ON ' + PB.PL[as.m] + (as.m === 4 ? ' (ONLY WHEN NO ZONE COVERS HIM)' : '');
+  return 'ZONE ' + as.z[0] + ' YD DEEP, ' + dfSide(as.z[1]) + ', ' + (as.z[2] * 2) + ' YD WIDE';
+}
+function dfRushers(d){ return 4 + d.lb.concat(d.db).filter(function(s){ return !s.as; }).length; }
+function dfKey(){
+  return el('ul', {class:'dfkey'}, ['SQUARE = LINEMAN, CIRCLE = LINEBACKER, TRIANGLE = BACK', 'RING = ZONE', 'DASHED LINE AND BOX = MAN', 'ARROW = EXTRA RUSHER',
+    'RED WITH GOLD OUTLINE = DEFENSE, WHITE SQUARE = OFFENSE, YELLOW = QB', 'A LINEBACKER MAY PICK UP THE RB OR TE'].map(function(t){ return el('li', null, t); }));
+}
+function vDefenseBook(main, pb){
+  var list = DF.DEFD, cur = pb.dsel ? list.filter(function(d){ return d.id === pb.dsel; })[0] : null;
+  if (cur){
+    var at = list.indexOf(cur), t = DF.dcTags(cur.id), lay = DF.ddLayout(cur), det = el('div', {class:'pbdet', id:'dfDetail'});
+    add(det, el('h2', null, cur.name + ' '));
+    det.firstChild.appendChild(tag(DF_FAMNAME[DF.DC_FAM[cur.id]] || ''));
+    det.firstChild.appendChild(document.createTextNode(' '));
+    det.firstChild.appendChild(tag(DF_SHELL[cur.hi] || ''));
+    add(det, el('div', {class:'row'}, [
+      el('button', {type:'button', class:'btn', id:'dfBack', onclick:function(){ pb.dsel = ''; render(); }}, 'BACK TO ALL DEFENSES'),
+      el('button', {type:'button', class:'btn', id:'dfPrev', disabled:at <= 0, onclick:function(){ pb.dsel = list[at - 1].id; render(); }}, 'PREVIOUS'),
+      el('button', {type:'button', class:'btn', id:'dfNext', disabled:at >= list.length - 1, onclick:function(){ pb.dsel = list[at + 1].id; render(); }}, 'NEXT')]));
+    var big = el('div', {class:'dfbig'}, dfCanvas(cur.id, cur.name, 'big'));
+    var ov = sv_('svg', {viewBox:'0 0 ' + DF.DD_W + ' ' + DF.DD_H, class:'dfov', 'aria-hidden':'true'});
+    lay.mv.forEach(function(o, i){
+      var tx = sv_('text', {x:o.x, y:o.y - 5, 'text-anchor':'middle', 'font-size':6, 'font-weight':700, fill:'#fff', stroke:'#0b0f1a', 'stroke-width':1.2, 'paint-order':'stroke'});
+      tx.textContent = i < 3 ? 'L' + (i + 1) : 'D' + (i - 2); ov.appendChild(tx);
+    });
+    big.appendChild(ov); add(det, big);
+    var rows = [{w:'DL 1-4', p:'ON THE LINE', j:'RUSH THE QUARTERBACK (ALWAYS)'}];
+    cur.lb.forEach(function(s, i){ var a = s.al(0, lay.R); rows.push({w:'L' + (i + 1) + '  LINEBACKER', p:Math.round(a.x * 10) / 10 + ' YD OFF, ' + dfSide(a.y), j:dfJob(s.as)}); });
+    cur.db.forEach(function(s, i){ var a = s.al(0, lay.R); rows.push({w:'D' + (i + 1) + '  BACK', p:Math.round(a.x * 10) / 10 + ' YD OFF, ' + dfSide(a.y), j:dfJob(s.as)}); });
+    add(det, table([{h:'DEFENDER', v:function(r){ return r.w; }}, {h:'LINES UP', v:function(r){ return r.p; }}, {h:'JOB', v:function(r){ return r.j; }}], rows));
+    var nr = dfRushers(cur);
+    add(det, kv([['RUSHERS', nr + (nr === 4 ? ' (THE FOUR LINEMEN)' : ' (THE FOUR LINEMEN AND ' + (nr - 4) + ' MORE)')],
+      ['BEST VS', t[0]], ['WEAK VS', t[1]]]));
+    add(det, el('h3', null, 'KEY')); add(det, dfKey());
+    add(det, el('p', {class:'note'}, 'Before the snap the game may show a different look and rotate into this one at the snap. Which defense is called is up to the game (it picks at random, smarter on higher difficulty) or, with CALL YOUR DEFENSE on, up to you.'));
+    add(main, det); return;
+  }
+  add(main, el('p', {class:'note'}, 'The defenses the phone game plays, drawn the way its own cards draw them (these are the game\'s 14 schemes). Tap one to see who rushes, who covers whom and where each zone sits. Viewing only.'));
+  add(main, el('details', {id:'dfKeyBox'}, [el('summary', null, 'KEY'), dfKey()]));
+  DF.DC_GRP.forEach(function(g){
+    var L = list.filter(function(d){ return g[1].indexOf(DF.DC_FAM[d.id] || '?') >= 0; }); if (!L.length) return;
+    add(main, el('h3', null, g[0]));
+    var grid = el('div', {class:'pbgrid dfgrid', 'data-grp':g[0]});
+    L.forEach(function(d){ var t = DF.dcTags(d.id);
+      grid.appendChild(el('button', {type:'button', class:'pbcard dfcard', 'data-def':d.id, 'aria-label':'Open ' + d.name, onclick:function(){ pb.dsel = d.id; render(); window.scrollTo(0, 0); }},
+        [dfCanvas(d.id, d.name), el('span', {class:'pbname'}, d.name), el('span', {class:'pbkind'}, 'BEST VS: ' + t[0]), el('span', {class:'pbkind'}, 'WEAK VS: ' + t[1])])); });
+    add(main, grid);
+  });
+}
+function sv_(tag, attrs){ var n = document.createElementNS('http://www.w3.org/2000/svg', tag); Object.keys(attrs).forEach(function(k){ n.setAttribute(k, attrs[k]); }); return n; }
 
 /* =====================================================================
    6. START
