@@ -752,7 +752,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LGSTD;
    page makes no network request of any kind. It opens PPSAVE1 backup codes and
    Standard league files as before (read only), and linked leagues from the cloud.
    ===================================================================== */
-var HQ_VERSION = '0.5';
+var HQ_VERSION = '0.6';
 
 /* ---------- small helpers (build page parts without innerHTML, so a
    strange name inside a save can never run as code) ---------- */
@@ -1204,7 +1204,7 @@ function slotName(m, slot){ var p = m.players[slot]; return p ? p.name : SLOT_PO
    4. APP STATE AND SCREENS
    ===================================================================== */
 var state = {m:null, view:'open', msg:null, pending:null, selTeam:null, selPlayer:null, selSeason:null, selWeek:null, groupFilter:'all', histSeason:null,
-  auth:{kind:'none'}, cl:null, create:null, busy:null, list:[]};
+  auth:{kind:'none'}, cl:null, create:null, busy:null, list:[], mine:{status:'none', rows:[]}};
 
 /* ---------- OPEN A LEAGUE (start screen) ---------- */
 function setMsg(kind, text){ state.msg = text ? {kind:kind, text:text} : null; }
@@ -2146,6 +2146,7 @@ function makeSdkAdapter(X, db){
   return {
     get: function(p){ return X.getDoc(ref(p)).then(snap); },
     list: function(p){ return X.getDocs(X.collection(db, p)).then(function(s){ return s.docs.map(function(d){ return { id: d.id, data: d.data() }; }); }); },
+    listWhere: function(p, field, value){ return X.getDocs(X.query(X.collection(db, p), X.where(field, '==', value))).then(function(s){ return s.docs.map(function(d){ return { id: d.id, data: d.data() }; }); }); },
     set: function(p, data){ return X.setDoc(ref(p), data); },
     update: function(p, data){ return X.updateDoc(ref(p), data); },
     del: function(p){ return X.deleteDoc(ref(p)); },
@@ -2601,6 +2602,48 @@ async function renameLeague(ad, lg, o){
   });
   return out;
 }
+/* ---------- HQ 0.6: the commissioner's own leagues from the cloud, and closing / opening joining ---------- */
+/* The rules (hq06 candidate) allow a LIST of leagueCodes only for a Google-signed-in person and only when the query carries
+   where('commish','==',uid). The league's name is read from its meta (a plain get). With the OLD rules the query is refused: the caller shows a note. */
+async function myCloudLeagues(ad, uid){
+  if (!uid) throw CloudError('denied', 'Only a Google sign-in can list leagues.');
+  var docs = await ad.listWhere('leagueCodes', 'commish', uid), out = [], seen = {};
+  docs.forEach(function(d){
+    var x = d.data || {};
+    if (typeof x.lg === 'string' && /^[A-Za-z0-9]{20}$/.test(x.lg) && CODE_RULE.test(d.id) && x.commish === uid && !seen[x.lg]){ seen[x.lg] = 1; out.push({ code: d.id, lg: x.lg, nm: null }); }
+  });
+  out = out.slice(0, 30);
+  await Promise.all(out.map(async function(r){
+    try { var g = await ad.get(PATH.meta(r.lg)); if (g.exists && g.data && typeof g.data.nm === 'string') r.nm = g.data.nm; } catch (e){}
+  }));
+  return out;
+}
+/* merge: the local list first (as before), then the leagues that exist only in the cloud, tagged cloud:true. No duplicates by league id or by code. */
+function mergeMine(local, cloud){
+  var out = local.slice(), byLg = {}, byCode = {};
+  local.forEach(function(r){ byLg[r.lg] = 1; if (r.code) byCode[r.code] = 1; });
+  (cloud || []).forEach(function(c){
+    if (byLg[c.lg] || byCode[c.code]) return;
+    byLg[c.lg] = 1; byCode[c.code] = 1;
+    out.push({ lg: c.lg, nm: c.nm || c.code, code: c.code, role: 'commissioner', t: null, cloud: true });
+  });
+  return out;
+}
+function isClosed(meta){ return !!(meta && meta.opts && meta.opts.closed === true); }
+/* close or open joining: one meta update (opts.closed true / false), the commissioner only, with the stale check */
+async function setJoining(ad, lg, o){
+  var closed = o.closed === true, out = null;
+  await ad.transaction(async function(tx){
+    var mg = await tx.get(PATH.meta(lg));
+    if (!mg.exists) throw CloudError('missing', 'This league does not exist in the cloud.');
+    var m = mg.data;
+    if (m.commish !== o.uid) throw CloudError('denied', 'Only the commissioner can do this.');
+    if (staleMeta(m, o.expect)) throw CloudError('stale', STALE_TEXT);
+    var nm = Object.assign({}, m, { opts: Object.assign({}, m.opts || {}, { closed: closed }), updatedAt: nextStamp(m.updatedAt) });
+    tx.set(PATH.meta(lg), nm); out = nm;
+  });
+  return out;
+}
 /* slots: the commissioner may rewrite a slot (change uid, name, g) or delete it (free the team). A new slot can only be made by the person
    who claims it (rules: uid must be the writer's own), so the commissioner can take an open team himself but cannot create one for a friend. */
 function slotDoc(cur, patch){
@@ -2680,7 +2723,18 @@ async function signInGoogle(){
     u = (await sdk.F.signInWithPopup(sdk.auth, provider)).user;
   }
   setAuth(u); watchAuth(sdk); state.list = listRead();
+  await loadMine();
 }
+/* HQ 0.6: the commissioner's own leagues from the cloud (query leagueCodes where commish == uid). Never throws: with the OLD rules the query is
+   refused and HQ works as 0.5 (status 'refused'). status: none | ok | refused | net. 'ok' also tells HQ that the new rules are published. */
+async function loadMine(){
+  var uid = state.auth.uid;
+  state.mine = {status:'none', rows:[]};
+  if (state.auth.kind !== 'google' || !FB.ad) return;
+  try { state.mine = {status:'ok', rows:await myCloudLeagues(FB.ad, uid)}; }
+  catch (e){ state.mine = {status:(classify(e) === 'net' ? 'net' : 'refused'), rows:[]}; }
+}
+function mineRows(){ return mergeMine(state.list, state.mine.rows); }
 async function signInAnon(){
   var sdk = await loadSdk();
   if (sdk.auth.authStateReady) await sdk.auth.authStateReady();
@@ -2711,7 +2765,7 @@ function listTouch(e){
   a.unshift(o); listWrite(a);
 }
 function listRemove(lg){ listWrite(listRead().filter(function(x){ return x.lg !== lg; })); }
-function listClear(){ try { localStorage.removeItem(LIST_KEY); } catch (e){} state.list = []; }
+function listClear(){ try { localStorage.removeItem(LIST_KEY); } catch (e){} state.list = []; state.mine = {status:'none', rows:[]}; }
 
 /* ---------- opening a linked league ---------- */
 function leaveLinked(){
@@ -2877,16 +2931,18 @@ function cloudPanels(main){
       el('div', {class:'row'}, el('button', {type:'button', class:'btn', id:'btnSignOut', disabled:busy, onclick:function(){ signOutNow(); }}, 'SIGN OUT'))]);
   }
   if (state.busy) C.appendChild(el('div', {class:'msg warn', id:'busyMsg', role:'status'}, state.busy));
-  var rows = state.list;
+  var rows = mineRows(), ms = state.mine.status;
   var D = el('div', {class:'panel', id:'panelMine'}, [el('h2', null, 'D. MY LEAGUES'),
-    el('p', {class:'note'}, 'The leagues this browser opened after a sign-in (kept only in this browser; SIGN OUT clears the list). The cloud rules do not let a signed-in person list his own leagues, so HQ keeps this short list itself.')]);
+    el('p', {class:'note'}, 'The leagues this browser opened after a sign-in (kept only in this browser; SIGN OUT clears the list), plus, after a Google sign-in, the leagues you made on other devices (tag CLOUD).')]);
+  if (ms === 'refused') D.appendChild(el('p', {class:'note', id:'mineNote'}, 'The cloud list of your leagues needs the new rules, which are not published yet: only the leagues this browser opened are shown.'));
+  else if (ms === 'net') D.appendChild(el('p', {class:'note', id:'mineNote'}, 'The cloud list of your leagues could not be read (connection): only the leagues this browser opened are shown. Sign in again to retry.'));
   if (!rows.length) D.appendChild(el('p', {class:'note'}, 'No leagues yet.'));
   else D.appendChild(table([
-    {h:'LEAGUE', v:function(r){ return [r.nm, r.pending ? tag('NOT FINISHED', 'rt') : null]; }}, {h:'CODE', v:function(r){ return r.code || '-'; }},
-    {h:'ROLE', v:function(r){ return r.role === 'commissioner' ? 'COMMISSIONER' : 'WATCHING'; }}, {h:'LAST OPENED', v:function(r){ return fmtDate(r.t); }},
+    {h:'LEAGUE', v:function(r){ return [r.nm, r.pending ? tag('NOT FINISHED', 'rt') : null, r.cloud ? tag('CLOUD', 'me') : null]; }}, {h:'CODE', v:function(r){ return r.code || '-'; }},
+    {h:'ROLE', v:function(r){ return r.role === 'commissioner' ? 'COMMISSIONER' : 'WATCHING'; }}, {h:'LAST OPENED', v:function(r){ return r.t ? fmtDate(r.t) : '-'; }},
     {h:'', v:function(r){ return el('span', null, [
       el('button', {type:'button', class:'btn pri', 'data-lg':r.lg, disabled:busy, onclick:function(){ runBusy(r.pending ? 'Finishing the league...' : (state.auth.kind === 'none' ? 'Signing in...' : 'Opening the league...'), async function(){ await openListed(r); }); }}, r.pending ? 'FINISH' : 'OPEN'),
-      ' ', el('button', {type:'button', class:'btn', 'data-rm':r.lg, disabled:busy, onclick:function(){ listRemove(r.lg); render(); }}, 'REMOVE')]); }}
+      ' ', r.cloud ? null : el('button', {type:'button', class:'btn', 'data-rm':r.lg, disabled:busy, onclick:function(){ listRemove(r.lg); render(); }}, 'REMOVE')]); }}
   ], rows));
   main.appendChild(el('div', {class:'panels', style:'margin-top:16px'}, [C, D]));
 }
@@ -2929,13 +2985,15 @@ function linkedBanner(m){
   return el('div', {class:'msg ok', id:'linkedBanner'}, [el('b', null, 'LINKED LEAGUE'), ' code ', el('b', null, cl ? cl.code || '-' : '-'), ' | you are ',
     el('b', null, cl && cl.role === 'commissioner' ? 'the COMMISSIONER' : 'WATCHING (read only)'), ' | ', el('button', {type:'button', class:'lnk', onclick:function(){ go('cloud'); }}, 'CODE AND SLOTS'), ' | ', el('button', {type:'button', class:'lnk', onclick:function(){ go('week'); }}, 'THE WEEK')]);
 }
+function joinTag(cl){ var t = isClosed(cl.meta) ? tag('JOINING CLOSED', 'rt') : tag('JOINING OPEN', 'st'); t.id = 'joinState'; return t; }
 function vCloud(main){
   var cl = state.cl, m = state.m;
   add(main, [el('h1', null, cl.meta ? cl.meta.nm : 'LINKED LEAGUE'), el('p', {class:'sub'}, cl.role === 'commissioner' ? 'Linked league. You are the commissioner.' : 'Linked league. You are watching: everything here is read only.')]);
   if (state.msg) main.appendChild(el('div', {class:'msg ' + state.msg.kind, role:'alert'}, state.msg.text));
   if (cl.err) main.appendChild(el('div', {class:'msg err', id:'clErr', role:'alert'}, cl.err));
   add(main, [el('div', {class:'row'}, [el('span', {class:'note'}, 'LEAGUE CODE'), el('span', {class:'codebig', id:'leagueCode'}, cl.code || '-'),
-    cl.code && navigator.clipboard ? el('button', {type:'button', class:'btn', id:'btnCopy', onclick:function(){ try { navigator.clipboard.writeText(cl.code); } catch (e){} }}, 'COPY') : null])]);
+    cl.code && navigator.clipboard ? el('button', {type:'button', class:'btn', id:'btnCopy', onclick:function(){ try { navigator.clipboard.writeText(cl.code); } catch (e){} }}, 'COPY') : null,
+    joinTag(cl)])]);
   var claimed = 0; for (var i = 0; i < NTEAMS; i++) if (cl.slots[String(i)]) claimed++;
   main.appendChild(cards([['SEASON', String(cl.meta.season)], ['PHASE', stdPhaseText(m)], ['TEAMS CLAIMED', claimed + ' OF ' + NTEAMS], ['LIVE UPDATES', cl.live ? 'ON' : 'OFF'],
     ['CHECKED', new Date(cl.loadedAt).toISOString().slice(11, 19) + ' UTC']]));
@@ -2952,7 +3010,7 @@ function vCloud(main){
   main.appendChild(el('div', {class:'row'}, [
     el('button', {type:'button', class:'btn pri', id:'btnRefresh', disabled:!!cl.busy, onclick:function(){ refreshLeague(cl, null); }}, 'REFRESH NOW'),
     el('button', {type:'button', class:'btn', id:'btnClose', onclick:function(){ leaveLinked(); state.m = null; go('open'); }}, 'CLOSE THIS LEAGUE')]));
-  main.appendChild(el('p', {class:'note'}, 'HQ listens to this league\'s main document: when the commissioner changes it (a week is played, a season ends) HQ reads the new data by itself. A friend taking or leaving a team does not change that document, so press REFRESH NOW to see slot changes at once. Friends will join with the code from the game: JOIN LEAGUE arrives in a later game build. Results are an honor system.'));
+  main.appendChild(el('p', {class:'note'}, 'HQ listens to this league\'s main document: when the commissioner changes it (a week is played, a season ends) HQ reads the new data by itself. A friend taking or leaving a team does not change that document, so press REFRESH NOW to see slot changes at once. Friends join with the code from the game (JOIN LEAGUE). Results are an honor system.'));
 }
 
 /* ===================================================================================================================
@@ -3172,7 +3230,10 @@ function offseasonReport(o){
 function slotButtons(cl, k){
   var s = cl.slots[String(k)], ed = state.slotEdit;
   if (!s) return el('button', {type:'button', class:'btn', 'data-take':String(k), disabled:!!state.busy, onclick:function(){
-    doWeekAction('Taking the team...', async function(){ await takeSlot(FB.ad, cl.lg, k, state.auth.uid, state.auth.name || 'COMMISSIONER'); await refreshLeague(cl, null); setMsg('ok', 'You now own ' + cl.L.teams[k].nm + '.'); }); }}, 'TAKE THIS TEAM MYSELF');
+    doWeekAction('Taking the team...', async function(){
+      try { await takeSlot(FB.ad, cl.lg, k, state.auth.uid, state.auth.name || 'COMMISSIONER'); }
+      catch (e){ if (isClosed(cl.meta) && classify(e) === 'denied') throw CloudError('denied', 'Joining is CLOSED, so no new team can be taken, not even by you. Press OPEN JOINING first.'); throw e; }
+      await refreshLeague(cl, null); setMsg('ok', 'You now own ' + cl.L.teams[k].nm + '.'); }); }}, 'TAKE THIS TEAM MYSELF');
   if (ed && ed.i === k && ed.free) return [el('button', {type:'button', class:'btn danger', 'data-free-yes':String(k), disabled:!!state.busy, onclick:function(){
     doWeekAction('Freeing the team...', async function(){ await freeSlot(FB.ad, cl.lg, k); state.slotEdit = null; await refreshLeague(cl, null); setMsg('ok', cl.L.teams[k].nm + ' is open again.'); }); }}, 'YES, FREE IT'),
     el('button', {type:'button', class:'btn', onclick:function(){ state.slotEdit = null; render(); }}, 'KEEP')];
@@ -3196,8 +3257,18 @@ function peopleTools(main, cl){
     el('div', {class:'row'}, el('button', {type:'button', class:'btn', id:'btnRename', disabled:!!state.busy, onclick:function(){
       var typed = nameBox.value;        /* read before the screen is redrawn */
       doWeekAction('Renaming...', async function(){ var nm = await renameLeague(FB.ad, cl.lg, {uid:state.auth.uid, expect:expectNow(cl), name:typed}); await refreshLeague(cl, nm); listTouch({lg:cl.lg, nm:nm.nm, code:cl.code, role:cl.role}); setMsg('ok', 'The league is now called ' + nm.nm + '.'); }); }}, 'RENAME'))]));
+  var closed = isClosed(cl.meta), ms = state.mine.status;
+  var jnote = ms === 'ok' ? null : (ms === 'refused'
+    ? 'Needs the new rules: the cloud rules published so far do not look at this switch, so it changes nothing for joiners yet. It starts to work when the new rules are published; the next Google sign-in here checks that.'
+    : 'HQ cannot tell yet whether the new rules are published (sign in with Google again to check). Until they are, this switch changes nothing for joiners.');
   main.appendChild(el('div', {class:'panel', id:'joinPanel'}, [el('h2', null, 'JOINING'),
-    el('p', null, 'Anybody who has the code can take an OPEN team. The current cloud rules have no switch to close joining, so HQ does not offer one: to stop new people, take the open teams yourself (TAKE THIS TEAM MYSELF) or keep the code to your friends. A rule change is requested in the report (REQUEST 2).')]));
+    el('p', null, closed ? 'Joining is CLOSED: nobody new can take an open team with the code. Friends who already have a team keep playing, sending and leaving as before.'
+      : 'Joining is OPEN: anybody who has the code can take an open team. CLOSE JOINING stops new people; the friends who already have a team are not affected.'),
+    el('div', {class:'row'}, el('button', {type:'button', class:'btn' + (closed ? ' pri' : ''), id:'btnJoining', disabled:!!state.busy, onclick:function(){
+      doWeekAction(closed ? 'Opening joining...' : 'Closing joining...', async function(){
+        var nm = await setJoining(FB.ad, cl.lg, {uid:state.auth.uid, expect:expectNow(cl), closed:!closed});
+        await refreshLeague(cl, nm); setMsg('ok', closed ? 'Joining is OPEN again.' : 'Joining is CLOSED.'); }); }}, closed ? 'OPEN JOINING' : 'CLOSE JOINING')),
+    jnote ? el('p', {class:'note', id:'joinNote'}, jnote) : null]));
 }
 
 /* ---------- CHAMPIONS AND HISTORY ---------- */
@@ -3216,8 +3287,8 @@ function vChamps(main){
 /* ---------- ABOUT THIS LEAGUE ---------- */
 function aboutText(cl){
   return ['LEAGUE: ' + cl.meta.nm, 'CODE: ' + (cl.code || '(not known on this device; open the league by its code)'), '',
-    'HOW TO JOIN: open Pixel Pigskin on your phone. In a later version of the game there will be a JOIN LEAGUE button: type this code, pick an OPEN team and play.',
-    'Until that version is released the code is only for watching the league on the HQ page.', '',
+    'HOW TO JOIN: open Pixel Pigskin on your phone, press JOIN LEAGUE, type this code, pick an OPEN team and play.',
+    isClosed(cl.meta) ? 'JOINING IS CLOSED: the commissioner has closed this league to new players for now. Friends who already have a team keep playing.' : 'JOINING IS OPEN: any open team can be taken with the code.', '',
     'HOW IT WORKS: you play your game of the week by hand in the game and send the result. The commissioner advances the league once the week is played. A friend who cannot play can be simulated by the commissioner.', '',
     'HONOR SYSTEM: the league cannot check a score or a rating. Results and upgrades are on the honor of the players; the commissioner can void any result and the AUDIT screen shows every rating change.'].join('\n');
 }
