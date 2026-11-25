@@ -368,6 +368,11 @@ html{background:#070a12}
 .czs h4{margin:0;font:inherit;font-size:var(--t1);color:#ffd400;letter-spacing:.06em}
 .czs .row{justify-content:flex-start}
 .czs .seg{margin:0}
+.czur{display:flex;flex-direction:column;gap:2px}.czur b{font-weight:normal;font-size:var(--t0);color:#fff;letter-spacing:.04em}
+.czrc{display:block;width:100%;height:76px;background:#2f6b3a;border:2px solid #000;box-sizing:border-box}
+.czs .row .sb:disabled{opacity:.45;cursor:default}
+.czp.czwr,.czp.czwr span{font-size:max(13px,calc(var(--t0)*1.3))!important}
+#lock .card.cz .lkun{flex-wrap:wrap;align-items:flex-start}#lock .card.cz .lkun .seg{flex:1;margin:0;gap:var(--s1)}#lock .card.cz .lkun .sb{font-size:var(--t0);min-height:var(--tp);min-width:var(--tp)}
 .czlb{font-size:var(--t0);color:var(--nmu,#aebbd8);margin-top:var(--s1)}
 .czw input:not([type=color]),#czsh input:not([type=color]){width:100%;text-align:left;min-height:var(--tp);font-size:var(--t1);padding:0 var(--s3)}
 .czp{font-size:var(--t0)!important;line-height:1.7;color:var(--nmu,#aebbd8)}.czp b{font-weight:normal;color:#ffd400}
@@ -534,7 +539,7 @@ html{background:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="2.36"; /* v2.36: lg-drive 1.2 (round 3) embedded as it is (it carries the CALL YOUR DEFENSE tilt itself; switch still OFF); a linked league whose commissioner closed joining shows JOINING IS CLOSED instead of making a slot. v2.35: CALL YOUR DEFENSE: every one of the 14 cards is a real call of its own (DC_T, per-card factors), a short text on each card; lg-drive 1.1 (switch still OFF); a tied playoff game no longer knocks you out; AUTO calls by the rules table. v2.34: the game screen: MENU button (upper left, hidden from the snap), RB box yellow, routes 3 px, no tips after the snap, installed app fullscreen / black-translucent. v2.33: LINKED LEAGUES, the player side (src/lk.js): join a commissioner's league by its code, pull it, play and send games. v2.32: no game change (tests only: drvoff pinned to the .611 speed, hlp over http). Helmet logo, jersey trim and number are still drawn in the play designer and the kick scene, so their LOOK rows stay. */ /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.38"; /* v2.38: a more natural body for the smooth players, HOME/AWAY/WHITE from two colors, a sleeves color, your own uniforms. v2.37: lg-drive 1.4 (tune + zone cards) embedded as it is (switch still OFF); the five zone cards get the new touchdown / field-goal rows and six card texts; a result of 8 points (a try for two) and its text; team personalities (sty); a level linked playoff game is decided by the engine's 3-point rule before it is sent. v2.36: lg-drive 1.2 (round 3) embedded as it is (it carries the CALL YOUR DEFENSE tilt itself; switch still OFF); a linked league whose commissioner closed joining shows JOINING IS CLOSED instead of making a slot. v2.35: CALL YOUR DEFENSE: every one of the 14 cards is a real call of its own (DC_T, per-card factors), a short text on each card; lg-drive 1.1 (switch still OFF); a tied playoff game no longer knocks you out; AUTO calls by the rules table. v2.34: the game screen: MENU button (upper left, hidden from the snap), RB box yellow, routes 3 px, no tips after the snap, installed app fullscreen / black-translucent. v2.33: LINKED LEAGUES, the player side (src/lk.js): join a commissioner's league by its code, pull it, play and send games. v2.32: no game change (tests only: drvoff pinned to the .611 speed, hlp over http). Helmet logo, jersey trim and number are still drawn in the play designer and the kick scene, so their LOOK rows stay. */ /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -606,6 +611,7 @@ const SAVE_VERSION=2,SAVE_GAP=1000;
 const MIGRATIONS=[d=>d,d=>d];                 /* MIGRATIONS[v] upgrades a version-v save to v+1; v0 -> v1 only adds `sv`, every field is kept; v2.23: v1 -> v2 (the Standard league type, S.std and S.stm) also only adds `sv`: no existing save changes */
 function migrate(d){if(!d||typeof d!=='object')return d;let v=+d.sv||0;
  while(v<SAVE_VERSION){const f=MIGRATIONS[v];if(f)d=f(d)||d;v++;d.sv=v}
+ try{styFix(d)}catch(e){}   /* v2.37: a team style record is checked on every read (a save, a backup code, a cloud copy) */
  return d}
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
@@ -1827,6 +1833,17 @@ const LGFULL = (function () {
   return { make, version: VERSION, KIND, RESERVED, STAGES, PHASES };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = LGFULL;
+/* ROUND 5 (1.4) CHANGES from 1.3: the same API, ctx and result shape; NO member added or changed. (A) TUNE: the fit was redone against a clean reference (the v2.36 game's own old-roll drives, 360 games a cell, independent seeds): 66 fitted values (the 65 of 1.2/1.3 refitted, plus one new fitted
+   term, stallS: the 3rd down of a drive's second series is stopped one yard short with that chance, so drives that make one first down punt on the sixth play more often, as the game's do), the targets of the round 5 prompt (points a drive, the 3-play share of punt drives, plays a drive by level, TD share by start group,
+   late trailing plays, FG share of non-cut drives) and the late-game guards. (B) ZONE CARDS: the five zone rows of DC_T (c3, c2, t2, c4, c6) are the rows of def-tilt-v3.json (Design A, the table only); blitzBal re-balanced to .05 (blitzK stays .6). (C) PERSONALITY: one new SET term, passComp (yards of every play x (1 - passComp x pass),
+   exactly 1 at pass 0), and the aggr 4th-down rule is graded (exactly the old rule at aggr .5, no random draw there). A default style still equals no style bit for bit (the selftest proves it inside this file). */
+/* ROUND 4 (1.3) CHANGES from 1.2: the same API, ctx and result shape; ADDITIVE members only (the helpers styleDefault() and styleNormalize(rec), and on a touchdown the result members `try` and `tryGood`). NEUTRAL MEANS UNCHANGED:
+   with no style, or a style at its defaults ({pass:0, depth:0, aggr:.5, two:0, tempo:1, hurry:0, blitz:0}, on offense and on defense), simDrive draws exactly the same numbers in the same order as 1.2 (every new term is multiplied by the
+   style value, and the new random draws are made only when a style asks for them). The round-3 fit did not move (65 fitted values, unchanged). The new terms are SET, not fitted to the game (the game has no such styles), and tuned
+   by the symmetric-pair balance (a style pair +d / -d scores the same on average). (1) depth: shifts the pass completion bands, their yards, the incompletion, interception and sack chances (depthB, depthY, depthInc, depthInt, depthSack).
+   (2) hurry: scales the late-trailing clock factor, the late pass lean, the sack and the incompletion chance (hurryT, hurryPass, hurrySack, hurryInc). (3) two: after a touchdown the offense tries for two with chance two x a situation chart
+   (twoP, twoBig, twoLate); result.try = 'xp' | 'two', result.tryGood; result.pts is 7 or 6 for an extra point as before, 8 or 6 for a two-point try. (4) blitz (the DEFENSE's style): with no call, moves the touchdown, field-goal and
+   turnover factors along the zone to pressure family averages of the call table (blitzK, blitzPW) plus a small touchdown term that keeps a blitz-heavy defense from being a better one (blitzBal); a player call overrides it. */
 /* ROUND 3 (1.2) CHANGES from 1.1: the same API, ctx and result shape; two ADDITIVE members on the returned object (tiltV2, tiltTable), nothing existing changed.
    (1) THE START SPOT: the real game's drives keep their length from a start at the middle of the field and shorten only near the goal. New terms: a cap on the start effect on the yard scale (fpYsCap), a start effect on the
    3rd / 4th down carry (cvS, cvCap), a longer field-goal range from a long start (fgStartK, fgStartS), more turnovers from inside the 25 (toLoK), a power on the far-start turnover factor (toFarP), a kick instead of a go-for-it from
@@ -1837,7 +1854,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LGFULL;
    New structure: (1) a turnover RAMP: the first snap of a drive has toR0 of the full turnover chance, rising in a line to the full chance after toRN plays (game drives have no first-snap turnover);
    (2) the field-goal range grows with the effective edge (fgDistE yards per edge unit); (3) the upgrade shift counts only toSh of its size toward the turnover chance; (4) the turnover chance falls for long
    starts (toFarS, toFarK); (5) a 3rd or 4th down play that fell short of a short distance is carried to the first down with chance cv3 / cv4 (fewer 3-and-outs, longer drives). 51 fitted values (39 in 1.0). */
-/* lg-drive 1.2 (round 3) [1.1 was round 2, 1.0 the prototype]: the shared DRIVE SIMULATOR for Pixel Pigskin.
+/* lg-drive 1.3 (styles) [1.2 was round 3, 1.1 round 2, 1.0 the prototype]: the shared DRIVE SIMULATOR for Pixel Pigskin.
    Plain JavaScript. No S, G, DOM, localStorage, Math.random, Date or timers: the ONLY randomness is the `rng` you pass in (a function returning [0,1), for example the
    league engine's lgMulberry32 stream). The same ctx and the same rng sequence give the same plays on every device.
    The game's own opponent drive (simOpp + odApply + odCut) rolls the RESULT first and writes plays to fit it. This file does it the other way round: it draws the PLAYS
@@ -1863,55 +1880,58 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LGFULL;
    (a touchdown, a kick, a turnover, a loss on downs) the drive counts and its clock cost is capped at the time left; if it is not the last play and it reaches the stop the drive
    is CUT there: nothing is scored, kind/sub 'cut', time = exactly the time left (stop = the clock value it ends on: the halftime line or 0). A drive that starts with 0 seconds
    left has no plays and is cut. The quarter lines (1st/2nd and 3rd/4th) are not stops: the clock HOLDS there (a play that would cross one ends on it).
-   TEAM STYLE record (design section 4): {pass, aggr, tempo, blitz, two}. pass = offset on the pass chance (0 = neutral), aggr = 0..1 4th-down aggression (.5 neutral),
-   tempo = clock multiplier (1 = neutral); blitz and two are carried for the later steps and not read yet. styleFor(team) builds one from the SAME hash the game uses for
-   dcTend (CALL YOUR DEFENSE's hidden tendency): pass-heavy / balanced / run-heavy = pass +.06 / 0 / -.06 (the average effect of the game's dcPickStyle tendency .7/.5/.3). */
+   TEAM STYLE record (team-style spec, section 2): {v, pass, tend, depth, aggr, two, tempo, hurry, blitz}. A drive reads offense.style: pass = offset on the pass chance (-.4..+.4, 0 neutral), depth = -1 short and quick .. +1 deep (0),
+   aggr = 0..1 4th-down aggression (.5), two = 0..1 habit of going for two after a touchdown (0), tempo = clock multiplier .5..1.5 (1), hurry = 0..1 extra hurry-up when trailing late (0); and defense.style: blitz = -1 coverage-heavy
+   .. +1 blitz-heavy (0; ignored when a call exists in tilt.call). `tend` (CALL YOUR DEFENSE's drive-style chance) is not read here: the game turns it into ctx.driveStyle. styleFor(team) builds one from the SAME hash the game uses for
+   dcTend: pass-heavy / balanced / run-heavy = pass +.06 / 0 / -.06 (the average effect of the game's dcPickStyle tendency .7/.5/.3). Helpers: styleDefault() the default record, styleNormalize(rec) fill + clamp + freeze.
+   Result members added in 1.3: on a touchdown `try` ('xp' or 'two') and `tryGood` (true when the try scored); pts is 6 + the try's points (7, 6, 8). */
 const LGD=(function(){
 'use strict';
-const VERSION='lg-drive 1.2 (round 3)';
+const VERSION='lg-drive 1.4 (tune + zone cards)';
 
 /* ===================== PARAMETERS: every number the simulator uses is here ===================== */
 const P={
  /* --- strengths to an "effective edge" (edge units: off - def; the game's TD chance moves about .052 a unit) --- */
- kEq:0.66508,        /* difficulty levels -> edge units. FITTED (starts at .62, derived from simOpp's coefficients: pTD .03/.052=.58, pFG .006/.008=.75, pTO .008/.012=.67, yards .02/.035=.57) */
- shEq:0.54327,       /* upgrade / relief levels -> edge units. FITTED (starts at .58: simOpp puts the shift only in pTD, .03/.052) */
- homeEq:0.24876,     /* home flag -> edge units. FITTED (starts at .48: simOpp's +-.025 pTD / .052) */
- lateTrailEq:0.81589, /* the late-trail bonus in edge units. FITTED (starts at 1.15 = the game's .06 pTD / .052; lower here because the two-minute drill also changes the plays) */
+ kEq:0.65834,        /* difficulty levels -> edge units. FITTED (starts at .62, derived from simOpp's coefficients: pTD .03/.052=.58, pFG .006/.008=.75, pTO .008/.012=.67, yards .02/.035=.57) */
+ shEq:0.54558,       /* upgrade / relief levels -> edge units. FITTED (starts at .58: simOpp puts the shift only in pTD, .03/.052) */
+ homeEq:0.45946,     /* home flag -> edge units. FITTED (starts at .48: simOpp's +-.025 pTD / .052) */
+ lateTrailEq:0.67831, /* the late-trail bonus in edge units. FITTED (starts at 1.15 = the game's .06 pTD / .052; lower here because the two-minute drill also changes the plays) */
  edgeMax:12,     /* the edge is clamped to +-this so absurd inputs cannot break a probability */
  /* --- play calling (copied from od.js odPassP; the constants are the game's) --- */
- passBase:0.53209, passStyle:.15, passLateTrail:0, passLateLead:0.17048, /* passLateTrail and passLateLead FITTED (the game uses .2 and .2) */  pass3rdLong:0.32754, passShortYd:-0.08825, passMin:.12, passMax:.92,
+ passBase:0.5279, passStyle:.15, passLateTrail:0.05701, passLateLead:0.09606, /* passLateTrail and passLateLead FITTED (the game uses .2 and .2) */  pass3rdLong:0.2727, passShortYd:-0.2316, passMin:.12, passMax:.92,
  lateQ:1.2,      /* "late" = at most this many quarters left in the game (the game's late flag, G.clock <= qLen*1.2) */
- tempoTrail:0.76118, tempoLead:1.33471, /* clock multipliers when trailing / leading in the last lateQ quarters. FITTED (the game uses .8 and 1.3) */
+ tempoTrail:0.76087, tempoLead:1.33745, /* clock multipliers when trailing / leading in the last lateQ quarters. FITTED (the game uses .8 and 1.3) */
  /* --- run: [chance, low, high] yard bands (integer uniform), as od.js; a positive gain is multiplied by the yard scale --- */
- runMix:[[0.04,-2,0],[0.7704253702840026,1,5],[0.1701007101510191,6,11],[0.019473919564978185,12,28]],
+ runMix:[[0.04,-2,0],[0.7630535240843384,1,5],[0.1684730946517726,6,11],[0.028473381263888976,12,28]],
  /* --- pass: sack chance, interception chance, incompletion chance (each moves with the effective edge), then completion yard bands --- */
- sack0:0.06836, sackE:-0.00881, inc0:0.285, incE:-0.00544, int0:0.06404,
- passMix:[[0.5515322255868653,2,8],[0.29009760683806135,9,17],[0.1583701675750733,18,40]],
+ sack0:0.06952, sackE:-0.00587, inc0:0.28355, incE:-0.01139, int0:0.06201,
+ passMix:[[0.5681016815156767,2,8],[0.2786620044655544,9,17],[0.15323631401876894,18,40]],
  /* --- yard scale, as the game's ys = clamp(1 + edge*.035 + ..) --- */
- ys0:1.05532, ysE:0.0304, ysMin:.75, ysMax:1.35, runYs:1.10262, passYs:1.06423,
+ ys0:1.06082, ysE:0.02709, ysMin:.75, ysMax:1.35, runYs:1.09864, passYs:1.07585,
  fpYsCap:10, /* round 3: the start effect on the yard scale above the 25 stops growing after this many yards (a 75 = no cap, as 1.1). FITTED */
- fpYsLo:0.00298, fpYsHi:0.00564, /* the start spot's effect on the yard scale, per yard below / above the 25 (the game's start-spot rule: a good start is worth more than a bad one costs) */
+ fpYsLo:0, fpYsHi:0.00294, /* the start spot's effect on the yard scale, per yard below / above the 25 (the game's start-spot rule: a good start is worth more than a bad one costs) */
  /* --- turnovers: a pass attempt is intercepted with int0, a run / completion / sack is fumbled away with fum0; both are scaled by exp(-toE * edge) and the call's TO factor --- */
- fum0:0.01086, toE:0.13102, intDepth:[0,2],
- toR0:0, toR1:0.14825, toR2:0.54062, toR3:0.70807, toRN:5.97051, /* the turnover RAMP. Round 2 had a straight line from toR0 (first snap) to the full chance at toRN plays. Round 3: a bent line through the share of the full chance at 0, 1, 2 and 3 plays so far (toR0, toR1, toR2, toR3), then a straight line up to the full chance at toRN plays (toRN 3 or less = full at 3). The game's own drives have almost no turnover on the first two snaps and then turn the ball over more and more often as they run. FITTED */    /* round 2: a turnover ramp. The first snap of a drive is a small fraction (toR0) of the full turnover chance, rising in a straight line to the full chance after toRN plays (the game's own drives have no turnover on the first snap and few on the second). FITTED */
- fgDistE:2.54808,           /* round 2: the longest field goal grows by this many yards per unit of effective edge, so good offenses kick from farther (the game's FG share rises with level). FITTED */
- toSh:0.62181,  /* round 2: how much of the upgrade shift (tilt.sh) counts toward the turnover chance (0 = none, 1 = all, as 1.0). The game's own turnover share does not fall as the player's upgrades rise. FITTED */
- toLoK:0.39031, /* round 3: a start inside the offense's own 25 raises the turnover chance by toLoK x (25 - start) / 25 (a drive from its own goal line gives the ball away more). FITTED */
+ fum0:0.00781, toE:0.13182, intDepth:[0,2],
+ toR0:0, toR1:0.14825, toR2:0.54062, toR3:0.70807, toRN:8, /* the turnover RAMP. Round 2 had a straight line from toR0 (first snap) to the full chance at toRN plays. Round 3: a bent line through the share of the full chance at 0, 1, 2 and 3 plays so far (toR0, toR1, toR2, toR3), then a straight line up to the full chance at toRN plays (toRN 3 or less = full at 3). The game's own drives have almost no turnover on the first two snaps and then turn the ball over more and more often as they run. FITTED */    /* round 2: a turnover ramp. The first snap of a drive is a small fraction (toR0) of the full turnover chance, rising in a straight line to the full chance after toRN plays (the game's own drives have no turnover on the first snap and few on the second). FITTED */
+ fgDistE:1.96412,           /* round 2: the longest field goal grows by this many yards per unit of effective edge, so good offenses kick from farther (the game's FG share rises with level). FITTED */
+ toSh:0.73943,  /* round 2: how much of the upgrade shift (tilt.sh) counts toward the turnover chance (0 = none, 1 = all, as 1.0). The game's own turnover share does not fall as the player's upgrades rise. FITTED */
+ toLoK:0.97365, /* round 3: a start inside the offense's own 25 raises the turnover chance by toLoK x (25 - start) / 25 (a drive from its own goal line gives the ball away more). FITTED */
  toFarP:0.55621, /* round 3: the far-start factor is raised to this power (1 = the straight line of 1.1; above 1 the chance falls away faster past the knee). FITTED */
- toFarS:40, toFarK:0.01202,  /* round 2: the game's own drives from a long start (about the opponent 40 and beyond) rarely or never turn the ball over: the turnover chance is scaled by max(0, 1 - toFarK x (start - toFarS)). FITTED */
- cvCap:27.22196, /* the start effect on the carry stops growing at this many yards past the 25 (round 3). FITTED */
- cvF:0.04005, /* round 3: the 3rd down of a drive's FIRST series (the third play of the drive) is carried to the first down with this extra chance at any distance (the game's drives are three-and-out less often than the plain yard draws give, but only at the start of a drive). FITTED */
- cvS:2.07134, /* round 3: the carry chance (cv3, cv4) is multiplied by exp(cvS x (start - 25) / 30): a long start carries more often, a deep start less (the game's drives from the middle of the field keep going, its drives from their own goal line do not). FITTED */
- cv3:0.05299, cv4:0.73344, cvTg:12, /* round 2: a 3rd (cv3) or 4th (cv4) down play that fell short of the distance (distance cvTg or less, not a sack or turnover) is carried to the first down with this chance: fewer 3-and-outs and longer drives at the same yards a play. FITTED */
- toDeep:0.6822,      /* turnovers are most likely early in a drive: the chance is scaled by exp(-toDeep x yards gained / 30). The game's own rolled turnover happens about 22 yards past the start whatever the start; this keeps that */
+ toFarS:49, toFarK:0,  /* round 2: the game's own drives from a long start (about the opponent 40 and beyond) rarely or never turn the ball over: the turnover chance is scaled by max(0, 1 - toFarK x (start - toFarS)). FITTED */
+ cvCap:27.99577, /* the start effect on the carry stops growing at this many yards past the 25 (round 3). FITTED */
+ stallS:0.66222, /* round 5 (1.4a): the 3rd down of a drive's SECOND series (the sixth play of a drive that made its first first down on the third play) that would have made the distance is stopped one yard short with this chance (the game's drives that make one first down mostly punt on the sixth play, the plain yard draws let them go on). FITTED */
+ cvF:0.17705, /* round 3: the 3rd down of a drive's FIRST series (the third play of the drive) is carried to the first down with this extra chance at any distance (the game's drives are three-and-out less often than the plain yard draws give, but only at the start of a drive). FITTED */
+ cvS:2.09514, /* round 3: the carry chance (cv3, cv4) is multiplied by exp(cvS x (start - 25) / 30): a long start carries more often, a deep start less (the game's drives from the middle of the field keep going, its drives from their own goal line do not). FITTED */
+ cv3:0.06335, cv4:0.10578, cvTg:12, /* round 2: a 3rd (cv3) or 4th (cv4) down play that fell short of the distance (distance cvTg or less, not a sack or turnover) is carried to the first down with this chance: fewer 3-and-outs and longer drives at the same yards a play. FITTED */
+ toDeep:0.55104,      /* turnovers are most likely early in a drive: the chance is scaled by exp(-toDeep x yards gained / 30). The game's own rolled turnover happens about 22 yards past the start whatever the start; this keeps that */
  /* --- the clock: seconds of game time per play (the play plus the 3 s run-off, or the stopped clock), at qLen 90; scaled by qLen/90 and a +-tJit jitter --- */
- tRun:4.78558, tComp:5.09717, tInc:0.5, tSack:9, tInt:6, tKick:2.99461, tJit:0.12,
+ tRun:4.93645, tComp:5.08153, tInc:0.95645, tSack:8.85342, tInt:3.9681, tKick:2.67068, tJit:0.26104,
  /* --- 4th down --- */
- fgDistMax:55.12346,   /* the longest field goal attempted: distance = yards to goal + 17. FITTED */
- fgStartK:0.34011, fgStartS:41.14814, /* round 3: from a start past fgStartS the longest field goal grows by fgStartK yards per yard of start (the game's drives from the opponent's half almost never punt). FITTED */
- fgP0:0.98216, fgSlope:0.01198, fgD0:28, fgMin:.3,  /* FITTED fgP0, fgSlope (fgSlope sits on its limit of .012: the game's made chance does not fall with distance). Made chance = clamp(fgP0 - fgSlope * max(0, dist - fgD0), fgMin, .99) */
- goMaxSpot:92.63688, /* round 3: from this spot on (yards from the offense's goal line) the offense kicks the field goal instead of going for it on 4th down (100 = never, as 1.1). FITTED */
- goTg:2.36806, goTgAggr:2, goSpotMin:47.38483, /* FITTED goTg, goSpotMin. Go for it on 4th and <= goTg + goTgAggr*(aggr-.5)*2 yards from this spot or beyond (own half: never) */
+ fgDistMax:51.83526,   /* the longest field goal attempted: distance = yards to goal + 17. FITTED */
+ fgStartK:0.59309, fgStartS:42.00709, /* round 3: from a start past fgStartS the longest field goal grows by fgStartK yards per yard of start (the game's drives from the opponent's half almost never punt). FITTED */
+ fgP0:0.98444, fgSlope:0.01138, fgD0:27.59498, fgMin:.3,  /* FITTED fgP0, fgSlope (fgSlope sits on its limit of .012: the game's made chance does not fall with distance). Made chance = clamp(fgP0 - fgSlope * max(0, dist - fgD0), fgMin, .99) */
+ goMaxSpot:88.42871, /* round 3: from this spot on (yards from the offense's goal line) the offense kicks the field goal instead of going for it on 4th down (100 = never, as 1.1). FITTED */
+ goTg:2.36806, goTgAggr:2, goSpotMin:50.85175, /* FITTED goTg, goSpotMin. Go for it on 4th and <= goTg + goTgAggr*(aggr-.5)*2 yards from this spot or beyond (own half: never) */
  desperate:0,   /* trailing late (diff<0) with this many seconds or fewer left until the stop: go for it on 4th down, never punt. FITTED to 0 = OFF: the real game never does this, and any value above 0 moved the late rows away from it */
  puntLo:34, puntHi:46, puntRet:8, puntNextMax:60, tbNext:20, /* punt: gross distance uniform, return 0..puntRet yards, touchback puts the ball on tbNext */
  toRet:22.60942, toNextMin:5, toNextMax:80,  /* a turnover: the other team starts at 100 - spot + 0..toRet */
@@ -1919,24 +1939,41 @@ const P={
  downsNextMax:95, /* a loss on downs: the other team starts at 100 - spot */
  xp:.93,         /* a touchdown is worth 7 with this chance, else 6 (as simOpp) */
  /* --- the CALL YOUR DEFENSE tilt: factors [pTD, pFG, pTO] by family and style (copied from dc.js DC_F, DC_C4RUN, DC_PV_*) turned into play-level effects --- */
- callTdEq:6.46568,  /* a TD factor f -> edge units: (f-1) x callTdEq (the game's TD chance is about .32, so .32/.052) */
- callFgRange:18.68128, /* a field-goal factor f -> the field-goal range moves (f-1) x callFgRange yards */
+ callTdEq:6.07857,  /* a TD factor f -> edge units: (f-1) x callTdEq (the game's TD chance is about .32, so .32/.052) */
+ callFgRange:17.64623, /* a field-goal factor f -> the field-goal range moves (f-1) x callFgRange yards */
  /* --- the game --- */
  kickSpot:25, maxPlays:26, otMaxDrives:12, toUse:.5, /* toUse: chance the trailing offense (timeouts > 0, late) stops the clock after a play: no run-off that play */
- timeoutSave:2.5 /* seconds saved by a timeout after a play */
+ timeoutSave:2.5, /* seconds saved by a timeout after a play */
+ /* --- ROUND 4 (1.3) STYLE TERMS. SET by hand and balanced by simulation (symmetric pairs score the same), not fitted to the game. Each is multiplied by the style value (0 at the default), so a neutral style adds exactly zero. --- */
+ depthB:[-0.25,0,0.25],   /* depth: the weight of pass completion band i (2-8, 9-17, 18-40 yards) is multiplied by exp(depthB[i] x depth) and the three weights are put back to a sum of 1 (deep: more 18-40 completions, fewer 2-8) */
+ depthY:0.055,    /* depth: the yards of a completion are multiplied by exp(depthY x depth) (deep: farther inside each band) */
+ depthInc:0.06, /* depth: the incompletion chance moves by depthInc x depth (deep: fewer completions) */
+ depthInt:0.15, /* depth: the interception chance is multiplied by 1 + depthInt x depth (deep throws are picked off more) */
+ depthSack:0.006, /* depth: the sack chance moves by depthSack x depth (a deep pass takes longer to develop) */
+ hurryT:0.3,    /* hurry: the late-trailing clock factor tempoTrail is multiplied by 1 - hurryT x hurry (faster clock) */
+ hurryPass:0.12, /* hurry: the late-trailing pass chance gets + hurryPass x hurry (the game's own late-trailing lean is .2; passLateTrail is fitted to 0 in 1.2) */
+ hurrySack:0.01, /* hurry: the sack chance when trailing late moves by hurrySack x hurry (rushed blocking) */
+ hurryInc:0.03,  /* hurry: the incompletion chance when trailing late moves by hurryInc x hurry (rushed and thrown-away passes; they stop the clock) */
+ twoP:0.47,     /* two: the chance a two-point try is good (the league's recent rate is 47 to 50 percent; 2 x .47 = .94 points against .93 for the extra point, so the average points stay put) */
+ twoBig:14,     /* two: no try for two when the offense leads by this many points or more AFTER the touchdown, before the try (two scores and more: leading big, zero) */
+ twoLate:1.5,   /* two: trailing late (still behind after the touchdown, at most lateQ quarters left): the chance is multiplied by this (capped at 1) */
+ blitzK:0.6,    /* blitz: at blitz +1 (-1) the touchdown, field-goal and turnover factors move by blitzK x (pressure family average - zone family average) toward the pressure (zone) side: 60 percent of the spread */
+ blitzBal:0.05, /* blitz: added to the touchdown factor per unit of blitz (more big plays allowed when it rises). The family averages alone make blitz +1 a 5 percent better defense and -1 a 5 percent worse one (the pressure cards win turnovers and give the touchdown back only against the pass); .06 makes both sides score the same as neutral on average, so a blitz-heavy defense is a different defense, not a better one. 0 = the pure family recipe. */
+ blitzPW:0.55,  /* blitz: with no drive style, the pass rows get this weight and the run rows 1 - blitzPW when the family averages are taken (the neutral pass chance) */
+ passComp:0.14,   /* round 5 (1.4), SET by hand: the yards of every play are multiplied by (1 - passComp x style.pass), so a run-heavy team (pass < 0) gains a little a snap and a pass-heavy one (pass > 0) gives a little back; at pass 0 the factor is exactly 1 (neutral unchanged). Set so that the five examples and the pass pair score within +-2.5% of neutral. */
 };
 /* the parameters that were FITTED to the step 1 table (the rest are copied from the game or derived; see their comments) */
-const P_FITTED=["callFgRange", "callTdEq", "desperate", "fgDistMax", "fgP0", "fgSlope", "fpYsHi", "fpYsLo", "fum0", "goSpotMin", "goTg", "homeEq", "inc0", "incE", "int0", "intDepth", "kEq", "lateTrailEq", "passLateLead", "passLateTrail", "passMix", "passYs", "runMix", "runYs", "sack0", "sackE", "shEq", "tComp", "tInc", "tInt", "tKick", "tRun", "tSack", "tempoLead", "tempoTrail", "toDeep", "toE", "toR0", "toRN", "fgDistE", "toSh", "toFarS", "toFarK", "cv3", "cv4", "passBase", "pass3rdLong", "passShortYd", "tJit", "ys0", "ysE", "fpYsCap", "toR1", "toR2", "toR3", "toFarP", "cvS", "cvCap", "goMaxSpot", "cvF", "fgStartK", "fgStartS", "toLoK", "cvTg", "toRet"];
+const P_FITTED=["stallS", "callFgRange", "callTdEq", "desperate", "fgDistMax", "fgP0", "fgSlope", "fpYsHi", "fpYsLo", "fum0", "goSpotMin", "goTg", "homeEq", "inc0", "incE", "int0", "intDepth", "kEq", "lateTrailEq", "passLateLead", "passLateTrail", "passMix", "passYs", "runMix", "runYs", "sack0", "sackE", "shEq", "tComp", "tInc", "tInt", "tKick", "tRun", "tSack", "tempoLead", "tempoTrail", "toDeep", "toE", "toR0", "toRN", "fgDistE", "toSh", "toFarS", "toFarK", "cv3", "cv4", "passBase", "pass3rdLong", "passShortYd", "tJit", "ys0", "ysE", "fpYsCap", "toR1", "toR2", "toR3", "toFarP", "cvS", "cvCap", "goMaxSpot", "cvF", "fgStartK", "fgStartS", "toLoK", "cvTg", "toRet"];
 const DC_FAM={c3:'Z',c2:'Z',t2:'Z',c4:'Z',c6:'Z',c1:'M',c2m:'M',c0:'P',b1:'P',fz:'P',six:'P',sb:'P',bear:'B',pv:'V'};
 const DC_F={Z:{PASS:[.95,1,1],RUN:[1.12,1,1]},M:{PASS:[.90,1,1.15],RUN:[1.10,1,.95]},P:{PASS:[1.10,.90,1.45],RUN:[.88,1,1.15]},B:{PASS:[1.07,1,1],RUN:[.85,1,1.20]}};
 const DC_C4RUN=[1.18,1,1],DC_PV_LATE=[.60,1.40,.90],DC_PV_EARLY=[1.30,1.10,.80];
 /* v2.34 CALL YOUR DEFENSE round 2: factors [pTD, pFG, pTO] for EACH scheme and drive style (claude/pixel-pigskin-scheme-tilt-spec.md). The family table DC_F stays: it is the exact v2.33 behavior when DC_TILT_V2 is false. PREVENT (pv) keeps DC_PV_*. */
 const DC_T={
- c3:{PASS:[.95,1,1],RUN:[1.158,1,1.01]},
- c2:{PASS:[.968,1.015,1.02],RUN:[1.09,1.01,1]},
- t2:{PASS:[.952,1.015,1.01],RUN:[1.1,1.01,1]},
- c4:{PASS:[.932,.985,.985],RUN:[1.168,.99,.99]},
- c6:{PASS:[.948,.985,.985],RUN:[1.144,.99,1]},
+ c3:{PASS:[.76,1.46,1],RUN:[1.22,1.3,1.01]},
+ c2:{PASS:[.8,1.52,1.03],RUN:[1.16,1.34,1]},
+ t2:{PASS:[.68,1.5,1.02],RUN:[1.3,1.3,1]},
+ c4:{PASS:[.64,1.5,.98],RUN:[1.35,1.28,.97]},
+ c6:{PASS:[.72,1.48,.99],RUN:[1.26,1.32,1]},
  c1:{PASS:[.94,.97,1.19],RUN:[1.07,1,.97]},
  c2m:{PASS:[.86,1.03,1.11],RUN:[1.13,1,.93]},
  c0:{PASS:[1.17,.84,1.62],RUN:[.83,.97,1.21]},
@@ -1957,8 +1994,26 @@ function dcHash(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCod
 const dcTend=o=>dcHash('dc'+(o&&o.id!=null?'i'+o.id:'n'+((o&&o.name)||'')))%3; /* 0 pass-heavy, 1 balanced, 2 run-heavy: the game's dcTend */
 const NEUTRAL={pass:0,aggr:.5,tempo:1,blitz:0,two:0};
 function styleFor(team){const t=dcTend(team);return{pass:[.06,0,-.06][t],aggr:.5,tempo:1,blitz:0,two:0}}
-function normStyle(s){if(!s||typeof s!=='object')return NEUTRAL;
- return{pass:clamp(num(s.pass,0),-.4,.4),aggr:clamp(num(s.aggr,.5),0,1),tempo:clamp(num(s.tempo,1),.5,1.5),blitz:num(s.blitz,0),two:num(s.two,0)}}
+const NEUTRAL_IN=Object.freeze({pass:0,aggr:.5,tempo:1,blitz:0,two:0,depth:0,hurry:0}); /* what a drive reads when there is no style (NEUTRAL, the exported one, stays as 1.2 had it) */
+function normStyle(s){if(!s||typeof s!=='object')return NEUTRAL_IN;
+ return{pass:clamp(num(s.pass,0),-.4,.4),aggr:clamp(num(s.aggr,.5),0,1),tempo:clamp(num(s.tempo,1),.5,1.5),blitz:clamp(num(s.blitz,0),-1,1),two:clamp(num(s.two,0),0,1),depth:clamp(num(s.depth,0),-1,1),hurry:clamp(num(s.hurry,0),0,1)}}
+/* the team style RECORD of the spec (section 2): default, and fill + clamp + freeze */
+function styleDefault(){return{v:1,pass:0,tend:'hash',depth:0,aggr:.5,two:0,tempo:1,hurry:0,blitz:0}}
+function styleNormalize(r){
+ if(r==null||typeof r!=='object')return null;
+ const tn=typeof r.tend==='number'&&r.tend===r.tend&&r.tend!==Infinity&&r.tend!==-Infinity?clamp(r.tend,.1,.9):'hash';
+ return Object.freeze({v:1,pass:clamp(num(r.pass,0),-.4,.4),tend:tn,depth:clamp(num(r.depth,0),-1,1),aggr:clamp(num(r.aggr,.5),0,1),two:clamp(num(r.two,0),0,1),
+  tempo:clamp(num(r.tempo,1),.5,1.5),hurry:clamp(num(r.hurry,0),0,1),blitz:clamp(num(r.blitz,0),-1,1)})}
+/* the DEFENSE's blitz habit as factors [pTD, pFG, pTO] (used only when there is no call): 1 + blitz x blitzK x (pressure family average - zone family average), taken from the same table the calls use
+   (DC_T, the cards of the zone family c3 c2 t2 c4 c6 and of the pressure family c0 b1 fz six sb; with the switch OFF the family numbers DC_F). A drive style PASS or RUN picks that row; with none the rows are mixed blitzPW to 1 - blitzPW. */
+const DC_ZONE=['c3','c2','t2','c4','c6'],DC_PRESS=['c0','b1','fz','six','sb'];
+function famAvg(ids,sty,c){if(!DC_TILT_V2){const t=DC_F[DC_FAM[ids[0]]];return t[sty][c]}let a=0;for(const id of ids)a+=DC_T[id][sty][c];return a/ids.length}
+function blitzFactors(b,dsty){
+ const pw=dsty==='PASS'?1:dsty==='RUN'?0:P.blitzPW,out=[1,1,1];
+ for(let c=0;c<3;c++){
+  const pr=pw*famAvg(DC_PRESS,'PASS',c)+(1-pw)*famAvg(DC_PRESS,'RUN',c),zo=pw*famAvg(DC_ZONE,'PASS',c)+(1-pw)*famAvg(DC_ZONE,'RUN',c);
+  out[c]=1+b*P.blitzK*(pr-zo)+(c===0?b*P.blitzBal:0)}
+ return out}
 function callFactors(call,lateTrail){
  if(!call||typeof call!=='object')return null;
  const fam=call.family||DC_FAM[call.id];if(!fam)return null;
@@ -1977,25 +2032,27 @@ function simDrive(ctx,rng){
  const clockGame=Math.max(0,num(ctx.clockGame,4*qLen));
  let left=Infinity;if(!ot){const ch=num(ctx.clockHalf,NaN);left=Math.max(0,ch===ch?ch:(clockGame>2*qLen?clockGame-2*qLen:clockGame))}
  const diff=num(ctx.diff,0),home=sgn(ctx.home);
- const sty=normStyle(of.style);
+ const sty=normStyle(of.style),bl=df.style&&typeof df.style==='object'?clamp(num(df.style.blitz,0),-1,1):0; /* bl: the defense's blitz habit (read only when there is no call) */
  const k=num(tl.k,0),sh=num(tl.sh!=null?tl.sh:tl.shift,0);
  const late=!ot&&clockGame<=P.lateQ*qLen,trail=diff<0,lead=diff>0;
  const dsty=(tl.call&&tl.call.style)||ctx.driveStyle||null;
- const cf=callFactors(tl.call,late&&trail);
+ const cf=tl.call?callFactors(tl.call,late&&trail):(bl!==0?blitzFactors(bl,dsty):null);
  const fTD=cf?cf[0]:1,fFG=cf?cf[1]:1,fTO=cf?cf[2]:1;
  let e=clamp(num(of.off,4)-num(df.def,4),-P.edgeMax,P.edgeMax)+P.kEq*k+P.shEq*sh+P.homeEq*home+(late&&trail?P.lateTrailEq:0)+P.callTdEq*(fTD-1);
  e=clamp(e,-P.edgeMax*2,P.edgeMax*2);
- const ys=clamp(clamp(P.ys0+P.ysE*e,P.ysMin,P.ysMax)*(1+(start>25?P.fpYsHi*Math.min(start-25,P.fpYsCap):P.fpYsLo*(start-25))),.5,2),toM=Math.exp(-P.toE*(e-(1-P.toSh)*P.shEq*sh))*fTO;
- const sack=clamp(P.sack0+P.sackE*e,.01,.2),inc=clamp(P.inc0+P.incE*e,.08,.6),pint=clamp(P.int0*toM,0,.2),pfum=clamp(P.fum0*toM,0,.2);
+ const ys=clamp(clamp(P.ys0+P.ysE*e,P.ysMin,P.ysMax)*(1+(start>25?P.fpYsHi*Math.min(start-25,P.fpYsCap):P.fpYsLo*(start-25)))*(1-P.passComp*sty.pass),.5,2),toM=Math.exp(-P.toE*(e-(1-P.toSh)*P.shEq*sh))*fTO;
+ const hu=late&&trail?sty.hurry:0; /* the hurry-up only counts when trailing late */
+ const sack=clamp(P.sack0+P.sackE*e+P.depthSack*sty.depth+P.hurrySack*hu,.01,.2),inc=clamp(P.inc0+P.incE*e+P.depthInc*sty.depth+P.hurryInc*hu,.08,.6),pint=clamp(P.int0*toM*(1+P.depthInt*sty.depth),0,.2),pfum=clamp(P.fum0*toM,0,.2);
+ const dMix=sty.depth===0?P.passMix:depthMix(sty.depth),dYm=sty.depth===0?1:Math.exp(P.depthY*sty.depth);
  const fgMax=P.fgDistMax+P.fgDistE*e+P.callFgRange*(fFG-1)+P.fgStartK*Math.max(0,start-P.fgStartS);
- const tempo=sty.tempo*(late&&lead?P.tempoLead:late&&trail?P.tempoTrail:1),tScale=qs*tempo;
- const passOff=P.passBase+sty.pass+(dsty==='PASS'?P.passStyle:dsty==='RUN'?-P.passStyle:0)+(late&&trail?P.passLateTrail:0)-(late&&lead?P.passLateLead:0);
+ const tempo=sty.tempo*(late&&lead?P.tempoLead:late&&trail?P.tempoTrail*(1-P.hurryT*sty.hurry):1),tScale=qs*tempo;
+ const passOff=P.passBase+sty.pass+(dsty==='PASS'?P.passStyle:dsty==='RUN'?-P.passStyle:0)+(late&&trail?P.passLateTrail+P.hurryPass*sty.hurry:0)-(late&&lead?P.passLateLead:0);
  const cvM=Math.exp(P.cvS*(start>25?Math.min(start-25,P.cvCap):start-25)/30);
  const rampM=n=>n<=0?P.toR0:n===1?P.toR1:n===2?P.toR2:n===3?P.toR3:n>=P.toRN?1:P.toR3+(1-P.toR3)*(n-3)/(P.toRN-3);
  const keep=ctx.keepPlays!==false,plays=keep?[]:null;
  const tos=ctx.timeouts&&typeof ctx.timeouts==='object'?num(ctx.timeouts.off,0):0;let toLeft=tos>0?Math.floor(tos):0;
  let spot=start,down=clamp(Math.round(num(ctx.down,1)),1,4),tg=clamp(Math.round(num(ctx.toGo,Math.min(10,100-spot))),1,Math.max(1,100-spot)),t=0,np=0,yd0=start;
- let sub=null,pts=0,next=P.kickSpot;
+ let sub=null,pts=0,next=P.kickSpot,tryK=null,tryG=null;
  const jit=()=>1+P.tJit*(2*rng()-1);
  if(left<=0){return finish('cut',0)}
  function secs(base){ /* the time a play takes: base x qLen/90 x tempo x jitter; the clock holds on the quarter lines (not the half line, which is the stop) */
@@ -2008,16 +2065,19 @@ function simDrive(ctx,rng){
   const kind=s==='td'?'td':s==='fg'?'fg':s==='to'?'to':s==='cut'?'cut':'pt';
   const endSpot=clamp(Math.round(spot),0,100),yd=Math.max(0,Math.min(spot,100)-yd0);
   const nx=s==='cut'?P.kickSpot:next;
-  return{plays:plays||[],result:s,kind,sub:s,pts,endSpot,endClock:Math.max(0,clockGame-timeUsed),nextSpot:nx,next:nx,time:timeUsed,
-   stop:s==='cut'&&!ot?clockGame-left:null,cut:s==='cut'?1:0,stats:{plays:np,yd:Math.round(yd),time:timeUsed}}}
+  const out={plays:plays||[],result:s,kind,sub:s,pts,endSpot,endClock:Math.max(0,clockGame-timeUsed),nextSpot:nx,next:nx,time:timeUsed,
+   stop:s==='cut'&&!ot?clockGame-left:null,cut:s==='cut'?1:0,stats:{plays:np,yd:Math.round(yd),time:timeUsed}};
+  if(tryK){out.try=tryK;out.tryGood=tryG}return out}
  for(;;){
   if(np>=P.maxPlays){ /* the 26-play cap: the drive ends as a punt from here (never seen in 100,000 drives) */
    const dt=secs(P.tKick);t+=dt;const land=spot+puntLen();next=land>=100?P.tbNext:clamp(100-land+Math.floor(rng()*(P.puntRet+1)),5,P.puntNextMax);rec(down,tg,spot,'punt','punt',0,dt,0,0);return finish('punt')}
   const toGo=Math.min(10,100-spot);
   if(down===4){
    const rem=100-spot,dist=rem+17,canFG=dist<=fgMax,desp=trail&&late&&(left-t)<=P.desperate;
-   const goTg=P.goTg+P.goTgAggr*(sty.aggr-.5)*2;
-   if(!(tg<=goTg&&spot>=P.goSpotMin&&spot<P.goMaxSpot)&&!desp){
+   const shiftA=P.goTgAggr*(sty.aggr-.5)*2; /* round 5 (1.4): the aggr rule is graded. At aggr .5 (shiftA 0) it is the fitted rule, tg <= goTg, with no random draw; otherwise a 4th down one yard past the whole-yard limit is gone for with chance floor(goTg) + 1 + shiftA - tg (0..1), so aggr .3 and .35 differ and .6 is a little bolder than .5 */
+   let goFor=false;
+   if(spot>=P.goSpotMin&&spot<P.goMaxSpot){if(shiftA===0)goFor=tg<=P.goTg;else{const pg=Math.floor(P.goTg)+1+shiftA-tg;goFor=pg>=1?true:pg<=0?false:rng()<pg}}
+   if(!goFor&&!desp){
     if(canFG){ /* field goal */
      const dt=secs(P.tKick);t+=dt;const made=rng()<clamp(P.fgP0-P.fgSlope*Math.max(0,dist-P.fgD0),P.fgMin,.99);
      rec(4,tg,spot,'fg','fg',0,dt,0,0);
@@ -2035,23 +2095,30 @@ function simDrive(ctx,rng){
    if(r<sack){y=-(3+Math.floor(rng()*7));res='sack';dt=secs(P.tSack);if(rng()<pfum_){turn=2}}
    else if(r<sack+pint_){res='int';dt=secs(P.tInt);turn=1;y=P.intDepth[0]+Math.floor(rng()*(P.intDepth[1]-P.intDepth[0]+1))}
    else if(r<sack+pint_+inc){res='inc';dt=secs(P.tInc)}
-   else{y=Math.max(1,Math.round(pickMix(P.passMix,rng)*ys*P.passYs));res='comp';dt=secs(P.tComp);if(y<100-spot&&rng()<pfum_)turn=2}
+   else{y=Math.max(1,Math.round(pickMix(dMix,rng)*ys*P.passYs*dYm));res='comp';dt=secs(P.tComp);if(y<100-spot&&rng()<pfum_)turn=2}
   }else{
    y=pickMix(P.runMix,rng);if(y>0)y=Math.round(y*ys*P.runYs);res='run';dt=secs(P.tRun);if(rng()<pfum_)turn=2}
   if(!turn&&res!=='sack'&&y<tg&&(tg<=P.cvTg||(P.cvF>0&&np===2&&down===3))){let cv=(down===3?P.cv3:down===4?P.cv4:0)*cvM;if(P.cvF>0&&np===2&&down===3)cv=1-(1-cv)*(1-P.cvF);if(cv>0&&rng()<cv){y=tg;if(res==='inc')res='comp'}}
+  if(P.stallS>0&&!turn&&np===5&&down===3&&y>=tg&&y<100-spot&&rng()<P.stallS){y=Math.max(0,tg-1)}
   if(spot+y<1)y=1-spot;
   t+=dt;np++;
   if(turn){ /* an interception or a lost fumble: the ball changes hands where the play ended (an interception: downfield) */
    rec(dn,tg0,sp0,ty,turn===1?'int':'fum',turn===1?0:Math.max(0,y),dt,0,0);
    spot=Math.min(spot+(y>0?y:0),95);next=clamp(100-spot+Math.floor(rng()*(P.toRet+1)),P.toNextMin,P.toNextMax);
    return finish('to')}
-  if(spot+y>=100){y=100-spot;spot=100;rec(dn,tg0,sp0,ty,res,y,dt,0,1);pts=rng()<P.xp?7:6;next=P.kickSpot;return finish('td')}
+  if(spot+y>=100){y=100-spot;spot=100;rec(dn,tg0,sp0,ty,res,y,dt,0,1);const tw=twoChance(sty.two,diff+6,clockGame-Math.min(t,left));
+   if(tw>0&&rng()<tw){const g=rng()<P.twoP;pts=g?8:6;tryK='two';tryG=g}else{pts=rng()<P.xp?7:6;tryK='xp';tryG=pts===7}
+   next=P.kickSpot;return finish('td')}
   const fd=y>=tg;spot+=y;rec(dn,tg0,sp0,ty,res,y,dt,fd,0);
   if(fd){down=1;tg=Math.min(10,100-spot)}else{down++;tg-=y;if(down>4){next=clamp(100-spot,P.toNextMin,P.downsNextMax);return finish('to')}}
   if(toLeft>0&&trail&&late&&res!=='inc'&&rng()<P.toUse){toLeft--;t-=P.timeoutSave*tScale}
   if(!ot&&t>=left)return finish('cut')
  }
  function puntLen(){return P.puntLo+Math.floor(rng()*(P.puntHi-P.puntLo+1))}
+ /* the chance of a try for two after a touchdown: two x the situation chart (0 leading big, twoLate trailing late, 1 otherwise), capped at 1. 0 draws nothing. */
+ function twoChance(two,dAfter,clockNow){if(!(two>0)||dAfter>=P.twoBig)return 0;const c=!ot&&dAfter<0&&clockNow<=P.lateQ*qLen?P.twoLate:1;return Math.min(1,two*c)}
+ /* the pass completion bands moved by depth (weights x exp(depthB x depth), put back to a sum of 1) */
+ function depthMix(d){const m=P.passMix,w=[0,0,0];let sm=0;for(let i=0;i<3;i++){w[i]=m[i][0]*Math.exp(P.depthB[i]*d);sm+=w[i]}return[[w[0]/sm,m[0][1],m[0][2]],[w[1]/sm,m[1][1],m[1][2]],[w[2]/sm,m[2][1],m[2][2]]]}
 }
 
 /* ===================== one game ===================== */
@@ -2080,7 +2147,7 @@ function simGame(A,B,ctx,rng){
   if(score[0]===score[1]){if(rng()<.5)score[0]+=3;else score[1]+=3}}
  return{drives:drives||[],score:[score[0],score[1]],ot,stats:{A:st[0],B:st[1],first}}}
 
-return{version:VERSION,P,fitted:P_FITTED,simDrive,simGame,styleFor,dcHash,dcTend,neutralStyle:NEUTRAL,callFactors,tiltV2:on=>{DC_TILT_V2=!!on},tiltTable:()=>DC_T}})();
+return{version:VERSION,P,fitted:P_FITTED,simDrive,simGame,styleFor,dcHash,dcTend,neutralStyle:NEUTRAL,callFactors,tiltV2:on=>{DC_TILT_V2=!!on},tiltTable:()=>DC_T,styleDefault,styleNormalize}})();
 if(typeof module!=='undefined'&&module.exports)module.exports=LGD;   /* Node, the league tool and HQ load this same text; inside the game's IIFE `module` does not exist and this line does nothing */
 
 /* ---------- NFL-format leagues (v1.40) ----------
@@ -2105,6 +2172,50 @@ function lgRollNames(n){const out=new Set();let g=0;while(out.size<n&&g++<8000){
 const lgRate=(base,sp)=>clamp(Math.round((base+lgGauss()*(sp||1))*10)/10,2,9.4);
 
 /* a fresh league: random team names, colors and ratings, no schedule yet */
+/* ----- v2.37 TEAM PERSONALITIES (spec: claude/pixel-pigskin-team-style-spec.md). A team may carry a style record `sty` (Simple league S.lg.teams[i].sty, Standard league S.std.teams[i].sty).
+   ABSENT = the default = today's behavior; a record equal to the default is NEVER stored (like S.stx.drv), so old saves need no migration. Every record is checked with LGD.styleNormalize on every read
+   (migrate() calls styFix: a save, a backup code, a cloud copy); a corrupt one is clamped or dropped. The player never sees a style (no screen shows it). Classic, exhibition and linked-league opponents have none. ----- */
+const STY_CLS=[   /* the five example styles, then the three hash classes of today (pass +.06 / 0 / -.06, tend .7 / .5 / .3) */
+ {pass:-.18,tend:.1,depth:-.2,aggr:.4,two:0,tempo:1.11,hurry:0,blitz:-.2},    /* GROUND AND POUND */
+ {pass:.18,tend:.9,depth:.8,aggr:.5,two:.2,tempo:.87,hurry:.3,blitz:0},        /* AIR RAID */
+ {pass:.08,tend:.77,depth:-.4,aggr:.45,two:0,tempo:1,hurry:.3,blitz:0},        /* WEST COAST */
+ {pass:0,tend:.5,depth:.2,aggr:.6,two:.6,tempo:.95,hurry:.3,blitz:.4},         /* GAMBLER */
+ {pass:-.06,tend:.3,depth:0,aggr:.45,two:0,tempo:1.05,hurry:0,blitz:1},        /* BLITZ HAPPY */
+ {pass:.06,tend:.7},{pass:0,tend:.5},{pass:-.06,tend:.3}];                      /* pass-heavy, balanced, run-heavy (the hash classes) */
+let STY_DEF=null;
+/* a stored or loaded record -> a plain, normalized copy, or null when it is missing, not an object, or equal to the default */
+function styNorm(rec){
+ if(rec==null||typeof rec!=='object'||Array.isArray(rec))return null;
+ let n;try{n=LGD.styleNormalize(rec)}catch(e){return null}
+ if(!n)return null;
+ if(STY_DEF===null)STY_DEF=JSON.stringify(LGD.styleNormalize(LGD.styleDefault()));
+ return JSON.stringify(n)===STY_DEF?null:Object.assign({},n)}
+/* the class of a team id: a hash of the id (NOT a draw from the league's random numbers, so seeded leagues stay as they were). The salt 'tm' gives the 8 teams of a Standard league one class each. */
+const styClass=id=>dcHash('tm'+id)%8;
+const styMake=id=>styNorm(STY_CLS[styClass(id)]);
+/* a NEW league: one record per team (Simple: L.teams, Standard: the engine league's teams; the team id is its position) */
+function styGive(T){if(Array.isArray(T))T.forEach((t,i)=>{const n=styMake(t&&t.id!=null&&typeof t.id==='number'?t.id:i);if(n)t.sty=n;else delete t.sty});return T}
+/* a loaded save: every team's record is normalized or dropped (never throws) */
+function styFix(d){
+ if(!d||typeof d!=='object')return d;
+ const T=d.std&&typeof d.std==='object'?d.std.teams:d.lg&&typeof d.lg==='object'?d.lg.teams:null;
+ if(Array.isArray(T))for(const t of T){if(!t||typeof t!=='object')continue;
+  if(t.wd)wdFix(t.wd);   /* v2.38: a bad jersey.sleeve or style mark is dropped, never a crash */
+  if(!('sty' in t))continue;const n=styNorm(t.sty);if(n)t.sty=n;else delete t.sty}
+ return d}
+/* v2.38: the optional uniform keys. jersey.sleeve must be a #rrggbb color (else it is dropped = SAME AS JERSEY); the marks a (built from the team colors) and o (your own uniform) must be 1 */
+function wdFix(w){if(!w||typeof w!=='object')return w;
+ for(const k of['helmet','jersey','pants','socks']){const L=w[k];if(!Array.isArray(L))continue;
+  for(const x of L){if(!x||typeof x!=='object')continue;if('a' in x&&x.a!==1)delete x.a;if('o' in x&&x.o!==1)delete x.o;
+   if(k==='jersey'&&'sleeve' in x&&!(typeof x.sleeve==='string'&&/^#[0-9a-fA-F]{6}$/.test(x.sleeve)))delete x.sleeve}}
+ return w}
+/* the normalized record of league team `id` of the current league, or null (default, none, exhibition, classic, linked) */
+function styTeam(id){
+ try{if(!S||(G&&G.exh)||typeof id!=='number'||id<0||S.lnk)return null;
+  const T=S.std&&S.std.teams?S.std.teams:S.lg&&S.lg.teams&&!S.lg.sbx?S.lg.teams:null;
+  return T&&T[id]?styNorm(T[id].sty):null}catch(e){return null}}
+const styOpp=()=>G&&G.opp&&typeof G.opp.id==='number'?styTeam(G.opp.id):null;
+const styMine=()=>S?styTeam(S.std?S.stm|0:S.lg&&typeof S.lg.me==='number'?S.lg.me:-1):null;
 function lgMake(name,fmt){
  const c=lgCfg({fmt}),n=lgN(c),pc=c.dv*c.per,names=lgRollNames(n),hues=shuffle(Array.from({length:n},(_,i)=>(i*137.508)%360));
  return{name:name||'PIXEL LEAGUE',fmt:c.id,conf:c.conf.slice(),div:c.div.slice(),me:0,
@@ -2277,8 +2388,9 @@ function lgPoTie(mp,op){
  if(S.std){const L=S.std,n=STD.nextGames(L);if(n.kind!=='po')return null;ls=L.rs;season=L.ssn;wk=100+n.round;pairs=n.pairs;me=S.stm}
  else{const L=LG();ls=LGE.leagueSeed(L);season=S.season;wk=100+L.po.round;pairs=lgPoGames();me=L.me}
  const gi=pairs.findIndex(g=>g[0]===me||g[1]===me);if(gi<0)return null;
- const rng=LGE.mulberry32(LGE.seedFor(ls,season,wk,gi));for(let i=0;i<6;i++)rng();
- return{me:(rng()<.5)===(pairs[gi][0]===me)}}
+ return{me:lgPoCoin(ls,season,wk,gi,pairs[gi][0]===me)}}
+/* v2.37: the engine's seeded coin of a tied playoff game (one function for the hand-played game and the linked sender): true = MY side gets the 3 points; `first` = my team is the first of its pair */
+function lgPoCoin(ls,season,wk,gi,first){const rng=LGE.mulberry32(LGE.seedFor(ls,season,wk,gi));for(let i=0;i<6;i++)rng();return(rng()<.5)===!!first}
 function lgAfterGame(win,tie,cr,mp,op,src){
  if(S.lnk)return lnAfterGame(win,tie,cr,mp,op,src);   /* v2.33: a linked league queues the result and waits for the commissioner */
  const L=LG();
@@ -3089,9 +3201,16 @@ function lnAfterGame(win,tie,cr,mp,op,src){
  if(c.fun){k.note='THIS GAME WAS FOR FUN. IT DOES NOT COUNT.';save();return 0}
  const me=s.stm|0;let pa=Math.max(0,Math.min(56,mp|0)),pb=Math.max(0,Math.min(56,op|0));
  if((mp|0)!==(op|0)&&pa===pb){if(mp>op)pb=55;else pa=55}
+ let tieNote='';
+ if((mp|0)===(op|0)&&c.w>=100){   /* v2.37: a LEVEL playoff game is decided here, by the same seeded coin as a hand-played one (lgPoCoin: +3 to one side), so the cloud never receives a tied playoff result. A regular-season tie stays a tie. */
+  try{const x=lnCur(s);
+   if(x&&x.po&&x.season===c.s&&x.wkNo===c.w&&x.gi===c.gi){
+    const mine=lgPoCoin(s.std.rs,c.s,c.w,c.gi,x.home);
+    if(mine){pa+=3;if(pa>56){pb-=pa-56;pa=56}}else{pb+=3;if(pb>56){pa-=pb-56;pb=56}}
+    tieNote=mine?'THE PLAYOFF GAME WAS LEVEL. THE COIN GAVE THE EXTRA 3 POINTS TO YOU: YOU WIN.':'THE PLAYOFF GAME WAS LEVEL. THE COIN GAVE THE EXTRA 3 POINTS TO THEM: YOU LOSE.'}}catch(e){}}
  const q=(k.queue=k.queue||[]).filter(x=>!(x.k==='sub'&&x.s===c.s&&x.w===c.w));
  q.push({k:'sub',s:c.s,w:c.w,gi:c.gi,a:me,b:c.opp,pa:pa,pb:pb,t:Date.now(),st:'wait',n:0,e:''});
- k.queue=q;k.note='';
+ k.queue=q;k.note=tieNote;
  const key=c.s+'-'+c.w;
  if(k.cw!==key){k.cw=key;s.credits+=cr}else cr=0;           /* the credits of a week are given once, however often the game is played again */
  save();Promise.resolve().then(()=>lnFlush());return cr}
@@ -3237,6 +3356,7 @@ function hmNew(){
  const conf=c=>`<div class="dv"><h4>${hmEsc(L.conf[c])}</h4>`+Array.from({length:cf.dv},(_,d)=>d).map(d=>(cf.dv>1?`<div class="sm" style="margin:.5em 0 .2em">${sc(`${hmEsc(L.div[d])}`)}</div>`:'')+`<div class="tg">`+lgDivIds(c,d,cf).map(id=>`<button class="tb ${id===HOME.pick?'on':''}" data-pick="${id}"><i style="background:${T[id].col.c};border-color:${T[id].col.d}"></i>${hmEsc(T[id].name)}</button>`).join('')+'</div>').join('')+'</div>';
  return`<div class="row"><span class="sm">${sc(`LEAGUE NAME`)}</span><input id="lgn" maxlength="16" value="${hmEsc(L.name)}" style="width:13em">
  <span class="sm">${sc(`FORMAT`)}</span>${[...Object.values(LGF),STD_CFG].map(f=>`<button class="btn xs ${f.id===cf.id?'on':'alt'}" data-fmt="${f.id}">${f.btn}</button>`).join('')}</div>
+ <div class="row"><span class="sm">${sc(`TEAM PERSONALITIES`)}</span><button class="btn xs ${HOME.tp===false?'alt':'on'}" data-act2="tp" aria-pressed="${HOME.tp!==false}">${HOME.tp===false?'OFF':'ON'}</button><span class="sm">${sc(`TEAMS GET DIFFERENT HABITS: SOME RUN MORE, SOME PASS MORE, SOME TAKE CHANCES. YOU ARE NOT TOLD WHICH.`)}</span></div>
  <div class="sm">${sc(`${cf.info} PICK YOUR TEAM:`)}</div>
  <div class="dvg">${L.conf.map((_,c)=>conf(c)).join('')}</div>
  <div class="row"><span class="sm" style="color:${t.col.c}">${sc(`YOU: ${hmEsc(tn(t.name))}`)}</span>
@@ -3253,42 +3373,71 @@ function czSave(o){const obj=o||czTarget().obj;if(!obj)return;   /* v1.66: save 
  const keep=S;S=obj;
  const me=obj.lg.teams[obj.lg.me];obj.name=me.name;if(keep&&keep.id===obj.id)S=keep;save();S=keep}
 const CZ_C=[['helmet','HELMET'],['jersey','JERSEY'],['pants','PANTS'],['socks','SOCKS']];
-const CZ_F={helmet:['shell','stripe','mask','logo'],jersey:['main','trim','number'],pants:['main','stripe'],socks:['main','stripe']};
-/* wardrobe: several helmets, jerseys, pants and socks per team; wd.sel says which one of each is worn */
-function czWd(t){
+const CZ_F={helmet:['shell','stripe','mask','logo'],jersey:['main','trim','number','sleeve'],pants:['main','stripe'],socks:['main','stripe']};
+/* ----- v2.38: uniforms from two colors. HOME = primary everywhere with the secondary on the helmet stripe and logo, the jersey trim, the pants stripe and the sock stripe. AWAY = the mirror; when the colors are under 1.6:1 AWAY is white with the primary as the stripes. WHITE (white with the primary as trim) only when neither color is white-ish (luminance .75) and AWAY is not already white. The number is the stripe color when that is 3:1 on the jersey, else white or #111827.
+   A style made from the colors carries a:1; a style of your own uniform carries o:1 (your uniform is the style at the same place in all four lists). Mask, gloves and shoes are as before. ----- */
+const CZ_MASK='#cfd3dc',CZ_MAXU=6;
+const czNum=(base,alt)=>cRat(base,alt)>=3?alt:(rLum(base)>.4?'#111827':'#ffffff');
+const czIsW=h=>rLum(h)>=.75;
+function czMk(base,trim,n){return{helmet:{shell:base,stripe:trim,mask:CZ_MASK,logo:trim,n,a:1},jersey:{main:base,trim,number:czNum(base,trim),n,a:1},pants:{main:base,stripe:trim,n,a:1},socks:{main:base,stripe:trim,n,a:1}}}
+function czSet(c){const P=c.c,S=c.d,aw=cRat(P,S)<1.6?'#ffffff':S,out=[['HOME',czMk(P,S,'HOME')],['AWAY',czMk(aw,P,'AWAY')]];
+ if(!(czIsW(P)||czIsW(S)||czIsW(aw)))out.push(['WHITE',czMk('#ffffff',P,'WHITE')]);
+ return out}
+const czN=w=>Math.max(1,...CZ_C.map(([k])=>w[k].length));
+const czJs=o=>JSON.parse(JSON.stringify(o));
+/* the four styles of uniform i (a shorter list gives its last style, as the worn uniform does) */
+const czUniK=(t,i)=>{const w=czWd(t),g=k=>w[k][Math.min(i,w[k].length-1)];return{helmet:g('helmet'),jersey:g('jersey'),pants:g('pants'),socks:g('socks'),gloves:w.gloves,shoes:w.shoes,outline:'#0b0b12'}};
+function czUnis(w){const out=[],N=czN(w);for(let i=0;i<N;i++){let n='',own=false,built=false;for(const k of['jersey','helmet','pants','socks']){const x=w[k][i];if(!x)continue;if(!n&&x.n)n=x.n;if(x.o)own=true;if(x.a)built=true}out.push({i,n:n||String(i+1),own,built})}return out}
+/* your own uniforms of a wardrobe (copies), with which pieces were worn; used to carry them over a color change */
+function czOwnOf(w){const out=[];czUnis(w).forEach(u=>{if(!u.own)return;const s={};CZ_C.forEach(([k])=>{s[k]=czJs(w[k][Math.min(u.i,w[k].length-1)])});out.push({s,sel:CZ_C.map(([k])=>k).filter(k=>w.sel[k]===u.i)})});return out}
+function czAddOwn(w,list){list.forEach(o=>{if(czN(w)>=CZ_MAXU)return;const i=czN(w);CZ_C.forEach(([k])=>{while(w[k].length<i)w[k].push(czJs(w[k][w[k].length-1]));w[k].push(o.s[k])});o.sel.forEach(k=>{w.sel[k]=i})})}
+/* wardrobe: HOME, AWAY, WHITE (if needed) and your own uniforms, as four lists (helmets, jerseys, pants, socks); wd.sel says which style of each piece is worn */
+function czWd(t,keepIn){
  if(t.wd&&!(t.two&&t.wv!==2))return t.wd;
- const c=t.col,b=t.uni||defaultUni(c),cp=o=>JSON.parse(JSON.stringify(o)),ink=x=>lum(x)>150?'#1a1a22':'#f4f4f8';
- /* HOME = primary color, AWAY = secondary color (jersey, pants, helmet and socks all follow it) */
- const hh=Object.assign(cp(b.helmet),{n:'HOME'}),hj=Object.assign(cp(b.jersey),{n:'HOME'}),hp=Object.assign(cp(b.pants),{n:'HOME'});
- if(t.two){hh.shell=c.c;hh.stripe=c.d;hh.logo=c.d;Object.assign(hj,{main:c.c,trim:c.d,number:ink(c.c)});Object.assign(hp,{main:c.c,stripe:c.d})}
- t.wd={helmet:[hh,{shell:c.d,stripe:c.c,mask:'#cfd3dc',logo:c.c,n:'AWAY'}],
-  jersey:[hj,{main:c.d,trim:c.c,number:ink(c.d),n:'AWAY'}],
-  pants:[hp,{main:c.d,stripe:c.c,n:'AWAY'}],
-  socks:[Object.assign(cp(b.socks),{n:'HOME'}),{main:c.d,stripe:c.c,n:'AWAY'}],
-  sel:{helmet:0,jersey:0,pants:0,socks:0},gloves:b.gloves,shoes:b.shoes};
+ const keep=keepIn||(t.wd?czOwnOf(t.wd):[]),c=t.col,b=t.uni||defaultUni(c),sets=czSet(c);
+ const wd={helmet:[],jersey:[],pants:[],socks:[],sel:{helmet:0,jersey:0,pants:0,socks:0},gloves:b.gloves,shoes:b.shoes};
+ sets.forEach(([n,u],i)=>CZ_C.forEach(([k])=>wd[k].push(i===0&&t.uni&&!t.two?Object.assign(czJs(b[k]),{n:'HOME',a:1}):czJs(u[k]))));
+ czAddOwn(wd,keep);t.wd=wd;
  if(t.two)t.wv=2;
  t.uni=null;return t.wd}
+/* a color change (or RESET UNIFORM, RANDOM COLORS): HOME, AWAY and WHITE are rebuilt from the colors, your own uniforms stay */
+function czRebuild(t){const keep=t.wd?czOwnOf(t.wd):[];t.uni=null;t.wd=null;if(keep.length)czWd(t,keep);return t.wd}
 const czCur=(t,k)=>{const w=czWd(t);return w[k][w.sel[k]]};
+/* the uniform being edited in the LOOK screen (a number): the one you tapped, else the worn jersey's */
+const czUi=t=>{const w=czWd(t),n=czN(w),u=HOME.cz&&HOME.cz.ut===t.id&&HOME.cz.ui!=null?HOME.cz.ui:w.sel.jersey;return Math.max(0,Math.min(u,n-1))};
+const czEd=(t,k)=>{const w=czWd(t);return w[k][Math.min(czUi(t),w[k].length-1)]};
 /* ----- v2.04 UI step 4: the LOOK screen. A team button, a preview that stays in view, three steps (TEAM / WARDROBE / LEAGUE), swatches that open ONE color sheet, and a team sheet (with the league choice) in place of the two dropdowns. Stored data and the edit rules are unchanged. ----- */
 const CZ_STEPS=[['team','TEAM'],['ward','WARDROBE'],['lg','LEAGUE']];
 /* the 24 palette colors of the UI Test mock-up; any other color still works through HEX and ANY COLOR */
 const CZ_PAL=['#e23b4a','#ff7a1a','#ffc324','#ffd400','#2fc16f','#18b8a8','#3b7cff','#2b66ff','#a45cf0','#f25cb0','#ffffff','#cfd6e4','#8a93a8','#4a5468','#1d2a44','#101820','#7a1522','#8a3a00','#8a6200','#14633a','#0a5e56','#163a8c','#4e1c8a','#8a1f5c'];
 let CZSH=null,CZRO=null,LKRO=null; /* CZSH = the open sheet: {t:'team'|'league'|'color', p, op, opSel} */
-const czGet=(t,p)=>{const wd=czWd(t);return p==='c'||p==='d'?t.col[p]:p[0]==='g'?wd[p.slice(2)]:czCur(t,HOME.cz.cat||'helmet')[p.slice(2)]};
-const czSwBtn=(t,p,l)=>{const v=czGet(t,p);return`<button class="czsw" data-csw="${p}" aria-haspopup="dialog" aria-label="${l} color ${v.toUpperCase()}. Change it"><i style="background:${v}"></i><span>${l}<b>${v.toUpperCase()}</b></span></button>`};
+const czGet=(t,p)=>{const wd=czWd(t);if(p==='c'||p==='d')return t.col[p];if(p[0]==='g')return wd[p.slice(2)];const cat=HOME.cz.cat||'helmet',v=czEd(t,cat)[p.slice(2)];return v||(p==='w:sleeve'?czEd(t,'jersey').main:v)};
+const czSame=(t,p)=>p==='w:sleeve'&&!czEd(t,'jersey').sleeve;
+const czSwBtn=(t,p,l)=>{const v=czGet(t,p),tx=czSame(t,p)?'SAME AS JERSEY':v.toUpperCase();return`<button class="czsw" data-csw="${p}" aria-haspopup="dialog" aria-label="${l} color ${tx}. Change it"><i style="background:${v}"></i><span>${l}<b>${tx}</b></span></button>`};
 const czSub=(L,t)=>hmEsc(L.conf[t.conf]||'')+(lgCfg(L).dv>1?' '+hmEsc(L.div[t.div]||''):'');
 function czLgLabel(){if(HOME.cz.src==='draft')return'NEW LEAGUE (NOT STARTED)';const e=rdIdx().find(x=>x.id===HOME.cz.src);return e?e.name:czTarget().L.name}
+/* v2.38: the warning under the colors (never a block) and the preview rows: one row of the four players (QB, WR, OL, RB) for HOME, AWAY, WHITE (if there is one) and each uniform of your own */
+function czColWarn(t){const r=cRat(t.col.c,t.col.d);if(r>=3)return'';
+ return`<p class="czp czwr"><b class="czwi" aria-hidden="true">!</b><span>${sc(r<1.6?'THE COLORS ARE ALMOST THE SAME: STRIPES WILL BE FAINT AND AWAY WILL BE WHITE.':'THE COLORS ARE CLOSE: STRIPES WILL BE FAINT.')}</span></p>`}
+function czRowsHtml(t){return czUnis(czWd(t)).map(u=>`<div class="czur"><b>${hmEsc(u.n)}${u.own?' (YOURS)':''}</b><canvas class="czrc" data-czr="${u.i}" role="img" aria-label="${hmEsc(u.n)} uniform preview, four players"></canvas></div>`).join('')}
+function czRowsPaint(t){document.querySelectorAll('#mbody canvas[data-czr]').forEach(c=>{try{czPaintRow(c,czUniK(t,+c.dataset.czr))}catch(e){}})}
+function czRowsSync(){const{L}=czTarget(),t=L.teams[clamp(HOME.cz.team,0,L.teams.length-1)],r=$('czrows');
+ if(r){r.innerHTML=czRowsHtml(t);czRowsPaint(t)}const w=$('czcw');if(w)w.innerHTML=czColWarn(t)}
 function hmCustom(){
  const{L,obj}=czTarget(),T=L.teams,ti=clamp(HOME.cz.team,0,T.length-1),t=T[ti];HOME.cz.team=ti;
- const wd=czWd(t),cat=HOME.cz.cat||'helmet',items=wd[cat],si=wd.sel[cat],it=items[si],step=HOME.cz.step||'team',pn=CZ_C.find(x=>x[0]===cat)[1];
+ const wd=czWd(t),cat=HOME.cz.cat||'helmet',step=HOME.cz.step||'team',pn=CZ_C.find(x=>x[0]===cat)[1],un=czUnis(wd),ui=czUi(t),cu=un[ui];
  const sw=(p,l)=>czSwBtn(t,p,l),fld=(id,l,v,max,extra)=>`<label class="czlb" for="${id}">${l}</label><input id="${id}" ${extra||''} maxlength="${max}" value="${hmEsc(v)}" autocomplete="off" autocapitalize="characters" spellcheck="false">`;
  let body;
  if(step==='team')body=`<div class="czs"><h4>TEAM NAME</h4>${fld('czname','NAME',t.name,15)}<div class="row"><button class="btn xs alt" data-cz="rname">RANDOM NAME</button></div></div>
-  <div class="czs"><h4>TEAM COLORS</h4>${sw('c','PRIMARY')}${sw('d','SECONDARY')}<div class="row"><button class="btn xs alt" data-cz="rcol">RANDOM COLORS</button><button class="btn xs alt" data-cz="runi">RESET UNIFORM</button></div><p class="czp">${sc(`CHANGING A TEAM COLOR REBUILDS ITS WARDROBE.`)}</p></div>`;
- else if(step==='ward')body=`<div class="czs"><h4>PIECE</h4><div class="seg" role="group" aria-label="Uniform piece">${CZ_C.map(([k,l])=>`<button class="sb ${cat===k?'on':''}" data-wcat="${k}" aria-pressed="${cat===k}">${l}</button>`).join('')}</div></div>
-  <div class="czs"><h4>${pn} STYLES</h4><div class="seg" role="group" aria-label="${pn} styles">${items.map((x,i)=>`<button class="sb ${i===si?'on':''}" data-witem="${i}" aria-pressed="${i===si}">${hmEsc(x.n||i+1)}</button>`).join('')}${items.length<6?'<button class="sb" data-wadd="1">+ NEW</button>':''}${items.length>1?'<button class="sb" data-wdel="1">DELETE</button>':''}</div><p class="czp">${sc(`WORN: <b id="czworn">${hmEsc(it.n||si+1)}</b>. TAP A STYLE TO WEAR AND EDIT IT.`)}</p>
-  ${fld('czitn','STYLE NAME',it.n||'',8)}${CZ_F[cat].map(f=>sw('w:'+f,f.toUpperCase())).join('')}</div>
-  <div class="czs"><h4>ALL STYLES</h4>${sw('g:gloves','GLOVES')}${sw('g:shoes','SHOES')}</div>`;
+  <div class="czs"><h4>TEAM COLORS</h4>${sw('c','PRIMARY')}${sw('d','SECONDARY')}<div class="row"><button class="btn xs alt" data-cz="rcol">RANDOM COLORS</button><button class="btn xs alt" data-cz="runi">RESET UNIFORM</button></div><p class="czp">${sc(`CHANGING A TEAM COLOR REBUILDS HOME, AWAY AND WHITE FROM THE COLORS. YOUR OWN UNIFORMS STAY.`)}</p><div id="czcw">${czColWarn(t)}</div></div>
+  <div class="czs"><h4>UNIFORMS</h4><div id="czrows">${czRowsHtml(t)}</div></div>`;
+ else if(step==='ward')body=`<div class="czs"><h4>UNIFORM</h4><div class="seg" role="group" aria-label="Uniform to edit">${un.map(u=>`<button class="sb ${u.i===ui?'on':''}" data-wuni="${u.i}" aria-pressed="${u.i===ui}">EDIT ${hmEsc(u.n)}</button>`).join('')}</div>
+  <div class="row"><button class="sb" data-wnew="1"${un.length>=CZ_MAXU?' disabled':''}>+ NEW UNIFORM</button>${cu.own?`<button class="sb" data-wdelu="1">DELETE ${hmEsc(cu.n)}</button>`:''}</div>
+  ${cu.own?fld('czitn','UNIFORM NAME',cu.n,8):`<p class="czp">${sc(`${hmEsc(cu.n)} IS BUILT FROM THE TEAM COLORS.`)}</p>`}
+  <p class="czp">${sc(un.length>=CZ_MAXU?`THAT IS THE MOST: ${CZ_MAXU} UNIFORMS. DELETE ONE OF YOURS TO MAKE ROOM.`:`+ NEW UNIFORM COPIES THE ONE YOU ARE EDITING. CHANGING A TEAM COLOR REBUILDS HOME, AWAY AND WHITE (AND THEIR EDITS) AND KEEPS YOUR OWN.`)}</p></div>
+  <div class="czs"><h4>PIECE</h4><div class="seg" role="group" aria-label="Uniform piece">${CZ_C.map(([k,l])=>`<button class="sb ${cat===k?'on':''}" data-wcat="${k}" aria-pressed="${cat===k}">${l}</button>`).join('')}</div>
+  ${CZ_F[cat].map(f=>sw('w:'+f,f==='sleeve'?'SLEEVES':f.toUpperCase())).join('')}</div>
+  <div class="czs"><h4>ALL UNIFORMS</h4>${sw('g:gloves','GLOVES')}${sw('g:shoes','SHOES')}</div>`;
  else body=`<div class="czs"><h4>NAMES</h4>${fld('czln','LEAGUE',L.name,16)}${L.conf.map((_,c)=>fld('czcn'+c,'CONFERENCE '+(c+1),L.conf[c],14,`data-cn="${c}"`)).join('')}${(L.div.length>1?L.div:[]).map((_,d)=>fld('czdn'+d,'DIVISION '+(d+1),L.div[d],10,`data-dn="${d}"`)).join('')}</div>
   <div class="czs"><h4>ALL TEAMS</h4><div class="row"><button class="btn xs alt" data-cz="theme">REAL-STYLE TEAMS</button>${lgCfg(L).id==='NFL'?'<button class="btn xs alt" data-cz="sifa">SIFA TEAMS</button>':''}<button class="btn xs alt" data-cz="allnames">RANDOM TEAM NAMES</button><button class="btn xs alt" data-cz="allcols">RANDOM COLORS</button></div>
   <p class="czp">${sc(`${obj?'SAVED AUTOMATICALLY.':'APPLIES WHEN YOU START THE LEAGUE.'}`)}</p></div>`;
@@ -3299,11 +3448,11 @@ function hmCustom(){
 /* v2.30: the previews draw the game's own smooth figures (ps.js figPv, the same skeleton, poses, outline and SPR_SCALE the field uses), side view, facing right, at the preview's own device-pixel size so they stay sharp on a retina screen.
    Same four players in the same left-to-right order as before: QB 12, WR 81, OL 64, RB 22; the OL in the 3-point stance, the other three in the 2-point ready stance. The skin tones are the same three as before. Only the drawn uniform fields show: helmet shell, stripe and mask, jersey main, pants main and stripe, socks main and stripe, gloves, shoes (the jersey number, the jersey trim and the helmet logo are not drawn by the game's figure any more). */
 const CZ_P=[['QB',0,'ready'],['WR',1,'ready'],['OL',2,'p3'],['RB',0,'ready']],CZ_PITCH=17;
-function czScene(c,u,W,H,d){
+function czScene(c,u,W,H,d,cap){
  /* W x H = the drawing area in CSS px, d = device pixels per CSS px; c.width/height are set here */
  const Wd=Math.round(W*d),Hd=Math.round(H*d);c.width=Wd;c.height=Hd;
  /* the four players stand CZ_PITCH game units apart at the least (the figures' pictures may overlap a little; the transparent margins are wider than the bodies), evenly spread when the pane is wider */
- const fw=FG_W*SPR_SCALE,fh=FG_H*SPR_SCALE,ru=Math.min((W-8)/(3*CZ_PITCH+fw),(H-8)/(fh+4)),R=Math.max(.2,ru)*d, /* device px per game unit, the biggest that fits */
+ const fw=FG_W*SPR_SCALE,fh=FG_H*SPR_SCALE,ru=Math.min((W-8)/(3*CZ_PITCH+fw),(H-8)/(fh+4)),R=Math.max(.2,cap?Math.min(ru,cap):ru)*d, /* device px per game unit, the biggest that fits */
   x=c.getContext('2d');if(!x)return;
  const B=CZ_P.map(([k,tone,pose])=>figPv(u,tone,pose,1,R)),w=B[0].c.width,k=R*SPR_SCALE,pitch=Math.min((Wd-w-8*d)/3,CZ_PITCH*1.6*R),left=Math.round((Wd-(3*pitch+w))/2),base=Math.floor((Hd-FG_H*k)/2+FG_AY*k);
  x.setTransform(1,0,0,1,0,0);x.fillStyle='#2f6b3a';x.fillRect(0,0,Wd,Hd);
@@ -3317,10 +3466,13 @@ function czPaint(c,u,fit){
  if(fit)return czFit(c,u,d);
  const W=Math.floor(c.clientWidth);if(W<40)return;c._lw=W;
  czScene(c,u,W,Math.round(W*130/200),d)}
+/* a preview row (the LOOK TEAM step): the four players at a fixed row height, sized by the canvas's CSS width */
+function czPaintRow(c,u){const d=Math.max(1,Math.min(3,Math.round(window.devicePixelRatio||1))),W=Math.floor(c.clientWidth);if(W<40)return;c._lw=W;czScene(c,u,W,CZ_ROWH,d,CZ_ROWR)}
+const CZ_ROWH=76,CZ_ROWR=2.2;
 function czFit(c,u,d){
  const r=c.parentNode.getBoundingClientRect(),W=Math.floor(r.width),H=Math.floor(r.height);
  if(W<40||H<40)return;czScene(c,u,W,H,d);c.style.width=W+'px';c.style.height=H+'px'}
-function czDraw(){const{L}=czTarget(),t=L.teams[clamp(HOME.cz.team,0,L.teams.length-1)];czWd(t);const c=$('czp');czPaint(c,lgUni(t),true);
+function czDraw(){const{L}=czTarget(),t=L.teams[clamp(HOME.cz.team,0,L.teams.length-1)];czWd(t);const c=$('czp');czPaint(c,lgUni(t),true);czRowsPaint(t);
  if(c&&window.ResizeObserver){if(!CZRO)CZRO=new ResizeObserver(()=>{if(HOME.tab==='cz'&&$('czp'))czDraw()});CZRO.disconnect();CZRO.observe(c.parentNode)}}
 /* v2.09 (UI step 7): a soft warning, never a block. Word plus a "!" symbol, not color alone. The turf test is the real game turf (two stripes, #2e7d32 and #2a7030) at under 3:1; the opponent test is the next opponent's jersey (delta E under 25 in normal, deuteranopia or protanopia vision) and only for your own team in the game that is open. */
 function czWarn(t,ti){
@@ -3330,18 +3482,20 @@ function czWarn(t,ti){
    if(jClose(j,ou.jersey.main)<25)m=`JERSEY LOOKS LIKE YOUR NEXT OPPONENT'S. ${afIsOn()?'THEY WILL WEAR THEIR SECOND UNIFORM.':'TURN ON TEAM COLOR AUTO-FIX IN SETTINGS.'}`}
   return m?`<p class="czp czwr"><b class="czwi" aria-hidden="true">!</b><span>${sc(m)}</span></p>`:''}catch(e){return''}}
 function czWarnSync(){const e=$('czwarn');if(!e)return;try{const{L}=czTarget(),ti=clamp(HOME.cz.team,0,L.teams.length-1);e.innerHTML=czWarn(L.teams[ti],ti)}catch(x){}}
-function czRedraw(){resetSprites();czDraw();czWarnSync()}
+function czRedraw(){resetSprites();czDraw();czWarnSync();czRowsSync()}
 /* ONE place that sets a color (palette, HEX, ANY COLOR and the old color inputs all come here): the same state changes, save and redraw the old data-cu handler made. p = 'c' | 'd' | 'w:<field>' | 'g:gloves' | 'g:shoes' */
 function czSetColor(p,val){
  val=String(val).toLowerCase();if(!/^#[0-9a-f]{6}$/.test(val))return false;
  const{L,obj}=czTarget(),t=L.teams[clamp(HOME.cz.team,0,L.teams.length-1)];
- if(p==='c'||p==='d'){t.col={c:t.col.c,d:t.col.d};t.col[p]=val;t.uni=null;t.wd=null;czWd(t)}
+ if(p==='c'||p==='d'){t.col={c:t.col.c,d:t.col.d};t.col[p]=val;czRebuild(t);czWd(t)}
  else if(p[0]==='g')czWd(t)[p.slice(2)]=val;
- else czCur(t,HOME.cz.cat||'helmet')[p.slice(2)]=val;
+ else czEd(t,HOME.cz.cat||'helmet')[p.slice(2)]=val;
  czSave(obj);czRedraw();czSyncSw();return true}
+/* v2.38: SAME AS JERSEY (the sleeve color is removed) */
+function czSleeveSame(){const{L,obj}=czTarget(),t=L.teams[clamp(HOME.cz.team,0,L.teams.length-1)];delete czEd(t,'jersey').sleeve;czSave(obj);czRedraw();czSyncSw();return true}
 /* refresh what shows a color without re-rendering (so no field loses its caret): the swatches, the team dot and the open color sheet */
 function czSyncSw(){const{L}=czTarget(),t=L.teams[clamp(HOME.cz.team,0,L.teams.length-1)];
- document.querySelectorAll('#mbody [data-csw]').forEach(b=>{const p=b.dataset.csw,v=czGet(t,p);b.querySelector('i').style.background=v;b.querySelector('b').textContent=v.toUpperCase();b.setAttribute('aria-label',b.querySelector('span').firstChild.textContent+' color '+v.toUpperCase()+'. Change it')});
+ document.querySelectorAll('#mbody [data-csw]').forEach(b=>{const p=b.dataset.csw,v=czGet(t,p),tx=czSame(t,p)?'SAME AS JERSEY':v.toUpperCase();b.querySelector('i').style.background=v;b.querySelector('b').textContent=tx;b.setAttribute('aria-label',b.querySelector('span').firstChild.textContent+' color '+tx+'. Change it')});
  const dot=document.querySelector('#mbody .czdot');if(dot){dot.style.background=t.col.c;dot.style.boxShadow='0 0 0 2px '+t.col.d}
  if(CZSH&&CZSH.t==='color')czShSync()}
 function czTeamTxt(){const{L}=czTarget(),t=L.teams[clamp(HOME.cz.team,0,L.teams.length-1)],e=$('czpn');if(e)e.textContent=t.name}
@@ -3357,6 +3511,7 @@ function czShDraw(){const h=czShHost(),sh=CZSH,{L}=czTarget(),ti=clamp(HOME.cz.t
  if(sh.t==='color'){const t=T[ti],v=czGet(t,sh.p),lab=(document.querySelector(`#mbody [data-csw="${sh.p}"] span`)||{}).firstChild;
   b=`<div class="czsh-h"><i class="czbig" id="czbig" style="background:${v}"></i><b class="czsh-t">PICK A COLOR<small>${sc(`${hmEsc(lab?lab.textContent:'')} <span id="czshhx">${v.toUpperCase()}</span>`)}</small></b><button class="btn" data-shx="1" data-first="1">DONE</button></div>
   <div class="czpal" role="group" aria-label="Palette">${CZ_PAL.map(c=>`<button data-shc="${c}" style="background:${c}" aria-label="${c.toUpperCase()}" aria-pressed="false"><u></u></button>`).join('')}</div>
+  ${sh.p==='w:sleeve'?`<div class="row"><button class="btn alt" data-shsame="1" aria-pressed="${czSame(t,sh.p)}">SAME AS JERSEY${czSame(t,sh.p)?' (NOW)':''}</button></div>`:''}
   <div class="row czhexr"><label class="czlb" for="czhex">HEX</label><input id="czhex" maxlength="7" value="${v.toUpperCase()}" autocomplete="off" autocapitalize="characters" spellcheck="false"><label class="btn alt czany">ANY COLOR<input type="color" id="czany" value="${v}"></label></div>`}
  else if(sh.t==='league'){const ix=rdIdx().filter(e=>e.fmt!=='CLASSIC 8 GAMES'&&e.fmt!==STD_CFG.tag),o=[['draft','NEW LEAGUE (NOT STARTED)']].concat(ix.map(e=>[e.id,e.name+' - '+e.team]));
   b=`<div class="czsh-h"><b class="czsh-t">PICK A LEAGUE<small>${sc(`WHICH LEAGUE TO EDIT`)}</small></b><button class="btn alt" data-shback="1" data-first="1">BACK</button><button class="btn" data-shx="1">CLOSE</button></div>
@@ -3376,10 +3531,11 @@ function czShClick(e){const b=e.target.closest('button,.czbg');if(!b)return;cons
  if(b.classList.contains('czbg')&&e.target!==b)return;
  if(d.shx!=null)czShClose();
  else if(d.shc)czSetColor(CZSH.p,d.shc);
+ else if(d.shsame){czSleeveSame();czShDraw()}
  else if(d.shlgopen)czShOpen({t:'league'});
  else if(d.shback)czShOpen({t:'team'});
- else if(d.shteam!=null){HOME.cz.team=+d.shteam;const keep=CZSH;czShClose(true);czAfter(keep)}
- else if(d.shlg!=null){HOME.cz.src=d.shlg;HOME.cz.team=czTarget().obj?czTarget().L.me:HOME.pick;const keep=CZSH;czShClose(true);czAfter(keep)}}
+ else if(d.shteam!=null){HOME.cz.team=+d.shteam;HOME.cz.ui=null;const keep=CZSH;czShClose(true);czAfter(keep)}
+ else if(d.shlg!=null){HOME.cz.src=d.shlg;HOME.cz.ui=null;HOME.cz.team=czTarget().obj?czTarget().L.me:HOME.pick;const keep=CZSH;czShClose(true);czAfter(keep)}}
 function czAfter(sh){renderHome();const e=sh&&sh.opSel&&document.querySelector(sh.opSel);if(e)try{e.focus({preventScroll:true})}catch(x){}}
 function czShInput(e){const el=e.target;if(!CZSH||CZSH.t!=='color')return;
  if(el.id==='czhex'){const m=/^#?([0-9a-f]{6})$/i.exec(el.value.trim());if(m)czSetColor(CZSH.p,'#'+m[1])}
@@ -3407,6 +3563,7 @@ ${stGroup()}
 /* ----- events ----- */
 function hmStart(){
  const L=hmDraft(),nameEl=$('lgn');if(nameEl)L.name=nameEl.value.trim().toUpperCase()||'PIXEL LEAGUE';
+ if(HOME.tp!==false)styGive(HOME.fmt==='STD'?L._std.teams:L.teams);   /* v2.37: TEAM PERSONALITIES (default ON): one style per team, by a hash of the team id; no random number is drawn */
  if(HOME.fmt==='STD')stdNew(L,HOME.pick);else lgNew(L,HOME.pick);HOME.drafts[HOME.fmt]=null;HOME.pick=0;HOME.cz={src:'draft',team:0};resetSprites();renderHub()}
 function hmPlay(id){const s=loadSlot(id);if(!s)return;S=s;if(S.lg){if(!S.lg.ho){lgOrient(S.lg.sched);S.lg.ho=1;save()}lgSync()}resetSprites();renderHub();sqKick();lnOpen()}
 $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
@@ -3422,6 +3579,7 @@ $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.
  else if(d.play)hmPlay(d.play);
  else if(d.del){if(HOME.del===d.del){if(S&&S.id===d.del)S=null;delSlot(d.del);HOME.del=null}else HOME.del=d.del;renderHome()}
  else if(d.pick!=null){const n=$('lgn');if(n)hmDraft().name=n.value.toUpperCase();HOME.pick=+d.pick;renderHome()}
+ else if(d.act2==='tp'){const n=$('lgn');if(n)hmDraft().name=n.value.toUpperCase();HOME.tp=HOME.tp===false;renderHome()}   /* v2.37 */
  else if(d.act2==='reroll'){const n=$('lgn'),nm0=n?n.value.toUpperCase():hmDraft().name;HOME.drafts[HOME.fmt]=HOME.fmt==='STD'?stdDraft(nm0):lgMake(nm0,HOME.fmt);renderHome()}
  else if(d.fmt){const n=$('lgn'),nm0=n?n.value.toUpperCase():hmDraft().name;if(d.fmt!==HOME.fmt){HOME.fmt=d.fmt;HOME.pick=0;hmDraft().name=nm0||hmDraft().name}renderHome()}
  else if(d.act2==='theme'){const n=$('lgn');if(n)hmDraft().name=n.value.toUpperCase();lgThemed(hmDraft());renderHome()}
@@ -3430,23 +3588,25 @@ $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.
  else if(d.act2==='start')hmStart();
  else if(d.cz){const{L,obj}=czTarget(),t=L.teams[HOME.cz.team];
   if(d.cz==='rname'){const used=new Set(L.teams.map(x=>x.name));let n;do{n=pick(LG_CITY)+' '+pick(LG_MASC)}while(n.length>15||used.has(n));t.name=n}
-  else if(d.cz==='rcol'){t.col=lgCol(rnd(0,360));t.uni=null;t.wd=null}
-  else if(d.cz==='runi'){t.uni=null;t.wd=null}
+  else if(d.cz==='rcol'){t.col=lgCol(rnd(0,360));czRebuild(t)}
+  else if(d.cz==='runi'){czRebuild(t)}
   else if(d.cz==='theme'){lgThemed(L)}
   else if(d.cz==='sifa'){lgThemed(L,'SIFA')}
   else if(d.cz==='allnames'){lgRollNames(L.teams.length).forEach((n,i)=>L.teams[i].name=n)}
-  else if(d.cz==='allcols'){const h=shuffle(Array.from({length:L.teams.length},(_,i)=>(i*137.508)%360));L.teams.forEach((x,i)=>{x.col=lgCol(h[i]);x.uni=null;x.wd=null})}
+  else if(d.cz==='allcols'){const h=shuffle(Array.from({length:L.teams.length},(_,i)=>(i*137.508)%360));L.teams.forEach((x,i)=>{x.col=lgCol(h[i]);czRebuild(x)})}
   czSave(obj);resetSprites();renderHome()}
  else if(d.wcat){HOME.cz.cat=d.wcat;renderHome()}
- else if(d.witem!=null||d.wadd||d.wdel){const{L,obj}=czTarget(),t=L.teams[HOME.cz.team],wd=czWd(t),k=HOME.cz.cat||'helmet';
-  if(d.witem!=null)wd.sel[k]=+d.witem;
-  else if(d.wadd&&wd[k].length<6){const n=JSON.parse(JSON.stringify(wd[k][wd.sel[k]]));n.n='NEW'+wd[k].length;wd[k].push(n);wd.sel[k]=wd[k].length-1}
-  else if(d.wdel&&wd[k].length>1){wd[k].splice(wd.sel[k],1);wd.sel[k]=Math.min(wd.sel[k],wd[k].length-1)}
+ else if(d.wuni!=null||d.wnew||d.wdelu){const{L,obj}=czTarget(),t=L.teams[HOME.cz.team],wd=czWd(t),ui=czUi(t);HOME.cz.ut=t.id;
+  const wear=i=>{HOME.cz.ui=i;CZ_C.forEach(([k])=>{wd.sel[k]=Math.min(i,wd[k].length-1)})};
+  if(d.wuni!=null)wear(Math.max(0,Math.min(+d.wuni,czN(wd)-1)));
+  else if(d.wnew){const N=czN(wd);if(N<CZ_MAXU){const un=czUnis(wd),used=new Set(un.map(u=>u.n));let m=1;while(used.has('CUSTOM '+m))m++;
+    CZ_C.forEach(([k])=>{const L2=wd[k];while(L2.length<N)L2.push(czJs(L2[L2.length-1]));const n=czJs(L2[Math.min(ui,L2.length-1)]);delete n.a;n.o=1;n.n='CUSTOM '+m;L2.push(n)});wear(N)}}
+  else if(d.wdelu){const un=czUnis(wd)[ui];if(un&&un.own){CZ_C.forEach(([k])=>{const L2=wd[k];if(ui<L2.length)L2.splice(ui,1);if(wd.sel[k]===ui)wd.sel[k]=0;else if(wd.sel[k]>ui)wd.sel[k]--;wd.sel[k]=Math.min(wd.sel[k],L2.length-1)});HOME.cz.ui=0}}
   czSave(obj);resetSprites();renderHome()}};
 $('menu').oninput=e=>{const el=e.target;if(el.tagName!=='INPUT')return;
  const{L,obj}=czTarget(),t=L.teams[clamp(HOME.cz.team,0,L.teams.length-1)];
  if(el.id==='czname'){t.name=el.value.toUpperCase()||'TEAM '+(t.id+1);czSave(obj);czTeamTxt()}
- else if(el.id==='czitn'){czCur(t,HOME.cz.cat||'helmet').n=el.value.toUpperCase();czSave(obj);const v=el.value.toUpperCase();document.querySelectorAll('#mbody [data-witem].on').forEach(b=>b.textContent=v||(+b.dataset.witem+1));const w=$('czworn');if(w){const q=document.querySelector('#mbody [data-witem].on');w.textContent=v||(q?+q.dataset.witem+1:'')}}
+ else if(el.id==='czitn'){const w=czWd(t),i=czUi(t),v=el.value.toUpperCase().slice(0,8),u=czUnis(w)[i];if(u&&u.own){CZ_C.forEach(([k])=>{if(w[k][i])w[k][i].n=v});czSave(obj);const b=document.querySelector('#mbody [data-wuni].on');if(b)b.textContent='EDIT '+(v||i+1)}}
  else if(el.id==='czln'){L.name=el.value.toUpperCase()||'PIXEL LEAGUE';czSave(obj)}
  else if(el.dataset.cn!=null){L.conf[+el.dataset.cn]=el.value.toUpperCase()||'CONF '+(+el.dataset.cn+1);czSave(obj)}
  else if(el.dataset.dn!=null){L.div[+el.dataset.dn]=el.value.toUpperCase()||'DIV '+(+el.dataset.dn+1);czSave(obj)}
@@ -3457,6 +3617,7 @@ migrateOld();
 function lkSide(t,who){
  czWd(t);const wd=t.wd;
  return`<div class="card cz"><h3>${who}: ${hmEsc(t.name)}</h3><canvas class="lkc" data-lkc="${t.id}" width="200" height="130"></canvas>`+
+ `<div class="up lkun"><b style="width:4.5em">UNIFORM</b><div class="seg" role="group" aria-label="${hmEsc(who)} uniform">${czUnis(wd).map(u=>{const on=CZ_C.every(([k])=>wd.sel[k]===Math.min(u.i,wd[k].length-1));return`<button class="sb ${on?'on':''}" data-lk="${t.id}:u:${u.i}" aria-pressed="${on}">${hmEsc(u.n)}</button>`}).join('')}</div></div>`+
  CZ_C.map(([k,l])=>{const i=wd.sel[k],n=wd[k].length,it=wd[k][i];
   return`<div class="up"><b style="width:4.5em">${l}</b><button class="btn xs alt" data-lk="${t.id}:${k}:-1">&lt;</button><span style="flex:1;text-align:center">${hmEsc(it.n||i+1)} <span class="sm">${i+1}/${n}</span></span><button class="btn xs alt" data-lk="${t.id}:${k}:1">&gt;</button></div>`}).join('')+
  `<div class="row" style="margin-top:.5em"><button class="btn xs alt" data-lk="edit:${t.id}">EDIT TEAM</button></div></div>`}
@@ -3474,6 +3635,7 @@ $('lock').onclick=e=>{const b=e.target.closest('button');if(!b)return;const v=b.
  if(v==='go')startGame();else if(v==='back')renderHub();
  else if(v){const p=v.split(':');
   if(p[0]==='edit'){save();HOME.cz={src:S.id,team:+p[1],cat:'helmet'};HOME.ret=true;HOME.tab='cz';renderHome();show('menu')}
+  else if(p[1]==='u'){const t=S.lg.teams[+p[0]],wd=czWd(t),i=+p[2];CZ_C.forEach(([k])=>{wd.sel[k]=Math.max(0,Math.min(i,wd[k].length-1))});save();resetSprites();openLocker()}
   else{const t=S.lg.teams[+p[0]],wd=czWd(t),k=p[1],n=wd[k].length;wd.sel[k]=(wd.sel[k]+ +p[2]+n)%n;save();resetSprites();openLocker()}}};
 /* ----- installable web app (PWA). Everything here is skipped unless the page is served from chipperbaily.github.io ----- */
 const PWA_ON=location.hostname==='chipperbaily.github.io',PWA_KEY='pixelPigskin.iosTipDismissed';
@@ -3510,6 +3672,7 @@ const bkBad=msg=>({ok:false,msg});
 /* does the object look like one of our league saves? (teams, a season, a my-team id) */
 function bkShape(d){
  if(!d||typeof d!=='object'||Array.isArray(d))return false;
+ try{styFix(d)}catch(e){}   /* v2.37: team style records are normalized or dropped here too */
  if(!(+d.season>=1))return false;
  if(d.std){try{const L=d.std;return!!(L&&typeof L.rs==='number'&&L.rules&&Array.isArray(L.sch)&&L.sch.length===STD_CFG.games&&L.sch.every(x=>Array.isArray(x)&&x.length===4)&&Array.isArray(L.teams)&&L.teams.length===8&&Number.isInteger(d.stm)&&d.stm>=0&&d.stm<8&&(d.stx===undefined||(!!d.stx&&typeof d.stx==='object'&&(d.stx.relief===0||d.stx.relief===1||(d.stx.relief===undefined&&(d.stx.drv===0||d.stx.drv===1)))&&(d.stx.drv===undefined||d.stx.drv===0||d.stx.drv===1)))&&(d.lnk===undefined||lnShape(d))&&typeof d.name==='string'&&(L.dp==='full'?FULL.checkFull(L):STD.checkLeague(L)).length===0&&stdView(d))}catch(e){return false}}   /* v2.23: a Standard league: 8 teams, 23 starters each, valid ratings */
  if(d.lg){const L=d.lg;return!!(L&&Array.isArray(L.teams)&&L.teams.length>=2&&Number.isInteger(L.me)&&L.teams[L.me]&&typeof L.teams[L.me]==='object')}
@@ -4063,6 +4226,7 @@ function sqDetail(rec,x){
  lg.games_hand=null;lg.games_sim=null;lg.eng=null;lg.rules_v=null;
  if(!spdLoaded)spdLoad();lg.speed_n=spdN; /* v2.30: the exact slider number 1..10 (g.speed_step stays the nearest old step 0..4) */
  if(G.dsim)lg.drv=String(LGD.version||'').replace(/ \(prototype\)$/,'').slice(0,40); /* v2.29: the opponent's drives came from the new drive simulator in this game (key absent otherwise) */
+ {const so=G.exh?null:styOpp();if(so){const r2=v=>typeof v==='number'?Math.round(v*100)/100:v;lg.opp_sty={v:1,pass:r2(so.pass),tend:r2(so.tend),depth:r2(so.depth),aggr:r2(so.aggr),two:r2(so.two),tempo:r2(so.tempo),hurry:r2(so.hurry),blitz:r2(so.blitz)}}}   /* v2.37: the opponent's team style, ONLY when it is not the default (key absent otherwise); inside d, so the rules need no change */
  if(S.std&&S.std.teams){
   const L=S.std,me=S.stm|0,ed=i=>{const t=L.teams[i];if(!t)return null;const e=STD.effective(t,L.rules);return{ed:sqN(t.ed,3),eff_off:sqN(e.off,3),eff_def:sqN(e.def,3)}};
   Object.assign(tm,ed(me)||{});if(typeof oi==='number'&&oi>=0)Object.assign(op,ed(oi)||{});
@@ -4477,11 +4641,11 @@ const DC_C4RUN=[1.18,1,1]; /* COVER 4 has a light box (the v2.33 family behavior
 const DC_PV_LATE=[.60,1.40,.90],DC_PV_EARLY=[1.30,1.10,.80];
 /* v2.34 CALL YOUR DEFENSE round 2: factors [pTD, pFG, pTO] for EACH scheme and drive style (claude/pixel-pigskin-scheme-tilt-spec.md). The family table DC_F stays: it is the exact v2.33 behavior when DC_TILT_V2 is false. PREVENT (pv) keeps DC_PV_*. */
 const DC_T={
- c3:{PASS:[.95,1,1],RUN:[1.158,1,1.01]},
- c2:{PASS:[.968,1.015,1.02],RUN:[1.09,1.01,1]},
- t2:{PASS:[.952,1.015,1.01],RUN:[1.1,1.01,1]},
- c4:{PASS:[.932,.985,.985],RUN:[1.168,.99,.99]},
- c6:{PASS:[.948,.985,.985],RUN:[1.144,.99,1]},
+ c3:{PASS:[.76,1.46,1],RUN:[1.22,1.3,1.01]},
+ c2:{PASS:[.8,1.52,1.03],RUN:[1.16,1.34,1]},
+ t2:{PASS:[.68,1.5,1.02],RUN:[1.3,1.3,1]},
+ c4:{PASS:[.64,1.5,.98],RUN:[1.35,1.28,.97]},
+ c6:{PASS:[.72,1.48,.99],RUN:[1.26,1.32,1]},
  c1:{PASS:[.94,.97,1.19],RUN:[1.07,1,.97]},
  c2m:{PASS:[.86,1.03,1.11],RUN:[1.13,1,.93]},
  c0:{PASS:[1.17,.84,1.62],RUN:[.83,.97,1.21]},
@@ -4503,6 +4667,7 @@ function dcHash(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCod
 const dcTend=o=>dcHash('dc'+(o&&o.id!=null?'i'+o.id:'n'+((o&&o.name)||'')))%3; /* the 'dc' salt gives an even split on real league sizes (8 to 60 teams) and the classic names */
 function dcPickStyle(){
  const late=G.clock<=G.qLen*1.2;let p=[.7,.5,.3][dcTend(G.opp)];
+ {const st=styOpp();if(st&&typeof st.tend==='number')p=st.tend}   /* v2.37: a team style record's own tend (.1 to .9); 'hash' or no record = today's .7 / .5 / .3 */
  if(late&&G.op<G.me)p=.85;else if(late&&G.op>G.me)p=.25;
  return Math.random()<p?'PASS':'RUN'}
 function dcTags(id){
@@ -5836,12 +6001,15 @@ function drvRng(){if(!(typeof G.dseed==='number'&&isFinite(G.dseed)))G.dseed=drv
 /* ctx for LGD.simDrive, from the game's own numbers (the same ones simOpp reads) */
 function drvCtx(start,call){
  const h=G.qLen*2,line=G.half||G.clock<=h?0:h;
- return{offense:{off:G.opp.off,style:null},defense:{def:S.r.def},  /* no-edge numbers of a hand-played game, as simOpp: edge = the opponent's off minus my def */
+ /* v2.37: team styles. offense.style = the opponent's record (null = default), defense.style = my team's (where blitz is read). With a call: the drive style comes from the record's `tend` (dcPickStyle already
+    chose call.style) and the offense record goes in with pass:0, so the tendency is not counted twice; without a call the record's pass counts and driveStyle stays null. */
+ const so=styOpp(),sd=styMine(),oSty=so?(call?Object.assign({},so,{pass:0}):so):null;
+ return{offense:{off:G.opp.off,style:oSty},defense:{def:S.r.def,style:sd},  /* no-edge numbers of a hand-played game, as simOpp: edge = the opponent's off minus my def */
   start,qLen:G.qLen,clockGame:G.clock,clockHalf:G.ot?undefined:G.clock-line,diff:G.op-G.me,ot:!!G.ot,
   home:G.home===true?-1:G.home===false?1:0,                       /* home flag from the OPPONENT's side: simOpp's +.025 when G.home === false */
   timeouts:{off:0,def:0},
   tilt:{k:DK(),sh:upShift(),call:call?{id:call.sch,family:DC_FAM[call.sch],style:call.style}:null},
-  driveStyle:null,keepPlays:true}}
+  driveStyle:so&&call?call.style:null,keepPlays:true}}
 function simOppDrv(start,call){
  const ctx=drvCtx(start,call),d=LGD.simDrive(ctx,drvRng()),L=d.plays||[],sub=d.sub,n0=L.length;
  const out={pts:d.pts,next:d.next,kind:d.kind,sub:sub,time:d.time,drv:1};
@@ -5864,7 +6032,9 @@ function simOppDrv(start,call){
  if(d.cut){out.cut=1;out.endOf=line>0?'half':'game';out.stop=line;out.pts=0;out.kind='cut';out.sub='cut';out.next=25;out.time=left}
  else if(!G.ot&&left>0&&d.time>=left-1e-9){out.stop=line;out.time=left}
  if(d.cut)out.text=out.plays+(out.plays===1?' PLAY':' PLAYS')+' - TIME EXPIRES. THE '+(line>0?'HALF':'GAME')+' IS OVER.';
- else if(out.kind==='td')out.text=out.plays+' PLAYS, '+out.yd+' YDS - TOUCHDOWN! (+'+out.pts+')';
+ else if(out.kind==='td'){
+  if(d.try==='two'){out.try='two';out.tryGood=!!d.tryGood;out.text=out.plays+' PLAYS, '+out.yd+' YDS - TOUCHDOWN. TRY FOR TWO: '+(out.tryGood?'GOOD.':'NO GOOD.')+' (+'+out.pts+')'}   /* v2.37: lg-drive 1.4 can go for two: pts 8 (good) or 6 (no good) */
+  else{if(d.try==='xp'){out.try='xp';out.tryGood=!!d.tryGood}out.text=out.plays+' PLAYS, '+out.yd+' YDS - TOUCHDOWN! (+'+out.pts+')'}}   /* the plain extra-point line exactly as before */
  else if(sub==='fg')out.text=out.plays+' PLAYS - FIELD GOAL IS GOOD (+3)';
  else if(sub==='fgm')out.text=out.plays+' PLAYS - FIELD GOAL MISSED!';
  else if(out.kind==='to')out.text=out.plays+' PLAYS - TURNOVER! YOUR D DELIVERED';
@@ -5933,7 +6103,7 @@ function pbpBar(){
  const e=$('pbR');if(!e)return;const s=PBP.s;
  if(!PBP.fin){const n=Math.min(PBP.i,s.plays);e.innerHTML=`<span class="ln">${sc('Drive time '+pbpT(PBP.cum)+' · '+pbpPl(n))}</span>`;return}
  const k=s.sub,t=pbpT(s.time),n=pbpPl(s.plays);let tag,col,line;
- if(k==='td'){tag='TOUCHDOWN +'+s.pts;col='g';line=n+', '+s.yd+' yds, drive time '+t}
+ if(k==='td'){tag='TOUCHDOWN +'+s.pts;col='g';line=n+', '+s.yd+' yds, drive time '+t+(s.try==='two'?(s.tryGood?'. Try for two: good':'. Try for two: no good'):'')}   /* v2.37: the try for two is told on the result bar */
  else if(k==='fg'){tag='FIELD GOAL +'+s.pts;col='g';line=n+', '+s.yd+' yds, drive time '+t}
  else if(k==='cut'){tag='TIME EXPIRES';col='a';line=n+', drive time '+t+'. '+(s.endOf==='half'?'The half is over.':'The game is over.')} /* v2.21: the drive ran out of clock; nothing scored */
  else if(k==='fgm'){tag='NO GOOD';col='a';line=n+', kick missed, your ball at your '+s.next+', drive time '+t}
@@ -6192,14 +6362,17 @@ function fgRun(ph){
 function fgSolve(kind,ph){
  const P=kind==='run'?fgRun(ph):FG_POSES[kind],hip={x:0,y:0},sh={x:FG_TORSO*Math.sin(P.lean),y:-FG_TORSO*Math.cos(P.lean)},hd=P.hd,head={x:sh.x+2.5*Math.sin(hd),y:sh.y-2.5*Math.cos(hd)};
  const legs=P.legs.map(([a,b])=>{const k={x:FG_L1*Math.sin(a),y:FG_L1*Math.cos(a)},bb=a-b,an={x:k.x+FG_L2*Math.sin(bb),y:k.y+FG_L2*Math.cos(bb)};
-  const t=Math.max(-.2,Math.min(.75,-bb*.5)),heel={x:an.x-.9*Math.cos(t),y:an.y-.9*Math.sin(t)+.2},toe={x:an.x+1.9*Math.cos(t),y:an.y+1.9*Math.sin(t)+.2};return{k,an,heel,toe}});
+  const t=Math.max(-.2,Math.min(.75,-bb*.5)),heel={x:an.x-.9*Math.cos(t),y:an.y-.9*Math.sin(t)+.2},toe={x:an.x+1.9*Math.cos(t),y:an.y+1.9*Math.sin(t)+.2};return{k,an,heel,toe,t}});
  const arms=P.arms.map(([u,f])=>{const e={x:sh.x+FG_UA*Math.sin(u),y:sh.y+FG_UA*Math.cos(u)};return{e,w:{x:e.x+FG_FA*Math.sin(f),y:e.y+FG_FA*Math.cos(f)}}});
  let low=-1e9,minx=1e9,maxx=-1e9;const pts=[hip,sh,head,{x:head.x+3.4,y:head.y},{x:head.x-3.2,y:head.y}];
  legs.forEach(l=>{pts.push(l.k,l.an,l.heel,l.toe);low=Math.max(low,l.heel.y+.5,l.toe.y+.5)});arms.forEach(a=>{pts.push(a.e,a.w)});
  pts.forEach(p=>{minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x)});
  return{P,hip,sh,head,legs,arms,tx:-(minx+maxx)/2,ty:-low-(P.lift||0),tilt:P.tilt||0}}
-function fgPal(u,tone){const H=hx6(u.helmet.shell),J=hx6(u.jersey.main),P=hx6(u.pants.main),S=hx6(u.socks.main),T=hx6(u.jersey.trim),G=hx6(u.gloves||u.jersey.trim);
- return{J,jl:shK(J,1.2),jk:shK(J,.76),P,pk:shK(P,.72),q:hx6(u.pants.stripe),S,sk:shK(S,.8),c:hx6(u.socks.stripe),H,hl:shK(H,1.16),hk:shK(H,.76),w:hx6(u.helmet.stripe),m:hx6(u.helmet.mask),skin:tone,skd:shK(tone,.8),g:G,gk:shK(G,.78),b:hx6(u.shoes),e:'#1a1a1a'}}
+/* v2.38: the palette of one uniform. Every drawn swatch is here (the preview cache key is made from all of it): helmet shell/stripe/mask/logo, jersey main/trim/number/sleeve, pants main/stripe, socks main/stripe, gloves, shoes. A missing or bad sleeve = the jersey's main color (SAME AS JERSEY). */
+const fgHx=(v,d)=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v)?v:d;
+function fgPal(u,tone){const hj=u.helmet,jj=u.jersey,H=hx6(hj.shell),J=hx6(jj.main),SL=fgHx(jj.sleeve,J),P=hx6(u.pants.main),S=hx6(u.socks.main),T=hx6(jj.trim),G=hx6(u.gloves||jj.trim),B=hx6(u.shoes),Q=hx6(u.pants.stripe),C=hx6(u.socks.stripe),HS=hx6(hj.stripe);
+ return{H,hk:shK(H,.78),hl:shK(H,1.16),hs:HS,m:hx6(hj.mask),lg:fgHx(hj.logo,HS),J,jl:shK(J,1.18),jk:shK(J,.78),t:T,tk:shK(T,.78),n:fgHx(jj.number,T),sl:SL,slk:shK(SL,.76),
+  P,pk:shK(P,.74),q:Q,qk:shK(Q,.78),S,sk:shK(S,.78),c:C,ck:shK(C,.78),g:G,gk:shK(G,.78),b:B,bk:shK(B,.78),skin:tone,skd:shK(tone,.8),e:'#1a1a1a'}}
 function fgCirc(c,x,y,r,col,ol){if(ol){c.beginPath();c.arc(x,y,r,0,7);c.lineWidth=ol.w*2;c.strokeStyle=ol.col(col);c.stroke()}c.beginPath();c.arc(x,y,r,0,7);c.fillStyle=col;c.fill()}
 function fgLimb(c,a,b,wa,wb,col,ol){
  const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;
@@ -6207,34 +6380,62 @@ function fgLimb(c,a,b,wa,wb,col,ol){
  if(ol){c.strokeStyle=ol.col(col);c.lineWidth=ol.w*2;c.lineJoin='round';quad();c.stroke();c.beginPath();c.arc(a.x,a.y,wa/2,0,7);c.stroke();c.beginPath();c.arc(b.x,b.y,wb/2,0,7);c.stroke()}
  c.fillStyle=col;quad();c.fill();c.beginPath();c.arc(a.x,a.y,wa/2,0,7);c.fill();c.beginPath();c.arc(b.x,b.y,wb/2,0,7);c.fill()}
 const fgFrac=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+/* v2.38: the shapes the natural body is made of. fgPoly = a polygon (optional soft outline), fgTap = a tapered bar as 4 points, fgSm/fgSfill = a smoothed (rounded) polygon */
+function fgPoly(c,pts,col,ol,join){c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath();
+ if(ol){c.lineJoin=join||'round';c.miterLimit=2.2;c.lineWidth=ol.w*2;c.strokeStyle=ol.col(col);c.stroke()}
+ c.fillStyle=col;c.fill()}
+function fgTap(a,b,wa,wb){const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;
+ return[{x:a.x+nx*wa/2,y:a.y+ny*wa/2},{x:b.x+nx*wb/2,y:b.y+ny*wb/2},{x:b.x-nx*wb/2,y:b.y-ny*wb/2},{x:a.x-nx*wa/2,y:a.y-ny*wa/2}]}
+function fgSm(c,pts){const n=pts.length,mid=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});c.beginPath();const m0=mid(pts[n-1],pts[0]);c.moveTo(m0.x,m0.y);
+ for(let i=0;i<n;i++){const p=pts[i],m=mid(p,pts[(i+1)%n]);c.quadraticCurveTo(p.x,p.y,m.x,m.y)}c.closePath()}
+function fgSfill(c,pts,col,ol){fgSm(c,pts);if(ol){c.lineJoin='round';c.lineWidth=ol.w*2;c.strokeStyle=ol.col(col);c.stroke()}c.fillStyle=col;c.fill()}
+/* a leg: sock from the ankle to just under the knee with two square stripes, a short low cleat, and ONE pants shape from the hip to just below the knee (the side stripe on the near leg) */
 function fgLeg(c,l,hip,pl,far,ol){
- const T=far?pl.pk:pl.P,Sk=far?pl.sk:pl.S;
- fgLimb(c,l.an,l.k,2.1,2.4,Sk,ol);
- const m=fgFrac(l.k,l.an,.32);fgLimb(c,{x:m.x,y:m.y},{x:m.x+(l.an.x-l.k.x)*.1,y:m.y+(l.an.y-l.k.y)*.1},2.2,2.2,pl.c,null);
- fgLimb(c,l.heel,l.toe,1.7,1.5,pl.b,ol);
- fgLimb(c,hip,l.k,3.4,2.9,T,ol);
- if(!far)fgLimb(c,fgFrac(hip,l.k,.12),fgFrac(hip,l.k,.92),.8,.8,pl.q,null)}
-function fgArm(c,sh,a,pl,far,ol){
- fgLimb(c,sh,a.e,1.9,1.7,far?pl.jk:pl.J,ol);fgLimb(c,a.e,a.w,1.5,1.3,far?pl.skd:pl.skin,ol);fgCirc(c,a.w.x,a.w.y,.95,far?pl.gk:pl.g,ol)}
-function fgDraw(c,S,pl,ol){
- c.save();c.translate(S.tx,S.ty);c.lineJoin='round';
- fgArm(c,S.sh,S.arms[1],pl,true,ol);fgLeg(c,S.legs[1],S.hip,pl,true,ol);
- fgLimb(c,S.hip,S.sh,4.0,5.2,pl.J,ol);fgLimb(c,fgFrac(S.hip,S.sh,.3),fgFrac(S.hip,S.sh,.85),1.2,1.7,pl.jl,null);
- fgCirc(c,S.hip.x,S.hip.y,2.0,pl.P,null);fgLeg(c,S.legs[0],S.hip,pl,false,ol);
- fgCirc(c,S.sh.x,S.sh.y+.3,2.7,pl.J,ol);fgLimb(c,S.sh,S.head,1.8,1.8,pl.skd,ol);
- c.save();c.translate(S.head.x,S.head.y);c.rotate(S.tilt);
- const H=pl.H;
+ const k=l.k,an=l.an,Sc=far?pl.sk:pl.S,Pc=far?pl.pk:pl.P,Cc=far?pl.ck:pl.c,Bc=far?pl.bk:pl.b,Qc=far?pl.qk:pl.q,below=fgFrac(k,an,.2);
+ fgLimb(c,an,fgFrac(k,an,.1),1.75,2.0,Sc,ol);
+ fgPoly(c,fgTap(fgFrac(k,an,.5),fgFrac(k,an,.58),1.94,1.9),Cc,null);fgPoly(c,fgTap(fgFrac(k,an,.67),fgFrac(k,an,.73),1.9,1.86),Cc,null);
+ const t=l.t,d={x:Math.cos(t),y:Math.sin(t)},n={x:-Math.sin(t),y:Math.cos(t)},P=(a2,b2)=>({x:an.x+d.x*a2+n.x*b2,y:an.y+d.y*a2+n.y*b2});
+ fgSfill(c,[P(-.85,-.15),P(.3,-.3),P(1.3,.0),P(1.6,.45),P(1.45,.72),P(-.85,.72)],Bc,ol);
+ fgPoly(c,[P(-.8,.54),P(1.5,.54),P(1.42,.7),P(-.8,.7)],shK(Bc,1.6),null);
+ const nrm=(a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1;return{x:-dy/L,y:dx/L}},n1=nrm(hip,k),n2=nrm(k,below),nk={x:(n1.x+n2.x)/2,y:(n1.y+n2.y)/2};
+ const off=(p,nn,w)=>({x:p.x+nn.x*w,y:p.y+nn.y*w});
+ fgPoly(c,[off(hip,n1,1.65),off(k,nk,1.3),off(below,n2,1.15),off(below,n2,-1.15),off(k,nk,-1.3),off(hip,n1,-1.65)],Pc,ol,'round');
+ c.beginPath();c.arc(hip.x,hip.y,1.65,0,7);c.fillStyle=Pc;c.fill();
+ fgPoly(c,fgTap(fgFrac(k,an,.14),below,2.28,2.26),shK(Pc,.82),null);
+ if(!far)fgLimb(c,fgFrac(hip,k,.1),fgFrac(k,an,.1),.7,.7,Qc,null)}
+/* an arm: the sleeve color from the lower shoulder point to the elbow with a trim cuff, the forearm skin, the hand in the glove color; the near sleeve's edge is a soft darker shade (about .72) */
+function fgArm(c,sp,a,pl,far,ol){const sl=far?pl.slk:pl.sl,tr=far?pl.tk:pl.t,ol2=ol&&!far?{w:ol.w,col:x=>shK(x,.72)}:ol;
+ fgLimb(c,sp,a.e,2.05,1.75,sl,ol2);
+ fgLimb(c,fgFrac(sp,a.e,.66),fgFrac(sp,a.e,.86),1.86,1.78,tr,null);
+ fgLimb(c,a.e,a.w,1.4,1.2,far?pl.skd:pl.skin,ol);
+ fgCirc(c,a.w.x,a.w.y,.88,far?pl.gk:pl.g,ol)}
+/* the helmet (drawn at 90% of the old size by fgDraw): shell, shade, shine, stripe, logo, face, eye, mask */
+function fgHead(c,S,pl,ol){c.save();c.translate(S.head.x,S.head.y);c.rotate(S.tilt);const H=pl.H;
  if(ol){c.beginPath();c.ellipse(0,0,3.0,2.7,0,0,7);c.lineWidth=ol.w*2;c.strokeStyle=ol.col(H);c.stroke()}
  c.beginPath();c.ellipse(0,0,3.0,2.7,0,0,7);c.fillStyle=H;c.fill();
  c.beginPath();c.ellipse(-.8,.55,2.1,1.9,0,0,7);c.fillStyle=pl.hk;c.fill();
  c.beginPath();c.ellipse(-.6,-1.1,1.3,.8,0,0,7);c.fillStyle=pl.hl;c.fill();
- c.beginPath();c.ellipse(0,0,2.3,2.0,0,Math.PI*1.1,Math.PI*1.9);c.lineWidth=.7;c.strokeStyle=pl.w;c.stroke();
+ c.beginPath();c.ellipse(0,0,2.3,2.0,0,Math.PI*1.1,Math.PI*1.9);c.lineWidth=.7;c.strokeStyle=pl.hs;c.stroke();
+ fgPoly(c,[{x:.1,y:-1.55},{x:.65,y:-1.0},{x:.1,y:-.45},{x:-.45,y:-1.0}],pl.lg,null);
  c.beginPath();c.ellipse(1.55,.9,1.3,1.1,0,0,7);c.fillStyle=pl.skin;c.fill();
  c.beginPath();c.arc(1.75,.7,.32,0,7);c.fillStyle=pl.e;c.fill();
- c.beginPath();c.moveTo(1.7,-.35);c.lineTo(3.1,.6);c.lineTo(3.0,2.1);c.lineTo(1.4,2.2);c.moveTo(1.5,1.05);c.lineTo(3.05,1.15);c.lineWidth=.55;c.strokeStyle=pl.m;c.stroke();
- c.beginPath();c.arc(-.7,.5,.42,0,7);c.fillStyle=pl.e;c.fill();
- c.restore();
- fgArm(c,S.sh,S.arms[0],pl,false,ol);c.restore()}
+ c.beginPath();c.moveTo(1.7,-.35);c.lineTo(3.1,.6);c.lineTo(3.0,2.1);c.lineTo(1.4,2.2);c.moveTo(1.5,1.05);c.lineTo(3.05,1.15);c.lineWidth=.7;c.strokeStyle=pl.m;c.stroke();
+ c.beginPath();c.arc(-.7,.5,.42,0,7);c.fillStyle=pl.e;c.fill();c.restore()}
+/* v2.38 the natural body: the same skeleton, poses and hands as before; a shaped hip and jersey hem, lower rounded shoulders (the arms hang from a point below the old shoulder; the elbows follow by .6 of the drop, the wrists stay), no arc across the chest, hem band and two number marks on the jersey side */
+function fgDraw(c,S,pl,ol){c.save();c.translate(S.tx,S.ty);c.lineJoin='round';
+ const hip=S.hip,sh=S.sh,L=FG_TORSO,len=Math.hypot(sh.x-hip.x,sh.y-hip.y)||1,u={x:(sh.x-hip.x)/len,y:(sh.y-hip.y)/len},f={x:-u.y,y:u.x};
+ const Q=(a,b)=>({x:hip.x+u.x*a+f.x*b,y:hip.y+u.y*a+f.y*b});
+ const sp=Q(L-.85,.25),drop={x:sp.x-sh.x,y:sp.y-sh.y},arms=S.arms.map(a=>({e:{x:a.e.x+drop.x*.6,y:a.e.y+drop.y*.6},w:a.w}));
+ fgArm(c,Q(L-.85,-.3),arms[1],pl,true,ol);fgLeg(c,S.legs[1],hip,pl,true,ol);
+ fgSfill(c,[Q(.9,1.65),Q(.9,-1.65),Q(-.6,-2.0),Q(-1.4,-1.3),Q(-1.4,1.3),Q(-.5,1.85)],pl.P,ol);
+ fgLeg(c,S.legs[0],hip,pl,false,ol);
+ fgLimb(c,Q(L-.6,.3),S.head,1.7,1.6,pl.skd,ol);
+ fgSfill(c,[Q(-.3,1.9),Q(1.4,1.7),Q(2.9,1.95),Q(L-.7,2.05),Q(L+.05,1.35),Q(L+.15,.2),Q(L-.1,-1.2),Q(L-.8,-2.05),Q(2.4,-1.95),Q(1.0,-1.75),Q(-.3,-2.0)],pl.J,ol);
+ fgLimb(c,Q(1.3,.25),Q(L-1.1,.35),1.0,1.35,pl.jl,null);
+ fgPoly(c,fgTap(Q(-.1,0),Q(.4,0),3.75,3.85),pl.t,null);
+ fgPoly(c,fgTap(Q(1.6,.35),Q(3.1,.35),.55,.55),pl.n,null);fgPoly(c,fgTap(Q(1.6,1.2),Q(3.1,1.2),.55,.55),pl.n,null);
+ c.save();c.translate(S.head.x,S.head.y);c.scale(.9,.9);c.translate(-S.head.x,-S.head.y);fgHead(c,S,pl,ol);c.restore();
+ fgArm(c,sp,arms[0],pl,false,ol);c.restore()}
 const FG_OL={w:.45,col:c=>shK(c,.5)};
 /* the figure bitmap for one entity in one pose: {c: canvas, ax, ay: feet centre in bitmap pixels}. pose: stand|ready|p3|run; ph: 0..1 run phase (8 frames: 0, 1/8 ... 7/8); face: 1 right, -1 left (the bitmap is drawn mirrored) */
 /* v2.30: figMake is the one place a figure is drawn onto a canvas of its own: the game's bitmap cache (figBmp) and the previews (LOOK, locker room: figPv) both call it. R = device pixels per game unit. */
@@ -6278,9 +6479,14 @@ function outlineRule(a,b,userIsA){
 /* the opponent's second uniform: its AWAY look (secondary color on jersey, pants, helmet and socks), the same one the wardrobe builds; made in memory, never stored */
 function awayUni(u,col){const c=col&&col.c&&col.d?col:{c:u.jersey.main,d:u.jersey.main},ink=lum(hx6(c.d))>150?'#1a1a22':'#f4f4f8';
  return{helmet:{shell:c.d,stripe:c.c,mask:'#cfd3dc',logo:c.c},jersey:{main:c.d,trim:c.c,number:ink},pants:{main:c.d,stripe:c.c},socks:{main:c.d,stripe:c.c},shoes:u.shoes,gloves:u.gloves,outline:u.outline}}
-function oppAlt(o,u,col){
+function oppAlt(o,u,col,me){
  try{const t=S.lg&&o&&o.id!=null?S.lg.teams[o.id]:null,w=t&&t.wd;
-  if(w&&w.jersey&&w.jersey.length>1&&w.sel){const i=w.sel.jersey===0?1:0,g=k=>w[k][Math.min(i,w[k].length-1)];return{helmet:g('helmet'),jersey:g('jersey'),pants:g('pants'),socks:g('socks'),gloves:w.gloves,shoes:w.shoes,outline:u.outline}}}catch(e){}
+  if(w&&w.jersey&&w.jersey.length>1&&w.sel){const g=(k,i)=>w[k][Math.min(i,w[k].length-1)],worn=w.sel.jersey;
+   /* v2.38: the other of HOME / AWAY, or its WHITE uniform (a style made from the colors and named WHITE); the one farthest from the user's jersey, the lower one on a tie */
+   const c=[0,1];w.jersey.forEach((x,i)=>{if(i>1&&x&&x.a&&x.n==='WHITE')c.push(i)});
+   let best=-1,bd=-1;c.forEach(i=>{if(i===worn||i>=w.jersey.length)return;const d=me&&me.jersey?jClose(me.jersey.main,w.jersey[i].main):0;if(d>bd+1e-9){bd=d;best=i}});
+   if(best<0)best=worn===0?1:0;
+   return{helmet:g('helmet',best),jersey:g('jersey',best),pants:g('pants',best),socks:g('socks',best),gloves:w.gloves,shoes:w.shoes,outline:u.outline}}}catch(e){}
  return awayUni(u,col)}
 /* the guard: when the two jerseys are too close (delta E under 25), use the alternate; if both fail keep the farther one. Pure; the user's uniform is never an input to change. */
 function uniFix(me,op,alt,on){
@@ -6294,7 +6500,7 @@ function afLoad(){afLoaded=true;try{const o=JSON.parse(localStorage.getItem(AF_K
 function afIsOn(){if(!afLoaded)afLoad();return afCur===1}
 let RUNU=null;
 function unisSet(){
- try{const me=S.uni,o0=G.opp.uni||defaultUni(G.oc,true),fx=uniFix(me,o0,oppAlt(G.opp,o0,G.oc),afIsOn()),ol=outlineRule(me,fx.u,true);
+ try{const me=S.uni,o0=G.opp.uni||defaultUni(G.oc,true),fx=uniFix(me,o0,oppAlt(G.opp,o0,G.oc,me),afIsOn()),ol=outlineRule(me,fx.u,true);
   RUNU={g:G,me:Object.assign({},me,{outline:ol.a}),opp:Object.assign({},fx.u,{outline:ol.b}),sw:fx.sw,dE:fx.dE}}catch(e){RUNU=null}
  resetSprites()}
 function uniOf(side){
@@ -6571,26 +6777,26 @@ const DEFD=[
  {id:'c1',name:'COVER 1 MAN',tx:'STEADY. FORCES TURNOVERS ON PASSES, A LITTLE SOFT ON RUNS.',hi:1,dbw:.9,lbw:.4,
   lb:[{al:AT(4.5,11),as:{m:3}},{al:AT(4.5,20),as:{z:[9,15,6]}},{al:AT(4.5,26),as:{z:[9,26,6]}}],
   db:[{al:ACROSS(0,7),as:{m:0}},{al:ACROSS(1,7),as:{m:1}},{al:ACROSS(2,7),as:{m:2}},{al:AT(14,20),as:{z:[20,20,10]}}]},
- {id:'c3',name:'COVER 3',tx:'SAFE ON PASSES, LETS RUNS THROUGH.',hi:1,dbw:1.1,lbw:.4,
+ {id:'c3',name:'COVER 3',tx:'SAFE ON PASSES: FEWER TD, MORE FG. LETS RUNS THROUGH.',hi:1,dbw:1.1,lbw:.4,
   lb:[{al:AT(4.5,9),as:{z:[7,9,7]}},{al:AT(4.5,17),as:{z:[9,17,5.5]}},{al:AT(4.5,23),as:{z:[9,23,5.5]}}],
   db:[{al:ACROSS(0,8),as:{z:[19,7,9]}},{al:ACROSS(1,8),as:{z:[19,33,9]}},{al:ACROSS(2,5),as:{z:[7,31,7]}},{al:AT(14,20),as:{z:[20,20,9]}}]},
- {id:'t2',name:'TAMPA 2',tx:'STRONG ON PASSES, FAIRLY SOLID ON RUNS.',hi:2,dbw:1,lbw:.4,
+ {id:'t2',name:'TAMPA 2',tx:'STRONG ON PASSES: FEWER TD, MORE FG. SOFT ON RUNS.',hi:2,dbw:1,lbw:.4,
   lb:[{al:AT(4.5,13),as:{z:[8,13,6]}},{al:AT(4.5,20),as:{z:[18,20,6]}},{al:AT(4.5,27),as:{z:[8,27,6]}}],
   db:[{al:ACROSS(0,5),as:{z:[5,6,6]}},{al:ACROSS(1,5),as:{z:[5,34,6]}},{al:AT(12,11),as:{z:[19,10,10]}},{al:AT(12,29),as:{z:[19,30,10]}}]},
- {id:'c4',name:'COVER 4',tx:'BEST ZONE AGAINST PASSES, WORST AGAINST RUNS.',hi:2,dbw:.6,lbw:.4,
+ {id:'c4',name:'COVER 4',tx:'THE BEST PASS DEFENSE OF ALL: FEWER TD, MORE FG. THE WORST AGAINST RUNS.',hi:2,dbw:.6,lbw:.4,
   lb:[{al:AT(4.5,10),as:{z:[8,10,7]}},{al:AT(4.5,20),as:{z:[8,20,7]}},{al:AT(4.5,30),as:{z:[8,30,7]}}],
   db:[{al:ACROSS(0,8),as:{z:[18,5,6]}},{al:ACROSS(1,8),as:{z:[18,35,6]}},{al:AT(9,15),as:{z:[18,15,6]}},{al:AT(9,25),as:{z:[18,25,6]}}]},
  {id:'c0',name:'0 BLITZ',tx:'STOPS RUNS, MOST TURNOVERS, BUT A CATCH CAN BE A TD.',hi:0,dbw:1.2,lbw:.2,
   lb:[{al:AT(2.5,14),as:null},{al:AT(2.5,20),as:null},{al:AT(2.5,26),as:null}],
   db:[{al:ACROSS(0,4),as:{m:0}},{al:ACROSS(1,4),as:{m:1}},{al:ACROSS(2,4),as:{m:2}},{al:AT(5,15.5),as:{m:3}}]},
  /* ---- more coverages (v1.30) ---- */
- {id:'c2',name:'COVER 2',tx:'THE BEST ZONE AGAINST THE RUN.',hi:2,dbw:1,lbw:.4,
+ {id:'c2',name:'COVER 2',tx:'THE BEST ZONE AGAINST THE RUN. ON PASSES IT GIVES FG, NOT TD.',hi:2,dbw:1,lbw:.4,
   lb:[{al:AT(4.5,12),as:{z:[7,12,5.5]}},{al:AT(4.5,20),as:{z:[12,20,5]}},{al:AT(4.5,28),as:{z:[7,28,5.5]}}],
   db:[{al:ACROSS(0,5),as:{z:[5,6,6]}},{al:ACROSS(1,5),as:{z:[5,34,6]}},{al:AT(12,11),as:{z:[19,10,10]}},{al:AT(12,29),as:{z:[19,30,10]}}]},
- {id:'c2m',name:'COVER 2 MAN',tx:'THE BEST PASS DEFENSE, BUT RUNS GET THROUGH.',hi:2,dbw:1,lbw:.5,
+ {id:'c2m',name:'COVER 2 MAN',tx:'THE BEST MAN COVER ON PASSES, BUT RUNS GET THROUGH.',hi:2,dbw:1,lbw:.5,
   lb:[{al:AT(4.5,13),as:{z:[8,13,6]}},{al:AT(4.5,20),as:{z:[11,20,6]}},{al:AT(4.5,27),as:{z:[8,27,6]}}],
   db:[{al:ACROSS(0,7),as:{m:0}},{al:ACROSS(1,7),as:{m:1}},{al:AT(12,11),as:{z:[19,10,10]}},{al:AT(12,29),as:{z:[19,30,10]}}]},
- {id:'c6',name:'COVER 6',tx:'STRONG ON PASSES, SOFT ON RUNS, SAFER THAN COVER 4.',hi:2,dbw:.8,lbw:.4,
+ {id:'c6',name:'COVER 6',tx:'STRONG ON PASSES: FEWER TD, MORE FG. SOFT ON RUNS, BUT SAFER THAN COVER 4.',hi:2,dbw:.8,lbw:.4,
   lb:[{al:AT(4.5,10),as:{z:[8,10,7]}},{al:AT(4.5,20),as:{z:[8,20,7]}},{al:AT(4.5,29),as:{z:[8,29,6]}}],
   db:[{al:ACROSS(0,8),as:{z:[18,5,6]}},{al:ACROSS(1,5),as:{z:[5,34,6]}},{al:AT(9,15),as:{z:[18,14,6]}},{al:AT(12,29),as:{z:[19,30,10]}}]},
  {id:'pv',name:'PREVENT',tx:'BEST WHEN YOU LEAD LATE, A BAD CALL EARLY.',hi:2,w:.35,dbw:1.8,lbw:1,
@@ -7475,6 +7681,6 @@ function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return
 document.addEventListener('pointerup',fsTry,{capture:true});
 UI.ready=true;fit();openMenu();olBoot();
 requestAnimationFrame(frame);
-window.__pp={hmPlay,exportCode,bkUnpack,bkCommit,lnMenu,lnLeave,lnFlush,lnBuy,lnPlayLabel,lnHubClick,lnOpen,lnWatch,lnUnwatch,lnAfterGame,lnPlayGo,lnSimGo,lnWaitHub,LN:LNK,LNC,lnDerive,lnPull,lnFind,lnJoin,lnShape,lnCur,lnLast,lnWeeksOf,lnLocalize,lnKeepLocal,lnPanel,lnJoinHtml,FULL,LGFULL,gsResume,LGD,simOppDrv,drvOn,drvSet,drvCtx,drvMix,drvRng,LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:upShift,upShift,stdRelief,stdSetRelief,stdCostR,stdOppLine,RELIEF_SLOPE,RELIEF_CAP,STD_NEAR,teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdN,n:spdN,mult:m,step:SPD_STEP[spdN-1]}},spdMul:SPD_MUL,spdStep:SPD_STEP,czSetColor,czRedraw,czDraw,FIGPV,figPv,setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub,tiltV2:on=>{DC_TILT_V2=!!on;LGD.tiltV2(on)},tiltTable:()=>DC_T,dcAutoCall,lgPoTie};
+window.__pp={hmPlay,exportCode,bkUnpack,bkCommit,lnMenu,lnLeave,lnFlush,lnBuy,lnPlayLabel,lnHubClick,lnOpen,lnWatch,lnUnwatch,lnAfterGame,lnPlayGo,lnSimGo,lnWaitHub,LN:LNK,LNC,lnDerive,lnPull,lnFind,lnJoin,lnShape,lnCur,lnLast,lnWeeksOf,lnLocalize,lnKeepLocal,lnPanel,lnJoinHtml,FULL,LGFULL,gsResume,LGD,simOppDrv,drvOn,drvSet,drvCtx,drvMix,drvRng,LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:upShift,upShift,stdRelief,stdSetRelief,stdCostR,stdOppLine,RELIEF_SLOPE,RELIEF_CAP,STD_NEAR,teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdN,n:spdN,mult:m,step:SPD_STEP[spdN-1]}},spdMul:SPD_MUL,spdStep:SPD_STEP,czSetColor,czRedraw,czDraw,FIGPV,figPv,setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub,tiltV2:on=>{DC_TILT_V2=!!on;LGD.tiltV2(on)},tiltTable:()=>DC_T,dcAutoCall,lgPoTie,lgPoCoin,sty:t=>typeof t==='number'?styTeam(t):t&&typeof t==='object'?styNorm(t.sty):null,styNorm,wdFix,lgUni,jClose,olUni,czSet,czWd,czRebuild,czUnis,czUniK,czOwnOf,fgPal,fgDraw,figMake,styFix,styGive,styMake,styClass,styOpp,styMine,STY_CLS};
 })();
 </script></body></html>
