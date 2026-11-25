@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pixel Pigskin HQ</title>
+<title>Pixel Pigskin HQ v0.8</title>
 <style>
 /* Pixel Pigskin HQ v0.3: plain dark theme, system fonts only. */
 :root{
@@ -1127,7 +1127,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LGSTD;
    page makes no network request of any kind. It opens PPSAVE1 backup codes and
    Standard league files as before (read only), and linked leagues from the cloud.
    ===================================================================== */
-var HQ_VERSION = '0.8';
+var HQ_VERSION = '0.8';   /* filled in by build.mjs from package.json "version" (major.minor): the ONE place to bump it */
 
 /* ---------- small helpers (build page parts without innerHTML, so a
    strange name inside a save can never run as code) ---------- */
