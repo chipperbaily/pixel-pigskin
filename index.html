@@ -80,7 +80,6 @@ h1.mh{font-size:1.5em}
 .dv h4{font-size:1em;color:var(--c-y);font-weight:normal;margin-bottom:.4em}
 .dv table{width:100%;border-collapse:collapse;font-size:.9em}.dv td{padding:.25em .3em}.dv td:nth-child(n+2){text-align:right;color:#b8c4dc}
 .dv tr.czg2{display:grid;grid-template-columns:1fr 1fr;gap:.8em;width:100%;max-width:50em;align-items:start}
-#lock .lkc{width:100%;aspect-ratio:200/130;background:#2f6b3a;border:.15em solid #000}
 .me{background:var(--c-line)}.dv tr.ld td:first-child{color:var(--c-y)}
 .tg{display:grid;grid-template-columns:1fr 1fr;gap:.3em}
 .tb{font:inherit;font-size:.8em;background:#0e1628;color:#fff;border:.15em solid #2b3a55;padding:.35em;text-align:left;cursor:pointer;display:flex;gap:.4em;align-items:center;min-width:0}
@@ -98,15 +97,6 @@ select{font:inherit;font-size:.7em;padding:.4em;background:var(--c-row);color:#f
 .win{color:var(--c-g)}.lose{color:#ff6b6b}
 /* v1.67 standings look */
 /* v1.74 bigger locker room selectors */
-#lock .czg2{max-width:62em;gap:1em}
-#lock .card.cz{font-size:.95em;padding:.6em .8em}
-#lock .card.cz h3{font-size:1em}
-#lock .card.cz .lkc{width:72%;display:block;margin:0 auto .3em}
-#lock .card.cz .up{margin:.35em 0;font-size:1em;gap:.4em}
-#lock .card.cz .up b{width:4.6em;font-size:.9em}
-#lock .card.cz .up .btn.xs{font-size:1.1em;min-width:2.4em;padding:.45em .5em}
-#lock .card.cz .up span{font-size:1.05em}
-#lock .card.cz .up .sm{font-size:.7em}
 /* v1.75 safe-area probe, version label and update bar */
 html{background:var(--c-page)}
 #saProbe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;overflow:hidden;padding:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
@@ -413,7 +403,6 @@ html{background:var(--c-page)}
 .czrc{display:block;width:100%;height:76px;background:#2f6b3a;border:2px solid #000;box-sizing:border-box}
 .czs .row .sb:disabled{opacity:.45;cursor:default}
 .czp.czwr,.czp.czwr span{font-size:max(13px,calc(var(--t0)*1.3))!important}
-#lock .card.cz .lkun{flex-wrap:wrap;align-items:flex-start}#lock .card.cz .lkun .seg{flex:1;margin:0;gap:var(--s1)}#lock .card.cz .lkun .sb{font-size:var(--t0);min-height:var(--tp);min-width:var(--tp)}
 .czlb{font-size:var(--t0);color:var(--nmu,var(--c-mut));margin-top:var(--s1)}
 .czw input:not([type=color]),#czsh input:not([type=color]){width:100%;text-align:left;min-height:var(--tp);font-size:var(--t1);padding:0 var(--s3)}
 .czp{font-size:var(--t0)!important;line-height:1.7;color:var(--nmu,var(--c-mut))}.czp b{font-weight:normal;color:var(--c-y)}
@@ -524,9 +513,8 @@ html{background:var(--c-page)}
 #app :is(small,.czp,.dcc span,.bkd span,.bkn.dim,.hbnt):not(.btn):not(.x9):not(.x8){font-family:'Atk',sans-serif!important;font-weight:400!important;letter-spacing:0!important;font-size:max(13px,calc(var(--t0)*1.3))!important;line-height:1.35!important}
 #app .czp b#czworn{font-size:inherit!important;font-family:inherit!important}
 #app .sm #olcd{font-size:inherit!important} /* v2.11: the pick countdown is a span inside .sm; the generic `* {font-size:var(--t1)}` rule made it 12 px, under the 13 px floor */
-#lock .card.cz .up .btn.xs{flex:none;min-width:44px}
 #app .row:has(>.btn.xs){row-gap:9px}
-#app .card .up,#lock .card.cz .up{margin:.75em 0}
+#app .card .up{margin:.75em 0}
 .czwr{margin:.5em 0 0;display:flex;gap:.6em;align-items:flex-start;text-align:left}.czwr .czwi{flex:none;min-width:1.7em;text-align:center;background:var(--c-y);color:#000;font-weight:700;padding:.1em .3em;border-radius:0}
 /* v2.15 PLAY-BY-PLAY (the opponent's drive as a quick list over the game screen; p3.js). Press Start for chips, tags and buttons, the readable font for the words; row 28 px (44 on a tall screen), header 44 (52), strip 28, result bar 40. */
 #pbp{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;gap:8px;background:#0e1424;color:#eef2ff;padding:calc(var(--pt) + 8px) calc(var(--pr) + 8px) calc(var(--pb) + 8px) calc(var(--pl) + 8px);font-family:'Atk',sans-serif;font-weight:400;-webkit-user-select:none;user-select:none;--rh:28px;--bw:112px;--bn:44px}
@@ -732,7 +720,7 @@ html.lt #app:not(.gm) :is(.abar,#hp .hpbar,#dcs .dcbar,#hp .hph,.pch){background
 html.lt #app:not(.gm) .czbg{background:rgba(40,34,20,.55)}
 html.lt #app:not(.gm) .czsheet{background:var(--L-card);border-color:var(--L-ink);color:var(--L-ink)}
 /* previews keep the turf; a thin ink frame */
-html.lt #app:not(.gm) :is(.czpv,.czrc,#lock .lkc){border-color:var(--L-ink)}
+html.lt #app:not(.gm) :is(.czpv,.czrc){border-color:var(--L-ink)}
 html.lt #app:not(.gm) .czsw{color:var(--L-ink)}
 html.lt #app:not(.gm) .czsw i,html.lt #app:not(.gm) .czbig{box-shadow:0 0 0 2px var(--L-card),0 0 0 4px var(--L-ink)}
 html.lt #app:not(.gm) .czpal button{box-shadow:0 0 0 2px var(--L-ink)}html.lt #app:not(.gm) .czpal button.on{box-shadow:0 0 0 2px var(--L-card),0 0 0 5px var(--L-ink)}
@@ -748,6 +736,90 @@ html.lt #app:not(.gm) :is(.btn.hbli,.rrw):hover{background:rgba(27,34,54,.1)}
 html.lt #app:not(.gm) .btn.hbli:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
 /* in a game the bars around the 16:9 field stay dark */
 html.lt:has(#app.gm),html.lt:has(#app.gm) body{background-color:#070a12}
+
+/* ===== v2.53 THE MENUS (hs.js, sh.js): the team-color header card, the home screen, the league cards, the seven-item menu, the settings tabs ===== */
+/* league card: PRIMARY background, SECONDARY stripe on the edge and bottom line, text white or dark by contrast (--tcp --tcs --tci are set inline) */
+.hsc,.hsk{--tcp:#3b7cff;--tcs:#163a8c;--tci:#fff}
+.hsc{display:flex;flex-direction:column;align-items:flex-start;gap:var(--s1);width:100%;min-height:calc(var(--tp) + var(--s4));box-sizing:border-box;padding:var(--s3) var(--s4) var(--s3) calc(var(--s4) + 14px);text-align:left;font:inherit;cursor:pointer;color:var(--tci)!important;background:var(--tcp)!important;border:0;border-bottom:4px solid var(--tcs);border-radius:0;box-shadow:inset 8px 0 0 var(--tcs),inset 12px 0 0 var(--tcp),inset 16px 0 0 var(--tcs)}
+.hsc .hst{font-size:var(--t2);line-height:1.35;overflow-wrap:anywhere}
+.hsc .hsl{font-family:var(--rf,system-ui,sans-serif);font-size:var(--t1);line-height:1.4;overflow-wrap:anywhere}
+.hsc .hsm{font-size:var(--t0);opacity:.9}
+.hsc .hsg{font-size:var(--t0);padding:2px var(--s2);border:2px solid currentColor;margin-top:var(--s1)}
+.hsc:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.hsl2{display:flex;flex-direction:column;gap:var(--s3);width:100%;max-width:46em}
+.hsk{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;justify-content:space-between;box-sizing:border-box;width:min(100%,34em);padding:var(--s3) var(--s4) var(--s3) calc(var(--s4) + 14px);color:var(--tci);background:var(--tcp);border-bottom:4px solid var(--tcs);box-shadow:inset 8px 0 0 var(--tcs),inset 12px 0 0 var(--tcp),inset 16px 0 0 var(--tcs);position:relative;z-index:1;text-align:left}
+.hsk .hskt{flex:1 1 10em;min-width:0}.hsk b{display:block;font-weight:normal;font-size:var(--t2);line-height:1.35;overflow-wrap:anywhere}.hsk small{display:block;font-size:var(--t1);line-height:1.4;overflow-wrap:anywhere}
+#app #ttl .hsk .btn{min-width:8em}
+#app #ttl .ttb{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:min(100%,38em)}
+@media (max-width:560px){#app #ttl .ttb{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-height:420px){#app #ttl .ttw{gap:var(--s2)}#app #ttl .tts{display:none}}
+#app #ttl .btn{min-width:0}
+@media (prefers-reduced-motion:no-preference){#ttl .btn.qsp{animation:ppqs 1.8s ease-in-out infinite}}
+/* the header card inside a league: team name, then league - week - record; the screen's name, CREDITS, HOME and SWITCH */
+#app:not(.gm) #top.tc{--tcp:#3b7cff;--tcs:#163a8c;--tci:#fff;flex-wrap:wrap;row-gap:var(--s1);color:var(--tci)!important;background:var(--tcp)!important;border-left:0;border-bottom:4px solid var(--tcs);padding-left:calc(var(--s3) + 18px);box-shadow:inset 8px 0 0 var(--tcs),inset 12px 0 0 var(--tcp),inset 16px 0 0 var(--tcs)}
+#app:not(.gm) #top.tc .ttl{flex:1 1 12em}
+#app:not(.gm) #top.tc b,#app:not(.gm) #top.tc small{color:var(--tci)!important}
+#app:not(.gm) #top.tc small{font-family:var(--rf,system-ui,sans-serif);font-size:var(--t1)}
+#top .tcr{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;justify-content:flex-end;flex:0 1 auto}
+#top .scn{font-size:var(--t0);color:var(--tci);border-bottom:2px solid currentColor;padding-bottom:2px;white-space:nowrap}
+#app:not(.gm) #top.tc .cr{color:var(--tci)!important;background:rgba(0,0,0,.28)!important;box-shadow:none;border:2px solid var(--tci)}
+#top .hcb{flex:none;min-width:var(--tp);min-height:var(--tp);padding:0 var(--s3);font:inherit;font-size:var(--t0);color:var(--tci,var(--ny));background:rgba(0,0,0,.25);border:2px solid var(--tci,var(--nln));border-radius:0;cursor:pointer}
+html.lt #app:not(.gm) #top:not(.tc) .hcb{background:var(--L-hi);color:var(--L-ink);border-color:var(--L-line)}
+#top .hcb:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (orientation:portrait) and (max-width:799px){#app:not(.gm) #top.tc .tcr{flex:1 1 100%;justify-content:flex-start}}
+/* a screen opened from HOME has no league menu: the header only */
+#app.sh.hm0 #nav{display:none}
+#app.sh.hm0 #main{padding:0 var(--pr) var(--pb) var(--pl)}
+/* seven items: 44 px each (52 on an iPad), icons only on an upright phone, the rail scrolls rather than squeezes on a short phone */
+#nav{overflow:auto}
+#nav button{flex:1 0 var(--tp);min-height:var(--tp)}
+@media (orientation:landscape) and (max-height:520px){#nav button{flex:1 0 var(--tp)}#nav .s{display:none}}
+@media (max-width:799px) and (orientation:portrait){#nav .s{display:none}}
+/* SETTINGS tabs: the sub-tab strip; THIS PHONE tag on the device rows */
+.tph{margin-left:auto;font-size:var(--t0);color:var(--c-mut);border:2px solid var(--c-line);padding:0 var(--s2);white-space:nowrap}
+html.lt #app:not(.gm) .tph{color:var(--L-mut);border-color:var(--L-line)}
+#gset{padding-top:var(--s3)}
+/* ===== v2.53 part B: the face-off picture (HOME, NEXT GAME, EXHIBITION, SIM GAME), its tap halves and arrows, the team sheet and the SIM GAME result ===== */
+.fop{position:relative;width:100%;height:170px;flex:none;background:#2a7030;overflow:hidden;box-sizing:border-box}
+.fop canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+@media (orientation:portrait){.fop{height:200px}}
+@media (min-width:800px) and (min-height:700px){.fop{height:280px}}
+.fob{position:absolute;top:0;bottom:0;width:50%;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;padding:var(--s2) var(--s3);margin:0;border:0;border-radius:0;box-sizing:border-box;overflow:hidden;background:linear-gradient(0deg,rgba(0,0,0,.62),rgba(0,0,0,0) 55%);color:#fff!important;text-align:left;font:inherit;text-shadow:1px 1px 0 #000;min-height:var(--tp)}
+button.fob{cursor:pointer}
+.fob.l{left:0;width:calc(50% - 4px);align-items:flex-start}.fob.r{right:0;width:calc(50% - 4px);align-items:flex-end;text-align:right}
+.fob b{font-weight:normal;font-size:var(--t1);line-height:1.3;max-width:100%;overflow-wrap:anywhere;color:#fff!important}
+.fob small{font-size:var(--t0);line-height:1.3;max-width:100%;color:#fff!important;opacity:.95;overflow-wrap:anywhere}
+button.fob:focus-visible,.fob .fn:focus-visible,.fob .fa:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
+.fob.fx{flex-direction:row;align-items:flex-end;gap:var(--s2);padding:var(--s2);background:none;text-shadow:none}
+.fob.fx .fa,.fob.fx .fn{font:inherit;color:#fff;background:rgba(8,12,24,.78);border:0;border-radius:0;min-height:var(--tp);cursor:pointer;box-sizing:border-box}
+.fob.fx .fa{flex:none;min-width:var(--tp);padding:0 var(--s2);font-size:var(--t2)}
+.fob.fx .fn{flex:1 1 0;min-width:0;padding:var(--s1) var(--s2);display:flex;flex-direction:column;gap:2px;justify-content:center;text-align:center;align-items:center}
+.fotl{width:min(100%,38em);height:clamp(84px,24vh,170px);border:4px solid #0b0b12;box-shadow:0 4px 0 rgba(0,0,0,.5)}
+@media (max-height:420px){.fotl{height:clamp(56px,20vh,90px)}}
+.fosim{max-width:34em;margin:var(--s3) auto;border:4px solid #0b0b12}
+.card.hbn.pos>.fop{border-bottom:4px solid var(--c-line)}
+#fosh{position:absolute;inset:0;z-index:40}#fosh:empty{display:none}
+.fosheet{align-items:stretch}
+.fosheet .fotc{cursor:default;min-height:0}
+.fosheet .fonote{margin:0}
+.fosheet .fo1{display:block;width:100%;max-width:200px;height:120px;margin:0 auto;background:#2a7030}
+.fosheet .seg{justify-content:center}
+.fosheet .up{display:flex;align-items:center;gap:var(--s2);margin:var(--s1) 0}.fosheet .up b{font-weight:normal;font-size:var(--t0);color:var(--c-lab)}
+.fosheet .fobtn{justify-content:flex-end;position:sticky;bottom:calc(-1*var(--s4));background:var(--c-card);padding:var(--s2) 0;margin-top:auto}
+@media (max-height:520px){.fosheet .fo1{height:72px}.fosheet{gap:var(--s2)}}
+html.lt #app:not(.gm) .fosheet .fobtn{background:var(--L-card)}
+.fsim{display:flex;flex-direction:column;align-items:center;gap:var(--s3);width:100%;max-width:40em;margin:0 auto;text-align:center}
+.fsim .fsh{margin:0;font-size:var(--t4);color:var(--c-y)}
+.fscs{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);width:100%}
+.fsc{--tcp:#3b7cff;--tcs:#163a8c;--tci:#fff;position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:var(--s2);padding:var(--s3) var(--s3) var(--s3) calc(var(--s3) + 12px);min-width:0;box-sizing:border-box;text-align:left;color:var(--tci)!important;background:var(--tcp)!important;border-bottom:4px solid var(--tcs);box-shadow:inset 8px 0 0 var(--tcs)}
+.fsc b{font-weight:normal;font-size:var(--t1);line-height:1.35;overflow-wrap:anywhere;color:var(--tci)!important}
+.fsc .big{font-size:var(--t4);line-height:1.1;color:var(--tci)}
+.fsc em{position:absolute;top:var(--s2);right:var(--s2);font-style:normal;font-size:var(--t0);padding:3px 6px;background:#fff;color:#10142a}
+.fres{list-style:none;margin:0;padding:0;width:100%;text-align:left}
+.fres li{padding:var(--s2) 0;border-top:2px solid var(--c-line)}.fres b{display:inline-block;min-width:6em;font-weight:normal;color:var(--c-lab)}
+html.lt #app:not(.gm) .fres li{border-top-color:var(--L-line)}
+html.lt #app:not(.gm) .fres b{color:var(--L-mut)}
+html.lt #app:not(.gm) .fsim .fsh{color:var(--L-ink)}
 </style></head><body>
 <div id="wrap"><div id="app">
 <canvas id="cbg" width="1" height="1" aria-hidden="true"></canvas><canvas id="c" width="640" height="360"></canvas><canvas id="cfg" width="1" height="1" aria-hidden="true"></canvas><canvas id="ctp" width="640" height="360" aria-hidden="true"></canvas>
@@ -772,7 +844,6 @@ html.lt:has(#app.gm),html.lt:has(#app.gm) body{background-color:#070a12}
 <div class="screen top" id="ros"></div>
 <div class="screen top" id="gset"></div>
 </div></div></div>
-<div class="screen top" id="lock"></div>
 <div class="screen top" id="half"></div>
 <div class="screen" id="post"></div>
 <div class="screen" id="season"></div>
@@ -787,7 +858,7 @@ html.lt:has(#app.gm),html.lt:has(#app.gm) body{background-color:#070a12}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="2.51"; /* v2.51: TIPS removed (HOW TO PLAY cards cover it), the title screen's QUICK GAME is the one quick start and no EXHIBITION pulse runs behind the title.  v2.50: SHARE GAME STATS row, TIPS cards, first-launch QUICK START.  v2.49: HOW TO PLAY cards (one shared function), title band, motion, SOUND and BUZZ rows, crowd roar, TD confetti, TITLE SCREEN.  v2.46: owner UX audit: bottom action bars, one-tap locker room, kick pull 90 px, pass cancel zone, RESUME snapshots, sentence case, CONTROLS first, yellow = act only, BACKUPS AND CODES.  v2.45: ROSTER screen for Standard leagues (TEAM > ROSTER: age, rating, potential stars, XP, change since last season, a player card with his career), YOUR PLAYERS after the offseason, INJURIES OFF / LOW / NORMAL on NEW LEAGUE (a hurt starter is out 1 to 4 games, a weaker stand-in plays for him in the sim and in your hand-played games), lg-std 1.4 and lg-full 1.2. v2.44: the commissioner of a league in the account moves it on from the phone: ADVANCE WEEK, ADVANCE PLAYOFFS, OFFSEASON with the same checks as HQ (lk.js, no new files). v2.43: v2.43: ACCOUNT (Google sign-in in SETTINGS), SAVE TO MY ACCOUNT on NEW LEAGUE, MY LEAGUES lists the account's leagues too, the cloud layer is HQ's lg-cloud.js embedded unchanged (every league size). v2.42: LEAGUE SHAPES (Standard NFL, COLLEGE, 8 TEAMS and CUSTOM leagues, NEW LEAGUE rows LEAGUE and PLAYERS, team sets and CUSTOMIZE for Standard, RENAME on MY LEAGUES). v2.41: OPPONENT DRIVES NEW / CLASSIC (NEW by default for new games, leagues and installs), the opponent PERSONALITY pick, the SCOUTING line, their blitz on your snaps. v2.40: timeouts (3 a half each, MENU and a chip by the clock), a white flash and a small shake on a tackle (HIT EFFECTS), REMATCH on the exhibition final screen. v2.39: front-view figures (the kick screen) and the new side figure in the play designer instead of the old 12x18 pixel players. v2.38: a more natural body for the smooth players, HOME/AWAY/WHITE from two colors, a sleeves color, your own uniforms. v2.37: lg-drive 1.4 (tune + zone cards) embedded as it is (switch still OFF); the five zone cards get the new touchdown / field-goal rows and six card texts; a result of 8 points (a try for two) and its text; team personalities (sty); a level linked playoff game is decided by the engine's 3-point rule before it is sent. v2.36: lg-drive 1.2 (round 3) embedded as it is (it carries the CALL YOUR DEFENSE tilt itself; switch still OFF); a linked league whose commissioner closed joining shows JOINING IS CLOSED instead of making a slot. v2.35: CALL YOUR DEFENSE: every one of the 14 cards is a real call of its own (DC_T, per-card factors), a short text on each card; lg-drive 1.1 (switch still OFF); a tied playoff game no longer knocks you out; AUTO calls by the rules table. v2.34: the game screen: MENU button (upper left, hidden from the snap), RB box yellow, routes 3 px, no tips after the snap, installed app fullscreen / black-translucent. v2.33: LINKED LEAGUES, the player side (src/lk.js): join a commissioner's league by its code, pull it, play and send games. v2.32: no game change (tests only: drvoff pinned to the .611 speed, hlp over http). Helmet logo, jersey trim and number are still drawn in the play designer and the kick scene, so their LOOK rows stay. */ /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.54"; /* v2.54: THE WHOLE LEAGUE IN THE CLOUD (lg-cloud 1.1 from HQ 0.13: personalities, injuries, names, wardrobes, my playbook and options go up; YOUR PLAYERS and who is out come from the cloud).  v2.53: THE MENUS (HOME is the permanent title screen, MY LEAGUES are team-color cards, the team-color header card, a seven-item league menu, SETTINGS in four tabs, one playbook per player).  v2.52: AWAY is always the mirror, WHITE whenever neither color is white-ish, a plainer close-colors warning, random team colors at least 3:1 and delta E 25 apart.  v2.51: TIPS removed (HOW TO PLAY cards cover it), the title screen's QUICK GAME is the one quick start and no EXHIBITION pulse runs behind the title.  v2.50: SHARE GAME STATS row, TIPS cards, first-launch QUICK START.  v2.49: HOW TO PLAY cards (one shared function), title band, motion, SOUND and BUZZ rows, crowd roar, TD confetti, TITLE SCREEN.  v2.46: owner UX audit: bottom action bars, one-tap locker room, kick pull 90 px, pass cancel zone, RESUME snapshots, sentence case, CONTROLS first, yellow = act only, BACKUPS AND CODES.  v2.45: ROSTER screen for Standard leagues (TEAM > ROSTER: age, rating, potential stars, XP, change since last season, a player card with his career), YOUR PLAYERS after the offseason, INJURIES OFF / LOW / NORMAL on NEW LEAGUE (a hurt starter is out 1 to 4 games, a weaker stand-in plays for him in the sim and in your hand-played games), lg-std 1.4 and lg-full 1.2. v2.44: the commissioner of a league in the account moves it on from the phone: ADVANCE WEEK, ADVANCE PLAYOFFS, OFFSEASON with the same checks as HQ (lk.js, no new files). v2.43: v2.43: ACCOUNT (Google sign-in in SETTINGS), SAVE TO MY ACCOUNT on NEW LEAGUE, MY LEAGUES lists the account's leagues too, the cloud layer is HQ's lg-cloud.js embedded unchanged (every league size). v2.42: LEAGUE SHAPES (Standard NFL, COLLEGE, 8 TEAMS and CUSTOM leagues, NEW LEAGUE rows LEAGUE and PLAYERS, team sets and CUSTOMIZE for Standard, RENAME on MY LEAGUES). v2.41: OPPONENT DRIVES NEW / CLASSIC (NEW by default for new games, leagues and installs), the opponent PERSONALITY pick, the SCOUTING line, their blitz on your snaps. v2.40: timeouts (3 a half each, MENU and a chip by the clock), a white flash and a small shake on a tackle (HIT EFFECTS), REMATCH on the exhibition final screen. v2.39: front-view figures (the kick screen) and the new side figure in the play designer instead of the old 12x18 pixel players. v2.38: a more natural body for the smooth players, HOME/AWAY/WHITE from two colors, a sleeves color, your own uniforms. v2.37: lg-drive 1.4 (tune + zone cards) embedded as it is (switch still OFF); the five zone cards get the new touchdown / field-goal rows and six card texts; a result of 8 points (a try for two) and its text; team personalities (sty); a level linked playoff game is decided by the engine's 3-point rule before it is sent. v2.36: lg-drive 1.2 (round 3) embedded as it is (it carries the CALL YOUR DEFENSE tilt itself; switch still OFF); a linked league whose commissioner closed joining shows JOINING IS CLOSED instead of making a slot. v2.35: CALL YOUR DEFENSE: every one of the 14 cards is a real call of its own (DC_T, per-card factors), a short text on each card; lg-drive 1.1 (switch still OFF); a tied playoff game no longer knocks you out; AUTO calls by the rules table. v2.34: the game screen: MENU button (upper left, hidden from the snap), RB box yellow, routes 3 px, no tips after the snap, installed app fullscreen / black-translucent. v2.33: LINKED LEAGUES, the player side (src/lk.js): join a commissioner's league by its code, pull it, play and send games. v2.32: no game change (tests only: drvoff pinned to the .611 speed, hlp over http). Helmet logo, jersey trim and number are still drawn in the play designer and the kick scene, so their LOOK rows stay. */ /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -904,7 +975,8 @@ function flushSlot(id){const o=PEND[id];if(!o)return true;delete PEND[id];LASTW[
 function saveTick(){saveTimer=0;const now=Date.now();let next=0;
  for(const id of Object.keys(PEND)){const w=(LASTW[id]||0)+SAVE_GAP-now;if(w<=0)flushSlot(id);else next=next?Math.min(next,w):w}
  if(next)saveTimer=setTimeout(saveTick,next)}
-function save(){if(!S||S.sbx)return;if(!S.id)S.id=newId();const id=S.id;PEND[id]=S;
+function save(){try{pbFlush()}catch(e){}   /* v2.53: the one playbook is written whenever a save is asked for, even in a sandbox (the HOME playbook) */
+ if(!S||S.sbx)return;if(!S.id)S.id=newId();const id=S.id;PEND[id]=S;
  const w=(LASTW[id]||0)+SAVE_GAP-Date.now();
  if(w<=0)flushSlot(id);else if(!saveTimer)saveTimer=setTimeout(saveTick,w)}
 /* write everything pending right now (page hiding: no time to wait) and the active game too */
@@ -914,7 +986,7 @@ function loadSlot(id){
  const key=SLOT+id;let raw=lsGet(key),d=parseSave(raw),restored=false;
  if(!d){const b=lsGet(key+'.bak'),bd=parseSave(b);if(bd){d=bd;raw=b;restored=true}}
  if(!d)return null;
- try{d=migrate(d);stdAttach(d)}catch(e){return null}   /* v2.23: a Standard league gets its read-only S.lg adapter (never saved) and its derived S.r, S.ro, S.names */
+ try{d=migrate(d);stdAttach(d);pbAttach(d,true)}catch(e){return null}   /* v2.23: a Standard league gets its read-only S.lg adapter (never saved) and its derived S.r, S.ro, S.names */
  if(restored){lsSet(key,raw);notice('RESTORED FROM BACKUP')}
  return d}
 function delSlot(id){delete PEND[id];[SLOT+id,SLOT+id+'.bak',SLOT+id+'.next',GSK+id].forEach(lsDel);wrIdx(rdIdx().filter(e=>e.id!==id));try{cgDrop(id)}catch(e){}try{sqDrop(id)}catch(e){}} /* v1.96: the league's entry in pixelPigskin.cloud goes too (the cloud copy itself is not touched) */
@@ -960,12 +1032,12 @@ const upCost=r=>Math.ceil(r*.7);
 const pips=(v,n)=>'<span class="pips">'+Array.from({length:n||10},(_,i)=>'<s class="'+(i<Math.round(v)?'f':'')+'"></s>').join('')+'</span>';
 /* v2.00 UI step 1: show() is the one place that knows which screen is up. A screen in UIM is a MENU screen: #app fills the window inside the safe areas, menus work upright and there is no turn-sideways prompt.
    Anything else (show(null) = live play, kicking, banners; 'pd' = the play designer) is a CANVAS screen: the 16:9 game box, as before. fit() (p4.js) reads UI.scr. Dynamic panels (hp, gl, cg, rp, bk, xp, gsq) do not change it: opened from a menu they are in a menu, opened in a game they are in the game. */
-const UIM=new Set(['menu','look','help','hub','post','season','stand','book','lock','half','exh','pcs','dcs','coach','ros','gset','ol']);
+const UIM=new Set(['menu','look','help','xex','hub','post','season','stand','book','half','exh','pcs','dcs','coach','ros','gset','ol']);
 /* v2.01 UI step 2: SHD = the DESTINATION screens, the ones that live inside #shell and get the nav and header (sh.js). Flow screens (post season half lock), pcs, dcs, ol, pd and every overlay never do. UI.sh = the shell is up; UI.bare = it is up without nav and header (standings opened from SEASON END, UI.stS, which keeps its own BACK). */
-const SHD=new Set(['menu','look','help','hub','stand','book','exh','coach','ros','gset']);
-const SHM={look:'menu',help:'menu'}; /* v2.05: LOOK and HELP opened from TEAM and MORE are the home screen's #menu element, drawn inside the shell with their own screen ids (so the nav lights TEAM or MORE) */
-const UI={scr:'menu',ready:false,sh:true,bare:false,stS:false};
-function show(id){const el=SHM[id]||id;['menu','hub','post','season','stand','book','lock','half','exh','pd','pcs','dcs','coach','ros','gset','ol'].forEach(s=>$(s).classList.toggle('on',s===el));UI.scr=id||'';if(el!=='menu')czShClose(true);lnShown(el);if(id!=='stand')UI.stS=false;UI.sh=SHD.has(id);UI.bare=UI.sh&&UI.stS;shDraw();if(UI.ready)fit();if(id==='menu'||id==='hub')nvBar()}
+const SHD=new Set(['menu','look','help','xex','hub','stand','book','exh','coach','ros','gset']);
+const SHM={look:'menu',help:'menu',xex:'menu'}; /* v2.05: LOOK and HELP opened from TEAM and MORE are the home screen's #menu element, drawn inside the shell with their own screen ids (so the nav lights TEAM or MORE) */
+const UI={scr:'menu',ready:false,sh:true,bare:false,stS:false,hm:true}; /* v2.53: hm = the screen was opened from HOME (a plain header, no league menu); a league screen sets it false */
+function show(id){const el=SHM[id]||id;['menu','hub','post','season','stand','book','half','exh','pd','pcs','dcs','coach','ros','gset','ol'].forEach(s=>$(s).classList.toggle('on',s===el));UI.scr=id||'';if(id==='hub'||id==='stand'||id==='coach'||id==='ros'){UI.hm=false;try{HS.home=false}catch(e){}}else if(id==='menu')UI.hm=true;try{ttlHide()}catch(e){}if(el!=='menu')czShClose(true);lnShown(el);if(id!=='stand')UI.stS=false;UI.sh=SHD.has(id);UI.bare=UI.sh&&UI.stS;shDraw();if(UI.ready)fit();if(id==='menu'||id==='hub')nvBar()}
 
 function renderHub(){
  if(S.lg)return lgHub();
@@ -1006,7 +1078,7 @@ const ROS_DEF=()=>{const n=S.names;return[
 const roGet=(o,p)=>p.split('.').reduce((a,k)=>a[k],o);
 $('hub').onclick=e=>{const b=e.target.closest('button');if(!b)return;
  if(b.dataset.pers==='cl'){persOpen('cl',renderHub);return}
- if(b.dataset.act==='play')gsAsk(()=>S.lnk?lnPlayGo():S.lg?openLocker():startGame());   /* v2.33: a linked league plays through lk.js */
+ if(b.dataset.act==='play')gsAsk(()=>S.lnk?lnPlayGo():S.lg?foPlay():startGame());   /* v2.33: a linked league plays through lk.js */
  else if(b.dataset.act==='sim')gsAsk(()=>S.lnk?lnSimGo():lgSimMine());
  else if(b.dataset.ln)lnHubClick(b.dataset.ln);
  else if(b.dataset.go==='up'){openCoach();shFocus('#sub')} /* v2.05: the TO DO rows use the same openers as the nav (a screen with sub-tabs puts the focus on them) */
@@ -1027,6 +1099,39 @@ function showSeasonEnd(){
  const m={champ:['CHAMPIONS!','YOU WON THE TITLE! SEASON '+S.season+' GOES IN THE BOOKS.'],elim:['ELIMINATED','YOUR PLAYOFF RUN ENDS HERE. UPGRADE AND GO AGAIN.'],missed:['MISSED PLAYOFFS','YOU NEEDED 5 WINS TO MAKE THE PLAYOFFS. SPEND YOUR CREDITS WISELY.']}[S.over];
  $('season').innerHTML=`<h1 style="font-size:1.8em">${m[0]}</h1><p>${sc(`${m[1]}`)}</p><p>${sc(`RECORD ${S.w}-${S.l}${S.t?'-'+S.t:''} - TITLES ${S.champs} - CREDITS ${S.credits}`)}</p><button class="btn" id="bNext">NEXT SEASON</button>`;
  $('bNext').onclick=newSeason;show('season')}
+/* ---------- v2.53: ONE PLAYBOOK PER PLAYER (owner, Nov 25, 2026: "just have one playbook for a player"). The plays live in ONE device key, pixelPigskin.playbook = {v:1,libv,plays:[...]}, never in REPORT A PROBLEM. A league no longer owns plays: when a game is loaded or started, S.plays is made THE SAME ARRAY as the playbook (pbAttach), so the designer, BOOK and CALL A PLAY (pd.js, bo.js, pc.js) work on it unchanged and every edit is the one playbook. S.plays is still written into each save (old saves load, and the cloud copy keeps sending the same field, now filled from the one playbook); it is never read back from a save except by the merges below.
+   First run (no key yet): every saved league's plays are merged once. Merge rule (pbMerge): the same name AND the same routes is one play; the same name with different routes keeps both, the second renamed with " 2" (" 3" ...). If the total passes MAXP (pd.js), MAXP is raised to fit (PBK.raised = the new number). An imported league code or file merges its plays the same way (bk.js bkCommit); BACK UP ALL LEAGUES also carries the playbook as its own field. ---------- */
+const PB_KEY='pixelPigskin.playbook';
+const PBK={list:null,s:'',libv:0,raised:0};
+const pbSig=p=>{try{return JSON.stringify(p.p)}catch(e){return''}};
+const pbOk=p=>p&&typeof p==='object'&&typeof p.name==='string'&&Array.isArray(p.p)&&p.p.length>0&&p.p.every(s=>s&&typeof s==='object'&&typeof s.t==='string'&&isFinite(s.x)&&isFinite(s.y));
+/* adds the plays of `inc` that the list does not have yet; returns how many were added */
+function pbMergeInto(list,inc){let n=0;if(!Array.isArray(inc))return 0;
+ for(const q of inc){if(!pbOk(q))continue;const sg=pbSig(q),base=String(q.name).slice(0,14);
+  let same=false,k=1;
+  for(;;){const nm=k===1?base:(base+' '+k).slice(0,14),hit=list.find(p=>p.name===nm);if(!hit)break;if(pbSig(hit)===sg){same=true;break}k++;if(k>60)break}
+  if(same)continue;
+  const c=JSON.parse(JSON.stringify(q));c.name=k===1?base:(base+' '+k).slice(0,14);list.push(c);n++}
+ return n}
+function pbFit(){if(PBK.list&&PBK.list.length>MAXP){MAXP=PBK.list.length;PBK.raised=MAXP}}
+function pbRead(){const t=lsGet(PB_KEY);if(t==null)return false;try{const o=JSON.parse(t);if(o&&Array.isArray(o.plays)&&o.plays.length){PBK.list=o.plays;PBK.libv=o.libv|0;PBK.s=t;pbFit();return true}}catch(e){}return false}
+function pbFirstRun(){const list=[];let libv=0;
+ try{for(const e of rdIdx()){const d=parseSave(lsGet(SLOT+e.id));if(d&&Array.isArray(d.plays)){pbMergeInto(list,d.plays);libv=Math.max(libv,d.libv|0)}}}catch(e){}
+ if(!list.length)list.push(...seedPlays());
+ PBK.list=list;PBK.libv=libv;PBK.s='';pbFit();
+ /* the concept library goes in once, here, so the first game or exhibition never changes the key afterwards (a stand-in league object that is never saved) */
+ {const keep=S;S={plays:list,libv,sbx:1};try{fixPlays();PBK.libv=Math.max(PBK.libv,S.libv|0)}catch(e){}finally{S=keep}}
+ pbFlush()}
+function pbList(){if(!PBK.list&&!pbRead())pbFirstRun();return PBK.list}
+/* write the key when the playbook changed (called from save(), so every edit in the designer is stored) */
+function pbFlush(){if(!PBK.list)return;try{if(S&&S.plays===PBK.list)PBK.libv=Math.max(PBK.libv,S.libv|0);
+ const t=JSON.stringify({v:1,libv:PBK.libv,plays:PBK.list});if(t!==PBK.s&&lsSet(PB_KEY,t)){PBK.s=t;if(S&&S.lnk&&S.plays===PBK.list)lnXMark(S)}}catch(e){}}   /* v2.54: a changed playbook goes to my team document in a linked league */
+/* make the game's plays THE playbook */
+function pbAttach(s,soft){if(!s)return;if(soft&&!Array.isArray(s.plays))return;   /* soft (a league just loaded): a save with no plays stays as it is, the designer, BOOK and CALL A PLAY attach it when they open */
+ const l=pbList();s.plays=l;if((s.libv|0)<PBK.libv)s.libv=PBK.libv;else PBK.libv=Math.max(PBK.libv,s.libv|0);return l}
+function pbUse(){if(S&&S.plays!==PBK.list)pbAttach(S)}
+/* an imported league or a playbook field of a backup: merge, store, say how many came in */
+function pbMerge(inc){const l=pbList(),n=pbMergeInto(l,inc);if(n){pbFit();pbFlush()}return n}
 /* lg-engine.js (v2.22): THE SHARED LEAGUE ENGINE. Pure: no S, G, DOM, localStorage or window, no UI function. Everything comes in as arguments
    (the league object L, the season, a function rt(id) that returns a team's {off,def}, the human result(s) of the week).
    The game build includes this text inside its IIFE before lg.js; Node, the league tool and HQ load the same text with require() (the guard at the end).
@@ -2817,7 +2922,14 @@ const LG=()=>S.lg;
 const lgUni=t=>{const w=t.wd;if(!w)return t.uni||null;const g=k=>w[k][Math.min(w.sel[k],w[k].length-1)];return{helmet:g('helmet'),jersey:g('jersey'),pants:g('pants'),socks:g('socks'),gloves:w.gloves,shoes:w.shoes,outline:'#0b0b12'}};
 const lgGauss=()=>LGE.gauss(Math.random);     /* about N(0,1); v2.22: for league CREATION and the yearly rating drift (Math.random); the league SIM uses seeded streams from LGE */
 function lgHex(h,s,l){s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1))))};return'#'+[f(0),f(8),f(4)].map(v=>v.toString(16).padStart(2,'0')).join('')}
-const lgCol=h=>({c:lgHex(h,72,52),d:lgHex(h,72,26)});
+/* v2.52: RANDOM team colors are far apart: PRIMARY and SECONDARY at least 3:1 (cRat) AND delta E 25 or more in normal, deuteranopia and protanopia vision (jClose, ps.js). The first try is the old pair (same hue, lightness 52 and 26), so a hue that already passes gives the same colors as before. When it fails, up to 60 more pairs are tried from a small generator seeded by a hash of the hue ALONE (never Math.random or a league stream, so a seeded league draws exactly the same numbers as before and the same hue always gives the same colors); if none passes the primary gets white or near-black. Colors a person types or picks never come here. */
+const lgColOk=(c,d)=>cRat(c,d)>=3&&jClose(c,d)>=25;
+function lgCol(h){
+ const a={c:lgHex(h,72,52),d:lgHex(h,72,26)};if(lgColOk(a.c,a.d))return a;
+ let z=(Math.round(h*1000)^0x9e3779b9)>>>0;const r=()=>{z=(z+0x6D2B79F5)>>>0;let t=z;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296};
+ const OF=[0,0,180,150,210,30,330];
+ for(let i=0;i<60;i++){const c=lgHex(h,55+r()*35,38+r()*22),o=OF[Math.floor(r()*OF.length)],d=r()<.5?lgHex((h+o)%360,25+r()*60,10+r()*18):lgHex((h+o)%360,25+r()*60,78+r()*14);if(lgColOk(c,d))return{c,d}}
+ const c=lgHex(h,72,52);for(const d of['#ffffff','#10141f'])if(lgColOk(c,d))return{c,d};return{c,d:'#ffffff'}}
 function lgRollNames(n){const out=new Set();let g=0;while(out.size<n&&g++<8000){const s=pick(LG_CITY)+' '+pick(LG_MASC);if(s.length<=15)out.add(s)}return[...out]}
 const lgRate=(base,sp)=>clamp(Math.round((base+lgGauss()*(sp||1))*10)/10,2,9.4);
 
@@ -3067,9 +3179,7 @@ function lgSimMine(){
  let cr=win?3:tie?2:1;if(po&&win)cr+=2;
  cr=lgAfterGame(win,tie,cr,mp,op,'sim');
  S.last=(win?'W ':tie?'T ':'L ')+mp+'-'+op+' VS '+o.name+' (SIM)';save();
- $('post').innerHTML=`<div class="sm">${sc(`${lbl} - SIMULATED`)}</div><h1 style="font-size:2em;${win?'color:#4ee08a;text-shadow:none':''}" class="${win?'win':tie?'':'lose'}">${win?'VICTORY!':tie?'TIE GAME':'DEFEAT'}</h1>
- <div style="font-size:1.4em">${S.name} ${mp} - ${op} ${o.name}</div><p style="color:#ffd400">${sc(`+${cr} CREDITS EARNED`)}</p><button class="btn" id="bPostGo">CONTINUE</button>`;
- $('bPostGo').onclick=()=>{if(S.over)showSeasonEnd();else renderHub()};show('post')}
+ foSimShow(o,win,tie,mp,op,cr,lbl)}   /* v2.53: the SIM GAME result screen is in fo.js */
 function lgNewSeason(){
  if(S.lnk)return;   /* v2.33: the commissioner starts the next season */
  if(S.std)return stdNewSeason();
@@ -3333,7 +3443,7 @@ function stdLeagueAvg(s){
   ro:{qb:{arm:av(x=>x.ro.qb.arm),acc:av(x=>x.ro.qb.acc)},wr:[0,1,2].map(i=>({spd:av(x=>x.ro.wr[i].spd),cat:av(x=>x.ro.wr[i].cat)})),te:{spd:av(x=>x.ro.te.spd),cat:av(x=>x.ro.te.cat)},k:{acc:av(x=>x.ro.k.acc),rng:av(x=>x.ro.k.rng)}}}}
 /* v2.25 RELIEF: the per-league option "EASIER GAMES FOR A WEAK TEAM". It lives in its own save field S.stx = {relief: 0 or 1} (next to S.stm), not in S.std. A save without the field is OFF. */
 function stdRelief(s){s=s||S;return!!(s&&s.std&&s.stx&&s.stx.relief)}
-function stdSetRelief(on,s){s=s||S;s.stx=Object.assign({},s.stx,{relief:on?1:0}); /* v2.29: keeps S.stx.drv */if(s===S)try{save()}catch(e){}return s.stx.relief}
+function stdSetRelief(on,s){s=s||S;s.stx=Object.assign({},s.stx,{relief:on?1:0}); /* v2.29: keeps S.stx.drv */if(s===S){try{save()}catch(e){}lnXMark(s)}return s.stx.relief}
 /* the cost table with RELIEF: under 4 the line goes on at the slope of its first step (upCost(4) = 3 credits per rating point: 3 = -3, 2 = -6, 1 = -9); 4 and above exactly stdCost */
 function stdCostR(v){return v<4?upCost(4)*(v-4):stdCost(v)}
 /* credits-equivalent of my team against the league average. RELIEF OFF (v2.24, unchanged): never below 0. RELIEF ON: signed, below 0 for a team weaker than the league, and equal to the OFF number when every rating (mine and the league's) is 4 or more. */
@@ -3353,7 +3463,7 @@ const LNC=(function(){
    Three parts: (1) a thin ADAPTER over Firestore, (2) PURE functions that turn a Standard league into cloud documents and back,
    (3) the CLOUD OPERATIONS (create, resume, read) written against the adapter only. */
 
-var LG_CLOUD_VERSION = 'lg-cloud 1.0 (HQ 0.7: league document + human team documents, any league shape)';
+var LG_CLOUD_VERSION = 'lg-cloud 1.1 (HQ 0.13: every field of a phone Standard league: personalities, wardrobes, injuries, names, playbook, YOUR PLAYERS)';
 var CLOUD_SDK_VERSION = '10.14.1';           /* the same Firebase web SDK version the game loads */
 var CLOUD_FORMAT = 1;                        /* meta.v of the OLD layout (one document per team, 8 teams) */
 var CLOUD_FORMAT_BIG = 2;                    /* meta.v of the NEW layout (meta.lay === 2): one league document + one document per HUMAN team */
@@ -3462,12 +3572,22 @@ function blOf(ro, rules){
   ro.forEach(function(p){ bl[p.id] = rules.ratingKeys[p.ps].map(function(k){ return p.rt[k]; }); });
   return bl;
 }
+/* ---------- lg-cloud 1.1: the look and the personality of a team (every team), the playbook, YOUR PLAYERS, options (a human team) ----------
+   sty = the team personality record (absent = the default). lo = { wd: wardrobe } (absent = the standard uniforms built from the colors).
+   Both ride on the team record in the league document (computer teams) or in the team document (human teams). A league without them reads with today's defaults. */
+function jcopy(x){ return x == null ? x : JSON.parse(JSON.stringify(x)); }
+function lookOf(t){
+  var o = {};
+  if (t.sty && typeof t.sty === 'object' && !Array.isArray(t.sty)) o.sty = jcopy(t.sty);
+  if (t.lo && t.lo.wd && typeof t.lo.wd === 'object') o.lo = { wd: jcopy(t.lo.wd) };
+  return o;
+}
 function encTeam(t, rtd, up, rules){
   rules = rules || STD_RULES;
   var d = { id: String(t.id), nm: t.nm, cf: t.cf, dv: t.dv, ow: t.ow, lk: { c: t.lk.c, d: t.lk.d }, cr: t.cr, ed: t.ed,
     rc: [0, 0, 0, 0, 0], ro: t.ro.map(encPlayer), rtd: (rtd || []).slice(), bl: blOf(t.ro, rules) };
   if (up && up.length) d.up = up.slice();
-  return d;
+  return Object.assign(d, lookOf(t));
 }
 /* ---------- the two layouts ----------
    LAYOUT 1 (old, never converted): lgs/{lg} = meta, lgs/{lg}/teams/0..7 = one chunk per team, 8 teams.
@@ -3487,11 +3607,11 @@ function roundsOf(meta){
 }
 /* a computer-run team inside the league document: no baseline, no retired list, no audit list */
 function encTeamLite(t){
-  return { id: String(t.id), nm: t.nm, cf: t.cf, dv: t.dv, ow: t.ow, lk: { c: t.lk.c, d: t.lk.d }, cr: t.cr, ed: t.ed, rc: [0, 0, 0, 0, 0], ro: t.ro.map(encPlayer) };
+  return Object.assign({ id: String(t.id), nm: t.nm, cf: t.cf, dv: t.dv, ow: t.ow, lk: { c: t.lk.c, d: t.lk.d }, cr: t.cr, ed: t.ed, rc: [0, 0, 0, 0, 0], ro: t.ro.map(encPlayer) }, lookOf(t));
 }
 /* the other way: a human team document back to the lite form (keeps the roster as the owner left it) */
 function liteOfDoc(d){
-  return { id: String(d.id), nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0], ro: d.ro.map(function(q){ return Object.assign({}, q); }) };
+  return Object.assign({ id: String(d.id), nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0], ro: d.ro.map(function(q){ return Object.assign({}, q); }) }, lookOf(d));
 }
 /* a friend takes a computer team: his team document is a copy of the league document's team plus the audit baseline */
 function humanDocOf(lite, rules){
@@ -3500,8 +3620,73 @@ function humanDocOf(lite, rules){
 }
 function decTeam(d, rules, idx){
   if (!d || String(d.id) !== String(idx) || !Array.isArray(d.ro) || !d.lk) throw bad('team chunk ' + idx + ' is damaged or missing');
-  return { id: idx, nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0],
-    ro: d.ro.map(function(q){ return decPlayer(q, rules); }) };
+  return Object.assign({ id: idx, nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0],
+    ro: d.ro.map(function(q){ return decPlayer(q, rules); }) }, lookOf(d));
+}
+/* ---------- the human team's own extras (lg-cloud 1.1) ----------
+   pb = { plays: [ {name, p:[ {x,y,t,d,f} x5 ]} ... ] (at most 40), libv } the playbook of THIS league (S.plays, S.libv)
+   yp = YOUR PLAYERS after an offseason (rows as MAPS: Firestore has no list inside a list), pv = { playerId: last season's overall }
+   stx = { relief, drv } the league options of the phone (S.stx) */
+var PLAYS_MAX = 40;
+function encPlaybook(plays, libv){
+  if (!Array.isArray(plays)) return null;
+  return { plays: jcopy(plays.slice(0, PLAYS_MAX)), libv: libv | 0 };
+}
+function decPlaybook(pb){
+  if (!pb || !Array.isArray(pb.plays)) return null;
+  return { plays: jcopy(pb.plays), libv: pb.libv | 0 };
+}
+function encYp(y){
+  if (!y || typeof y !== 'object') return null;
+  var f = function(a, g){ return (a || []).map(g); };
+  return { s: y.s | 0, up: f(y.up, function(x){ return { p: x[0], n: x[1], d: x[2] }; }), dn: f(y.dn, function(x){ return { p: x[0], n: x[1], d: x[2] }; }),
+    rt: f(y.rt, function(x){ return { p: x[0], n: x[1], a: x[2] }; }), rk: f(y.rk, function(x){ return { p: x[0], n: x[1], g: x[2] }; }) };
+}
+function decYp(d){
+  if (!d || typeof d !== 'object' || !Array.isArray(d.up)) return null;
+  var f = function(a, g){ return (a || []).map(g); };
+  return { s: d.s | 0, up: f(d.up, function(x){ return [x.p, x.n, x.d]; }), dn: f(d.dn, function(x){ return [x.p, x.n, x.d]; }),
+    rt: f(d.rt, function(x){ return [x.p, x.n, x.a]; }), rk: f(d.rk, function(x){ return [x.p, x.n, x.g]; }) };
+}
+/* a human team document -> the extras the phone keeps next to the league (S.plays, S.libv, S.yp, S.pv, S.stx); every one may be null/absent */
+function humanExtras(d){
+  d = d || {};
+  var pb = decPlaybook(d.pb);
+  return { plays: pb ? pb.plays : null, libv: pb ? pb.libv : null, yp: decYp(d.yp), pv: d.pv && typeof d.pv === 'object' ? jcopy(d.pv) : null,
+    stx: d.stx && typeof d.stx === 'object' ? jcopy(d.stx) : null };
+}
+/* YOUR PLAYERS (the phone's stdSnap / stdYourSet, the same arithmetic): snap = the roster BEFORE the offseason { id: [ps, nm, age, overall] } */
+function stdStarsOf(pt){ return pt < 3.8 ? 1 : pt < 4.4 ? 2 : pt < 5.2 ? 3 : pt < 6 ? 4 : 5; }
+function snapOf(t){
+  var o = {}; t.ro.forEach(function(p){ o[p.id] = [p.ps, p.nm, p.ag | 0, Math.round(STD.overall(p) * 100) / 100]; }); return o;
+}
+function yourSet(snap, t, season){
+  var up = [], dn = [], rk = [], pv = {}, ids = {};
+  t.ro.forEach(function(p){ ids[p.id] = 1; });
+  Object.keys(snap).forEach(function(id){ pv[id] = snap[id][3]; });
+  t.ro.forEach(function(p){
+    var o = snap[p.id];
+    if (!o){ rk.push([p.ps, p.nm, stdStarsOf(p.pt)]); return; }
+    var d = Math.round((STD.overall(p) - o[3]) * 10) / 10;
+    if (d >= 0.1) up.push([p.ps, p.nm, d]); else if (d <= -0.1) dn.push([p.ps, p.nm, d]);
+  });
+  var rt = Object.keys(snap).filter(function(id){ return !ids[id]; }).map(function(id){ return [snap[id][0], snap[id][1], snap[id][2]]; });
+  up.sort(function(a, b){ return b[2] - a[2]; }); dn.sort(function(a, b){ return a[2] - b[2]; });
+  return { pv: pv, yp: { s: season, up: up, dn: dn, rt: rt, rk: rk } };
+}
+/* injuries: meta.inj = the setting ('LOW' | 'NORMAL'; absent = OFF), meta.hurt = { "<team idx>": { "<player id>": games still out } } at the stored week */
+function hurtOf(L){
+  var h = {};
+  if (!L.inj) return h;
+  L.teams.forEach(function(t, i){ t.ro.forEach(function(p){ if (p.ou > 0){ (h[String(i)] = h[String(i)] || {})[p.id] = p.ou | 0; } }); });
+  return h;
+}
+function applyHurt(L, hurt){
+  STD.healAll(L);
+  Object.keys(hurt || {}).forEach(function(k){
+    var t = L.teams[Number(k)]; if (!t || !hurt[k] || typeof hurt[k] !== 'object') return;
+    t.ro.forEach(function(p){ var v = hurt[k][p.id]; if (Number.isInteger(v) && v >= 1 && v <= 4) p.ou = v; });
+  });
 }
 function rtdStrings(pairs){ return pairs.map(function(x){ return x[0] + ':' + x[1]; }); }
 function rulesOf(meta){
@@ -3519,6 +3704,8 @@ function metaOf2(L, uid, now){
   var m = { v: CLOUD_FORMAT_BIG, lay: 2, n: L.teams.length, nm: L.nm, rs: L.rs, season: L.ssn, wk: L.wk, ph: L.ph, rules: JSON.stringify(L.rules), commish: uid,
     opts: {}, hold: false, ovr: [], updatedAt: now, ts: ts, rtd: rtdStrings(L.rtd) };
   if (L.shape) m.shape = JSON.parse(JSON.stringify(L.shape));
+  if (L.cx) m.cx = jcopy(L.cx);                       /* 1.1: renamed conference / division of the 8-team league */
+  if (L.inj === 'LOW' || L.inj === 'NORMAL'){ m.inj = L.inj; m.hurt = hurtOf(L); }   /* 1.1: the injury setting and who is out */
   return m;
 }
 /* a short label for a screen: 8 TEAMS, 32 TEAMS (NFL), 60 TEAMS (COLLEGE), 12 TEAMS (CUSTOM) */
@@ -3564,6 +3751,8 @@ function buildLeague(meta, teamDocs, weekDocs, histDocs){
     po: null, hist: [], res: [], rs: meta.rs, rules: rules,
     rtd: rtdAll.map(function(x){ return [x.s, x.id]; }), teams: teams };
   if (shape) L.shape = JSON.parse(JSON.stringify(shape));
+  if (lay2 && meta.cx && typeof meta.cx === 'object') L.cx = jcopy(meta.cx);
+  if (lay2 && (meta.inj === 'LOW' || meta.inj === 'NORMAL')) L.inj = meta.inj;          /* set BEFORE the weeks are applied: the engine's injury step runs with each week */
   Object.keys(histDocs).map(Number).sort(function(a, b){ return a - b; }).forEach(function(s){ L.hist.push(histRowOf(s, histDocs[s])); });
   var nG = L.sch.length, w, applied = 0;
   for (w = 0; w < nG; w++){ var wd = weekDocs[weekKey(season, w)]; if (!wd) break; STD.applyWeek(L, gamesOfDoc(wd)); applied++; }
@@ -3575,6 +3764,7 @@ function buildLeague(meta, teamDocs, weekDocs, histDocs){
     r++;
   }
   for (var q = r + 1; q < r + 8; q++) if (weekDocs[weekKey(season, 100 + q)]) throw bad(q === 1 ? 'the final is stored without the semifinals' : 'a playoff round is stored without the one before it');
+  if (L.inj && meta.hurt && typeof meta.hurt === 'object') applyHurt(L, meta.hurt);      /* what the commissioner stored is the truth (it also covers a setting changed mid-season) */
   if (L.wk !== meta.wk || L.ph !== meta.ph) throw bad('the league says week ' + meta.wk + ' (' + meta.ph + ') but the stored weeks give week ' + L.wk + ' (' + L.ph + ')');
   return L;
 }
@@ -3861,7 +4051,7 @@ async function advanceWeek(ad, lg, o){
     if (cur.exists) throw CloudError('stale', STALE_TEXT);
     var humans = humansOf(parts.slots);
     var subs = await readSubs(g, lg, m.season, wkNo, plan, layoutOf(m) === 2 ? humans : null);
-    var sit = weekSituation(L, plan, subs, humans, m.ovr, m.season, wkNo, o.picks);
+    var sit = weekSituation(L, plan, subs, humans, m.ovr, m.season, wkNo, Object.assign({}, picksFromMeta(m, m.season, wkNo), o.picks || {}));
     if (sit.conflicts.length) throw CloudError('bad', 'Two players sent different scores for the same game. Choose which one counts (USE THIS ONE) or VOID one of them first.');
     if (sit.ties.length){ var tg = sit.games[sit.ties[0]]; throw CloudError('bad', 'A playoff game cannot end in a tie (' + L.teams[tg.h].nm + ' ' + tg.use.sc[0] + ' - ' + tg.use.sc[1] + ' ' + L.teams[tg.a].nm + '). Ask the players to check the score, or VOID that result.'); }
     var now = nextStamp(m.updatedAt);
@@ -3871,6 +4061,8 @@ async function advanceWeek(ad, lg, o){
     if (res.held) throw CloudError('bad', 'The engine held the week (unexpected).');
     var wdoc = weekDocOf(res.games, o.uid, now);
     var nm = Object.assign({}, m, { wk: L.wk, ph: L.ph, season: L.ssn, hold: false, ovr: [], updatedAt: now }), writes = 2;
+    if (L.inj) nm.hurt = hurtOf(L);
+    delete nm.picks;                                                  /* a choice of a score is used once: the next week starts clean */
     if (parts.tidy){ nm.ts = parts.tidy.ts; parts.tidy.del.forEach(function(k){ tx.del(PATH.team(lg, k)); writes++; }); }
     tx.set(PATH.week(lg, m.season, wkNo), wdoc);
     tx.set(PATH.meta(lg), nm);
@@ -3892,6 +4084,32 @@ async function setSimMark(ad, lg, o){
     if (o.on) ovr.push(key);
     if (ovr.length > 20) throw CloudError('bad', 'At most 20 games can be marked SIM.');
     var nm = Object.assign({}, m, { ovr: ovr, updatedAt: nextStamp(m.updatedAt) });
+    tx.set(PATH.meta(lg), nm); out = nm;
+  });
+  return out;
+}
+/* PICK A SCORE (HQ 0.13): when two players sent different scores for one game, the commissioner chooses whose counts. The choice is kept in the league document
+   (meta.picks = { "season-week-game": team index }, at most 20) so that the ADVANCE on the phone uses it. o.team = null clears the choice. The next advance drops all picks. */
+function pickKey(season, wkNo, gi){ return season + '-' + wkNo + '-' + gi; }
+function picksFromMeta(m, season, wkNo){
+  var out = {}, pre = season + '-' + wkNo + '-', p = m && m.picks && typeof m.picks === 'object' ? m.picks : {};
+  Object.keys(p).forEach(function(k){ if (k.indexOf(pre) === 0 && Number.isInteger(p[k])){ out[Number(k.slice(pre.length))] = p[k]; } });
+  return out;
+}
+async function setPick(ad, lg, o){
+  var out = null;
+  await ad.transaction(async function(tx){
+    var mg = await tx.get(PATH.meta(lg));
+    if (!mg.exists) throw CloudError('missing', 'This league does not exist in the cloud.');
+    var m = mg.data;
+    if (m.commish !== o.uid) throw CloudError('denied', 'Only the commissioner can do this.');
+    if (staleMeta(m, o.expect)) throw CloudError('stale', STALE_TEXT);
+    var key = pickKey(m.season, o.wkNo, o.gi), pre = m.season + '-' + o.wkNo + '-', picks = {};
+    Object.keys(m.picks || {}).forEach(function(k){ if (k.indexOf(pre) === 0 && k !== key) picks[k] = m.picks[k]; });
+    if (o.team != null) picks[key] = o.team;
+    if (Object.keys(picks).length > 20) throw CloudError('bad', 'At most 20 scores can be chosen.');
+    var nm = Object.assign({}, m, { picks: picks, updatedAt: nextStamp(m.updatedAt) });
+    if (!Object.keys(picks).length) delete nm.picks;
     tx.set(PATH.meta(lg), nm); out = nm;
   });
   return out;
@@ -3953,6 +4171,8 @@ async function runOffseason(ad, lg, o){
     if (STD.nextGames(L).kind !== 'done') throw CloudError('bad', 'The season is not over yet: the playoffs must finish before the offseason.');
     var season = m.season, hg = await g.get(PATH.hist(lg, season));
     if (hg.exists) throw CloudError('stale', STALE_TEXT);
+    var snaps = {};
+    if (layoutOf(m) === 2) L.teams.forEach(function(t, i){ if (parts.slots[String(i)]) snaps[i] = snapOf(t); });
     var res = STD.offseason(L, STD.newCtx());
     var now = nextStamp(m.updatedAt), row = L.hist[L.hist.length - 1], writes, nm;
     if (layoutOf(m) === 2){
@@ -3960,12 +4180,18 @@ async function runOffseason(ad, lg, o){
       var ts = {}, hum = parts.slots, nh = 0;
       L.teams.forEach(function(t, i){
         var k = String(i);
-        if (hum[k]){ tx.set(PATH.team(lg, i), encTeam(t, [], null, L.rules)); nh++; }
+        if (hum[k]){
+          var nd = encTeam(t, [], null, L.rules), od = parts.teamDocs[i] || {}, ys = yourSet(snaps[i], t, season);
+          ['pb', 'stx'].forEach(function(f){ if (od[f] != null) nd[f] = jcopy(od[f]); });      /* the owner's own extras stay */
+          nd.yp = encYp(ys.yp); nd.pv = ys.pv;
+          tx.set(PATH.team(lg, i), nd); nh++;
+        }
         else ts[k] = encTeamLite(t);
       });
       parts.tidy.del.forEach(function(k){ tx.del(PATH.team(lg, k)); nh++; });
       tx.set(PATH.hist(lg, season), histDocOf(row, now));
       nm = Object.assign({}, m, { season: L.ssn, wk: 0, ph: 'reg', hold: false, ovr: [], updatedAt: now, ts: ts, rtd: rtdStrings(L.rtd) });
+      if (L.inj) nm.hurt = {};                                                                       /* injuries do not carry into the next season */
       tx.set(PATH.meta(lg), nm);
       writes = nh + 2;
     } else {
@@ -4095,7 +4321,8 @@ return{CloudError:CloudError,classify:classify,cloudMsg:cloudMsg,makeSdkAdapter:
  VERSION:LG_CLOUD_VERSION,ENV:ENV,planCreate:planCreate,planOf:planOf,createLeague:createLeague,resumeCreate:resumeCreate,takeSlot:takeSlot,freeSlot:freeSlot,teamCount:teamCount,layoutOf:layoutOf,
  weeksOf:weeksOf,roundsOf:roundsOf,sizeLabel:sizeLabel,isClosed:isClosed,myCloudLeagues:myCloudLeagues,mergeMine:mergeMine,composeTeams:composeTeams,cleanName:cleanName,rtdStrings:rtdStrings,
  readForAdvance:readForAdvance,staleMeta:staleMeta,STALE_TEXT:STALE_TEXT,advanceWeek:advanceWeek,setSimMark:setSimMark,runOffseason:runOffseason,weekSituation:weekSituation,readSubs:readSubs,
- humansOf:humansOf,roundName:roundName,nextStamp:nextStamp,voidSub:voidSub,slotDoc:slotDoc,saveSlot:saveSlot,auditTeam:auditTeam};
+ humansOf:humansOf,roundName:roundName,nextStamp:nextStamp,voidSub:voidSub,slotDoc:slotDoc,saveSlot:saveSlot,auditTeam:auditTeam,
+ lookOf:lookOf,encPlaybook:encPlaybook,decPlaybook:decPlaybook,encYp:encYp,decYp:decYp,humanExtras:humanExtras,snapOf:snapOf,yourSet:yourSet,hurtOf:hurtOf,picksFromMeta:picksFromMeta,setPick:setPick,PLAYS_MAX:PLAYS_MAX};
 })();
 /* ---------- v2.33: LINKED LEAGUES, the PLAYER side (src/lk.js). A friend joins the commissioner's league by its 6-character code, plays his own team's games by hand,
    sends the results and spends credits on his team; the commissioner (HQ, a separate page) advances the weeks. The game stays fully playable alone, offline and with no login: nothing here runs
@@ -4206,9 +4433,11 @@ async function lnEnter(lg,code,idx,nm,uid,ad){
  const meta=mg.data,parts=await LNC.readParts(ad,info.lg,meta,null),L=LNC.buildLeague(meta,parts.teamDocs,parts.weeks,parts.hist),ch=parts.teamDocs[idx];
  const cr0=typeof ch.cr==='number'&&ch.cr>0?ch.cr:(Array.isArray(ch.up)&&ch.up.length?0:3);       /* a fresh team starts with 3 credits like a new local league; a team that already spent is not given them again */
  const s={name:L.teams[idx].nm,ci:0,season:L.ssn,week:0,w:0,l:0,t:0,credits:cr0,phase:'reg',round:0,over:null,champs:0,qLen:90,last:'',std:L,stm:idx,stx:{relief:1,drv:1},
-  lnk:{lg:info.lg,code:info.code,idx:idx,uid:uid,nm:nm,lastMeta:lnMetaOf(meta),lastSync:Date.now(),st:null,queue:[],cs:0,cw:'',note:'',un:Array.isArray(ch.up)?ch.up.length:0}};
+  lnk:{lg:info.lg,code:info.code,idx:idx,uid:uid,nm:nm,lastMeta:lnMetaOf(meta),lastSync:Date.now(),st:null,queue:[],cs:0,cw:'',note:'',un:Array.isArray(ch.up)?ch.up.length:0,l2:LNC.layoutOf(meta)===2?1:0}};
+ const ex=LNC.humanExtras(ch);if(ex.yp){s.yp=ex.yp;s.pv=ex.pv||{}}   /* v2.54: YOUR PLAYERS comes from my team document */
  stdSync(s);lnDerive(s);s.last=lnLast(s);
- S=s;saveNow();return s}
+ if(s.lnk.l2)lnXApply(s,ch);
+ S=s;saveNow();if(s.lnk.xd)lnXSoon();return s}
 
 /* ---------- PULL ---------- */
 /* the weeks and rounds the local record already has, as the week documents readParts keeps in its cache (same keys, same rows) */
@@ -4273,7 +4502,8 @@ function lnTake(s,nL,meta,old,seasonMoved,chunk){
  s.std=nL;
  k.un=chunk&&Array.isArray(chunk.up)?chunk.up.length:0;
  lnReapply(s,chunk);                                       /* my upgrades that are not in the cloud yet go back onto the pulled roster */
- if(snap)try{stdYourSet(s,snap,ps)}catch(e){}
+ {const ex=seasonMoved?LNC.humanExtras(chunk):null;if(ex&&ex.yp){s.yp=ex.yp;s.pv=ex.pv||{}}else if(snap)try{stdYourSet(s,snap,ps)}catch(e){}}   /* v2.54: YOUR PLAYERS is read from my team document (the commissioner's offseason wrote it); a league made before lg-cloud 1.1 works it out here as before */
+ if(k.l2)lnXApply(s,chunk);
  stdSync(s);lnDerive(s);s.last=lnLast(s)||s.last;
  if((s.champs|0)>ch0)s.credits+=4*((s.champs|0)-ch0);      /* the title bonus of a local league, given when the pulled season shows my team as the champion */
  lnReconcile(s,seasonMoved);
@@ -4338,6 +4568,7 @@ function lnRefresh(){
  if(!S||!S.lnk)return;
  try{if(UI.scr==='hub'){$('hub').innerHTML=hbHub();hbPosPaint()}
   else if(UI.scr==='stand'){lgStand();shDraw()}
+  else if(UI.scr==='gset'){openSet()}
   else if(UI.scr==='menu'&&HOME.tab==='lg'&&$('mbody'))renderHome()}catch(e){}}
 function lnShown(el){if(S&&S.lnk&&(el==='hub'||el==='stand'))lnWatch();else if(LNK.w)lnUnwatch()}
 /* opening a linked league from MY LEAGUES: pull now (the screen is drawn first, then updated) */
@@ -4416,7 +4647,7 @@ function lnPanel(){
   const bad=(k.queue||[]).some(x=>x.st==='fail');
   if(LNK.sure==='leave')lines.push('LEAVING FREES YOUR TEAM FOR SOMEONE ELSE. THE LEAGUE STAYS ON THIS DEVICE AS A LOCAL LEAGUE. RESULTS AND UPGRADES NOT SENT YET ARE LOST.');
   h=`<div class="sm">${lines.map(x=>sc(`${x}`)).join('<br>')}</div>${lnAdvHtml(s)}${bad?`<div class="row">${lnBtn('retry','TRY SENDING AGAIN','xs')}</div>`:''}${sync}`}
- return`<div class="card hbw"><h3>LINKED LEAGUE - CODE ${hmEsc(k.code)}</h3>${h}</div>`}
+ return`<div class="card hbw"><h3>LINKED LEAGUE</h3>${h}</div>`}   /* v2.53: the code lives in SETTINGS > LEAGUE */
 /* the hub of a season that is over for my team (or for the whole league) while the commissioner has not moved on */
 function lnWaitHub(){
  const s=S,L=s.std,k=s.lnk,mc=myC().c,n=STD.nextGames(L),ch=L.po&&L.po.ch!=null?L.teams[L.po.ch].nm:null,
@@ -4427,7 +4658,7 @@ function lnWaitHub(){
  <div class="hbr">RECORD ${hbRec(s)}</div>
  <div class="card hbn"><h3>${txt}</h3><p class="sm">${sc(`${sub2}`)}</p>${s.last?`<p>${sc(`LAST: ${hmEsc(s.last)}`)}</p>`:''}</div>
  ${lnPanel()}<div class="card hbw"><h3>TO DO</h3><div class="hbtd">${row('up','UPGRADES','CREDITS TO SPEND')}${row('book','PLAYBOOK','DESIGN YOUR PLAYS')}${row('stand','STANDINGS','SCHEDULE AND PLAYOFFS')}</div></div>`}
-function lnTag(){return S&&S.lnk?`<div class="sm" style="color:#ffd400;margin-bottom:.4em">${sc(`LINKED LEAGUE - CODE ${hmEsc(S.lnk.code)} - LAST SYNCED ${lnClock(S.lnk.lastSync)}`)}</div>`:''}
+function lnTag(){return S&&S.lnk?`<div class="sm" style="color:#ffd400;margin-bottom:.4em">${sc(`LINKED LEAGUE - LAST SYNCED ${lnClock(S.lnk.lastSync)}`)}</div>`:''}
 /* clicks on the hub card */
 async function lnHubClick(act){
  const s=S;if(!s||!s.lnk)return;
@@ -4477,7 +4708,7 @@ async function lnWho(s,c){
  const k=s.lnk,mg=await c.ad.get(lnPath.meta(k.lg));if(!mg.exists)return null;
  const meta=mg.data,L0=s.std,parts=await LNC.readForAdvance(c.ad,k.lg,meta,{weeks:lnWeeksOf(L0),hist:lnHistOf(L0)}),L=LNC.buildLeague(meta,parts.teamDocs,parts.weeks,parts.hist),plan=STD.nextGames(L);
  if(plan.kind==='done')return null;
- const wkNo=LNC.planWeekNo(plan),humans=LNC.humansOf(parts.slots),subs=await LNC.readSubs(c.ad,k.lg,meta.season,wkNo,plan,LNC.layoutOf(meta)===2?humans:null),sit=LNC.weekSituation(L,plan,subs,humans,meta.ovr,meta.season,wkNo,{});
+ const wkNo=LNC.planWeekNo(plan),humans=LNC.humansOf(parts.slots),subs=await LNC.readSubs(c.ad,k.lg,meta.season,wkNo,plan,LNC.layoutOf(meta)===2?humans:null),sit=LNC.weekSituation(L,plan,subs,humans,meta.ovr,meta.season,wkNo,LNC.picksFromMeta(meta,meta.season,wkNo));
  const who=i=>i===(s.stm|0)?'YOU':String((parts.slots[String(i)]&&parts.slots[String(i)].nm)||L.teams[i].nm).toUpperCase()+' ('+String(L.teams[i].nm).toUpperCase()+')';
  const names=[];sit.missing.forEach(gi=>{const g=sit.games[gi];[g.h,g.a].forEach(i=>{if(parts.slots[String(i)])names.push(who(i))})});
  const cf=sit.conflicts.map(gi=>{const g=sit.games[gi];return L.teams[g.h].nm+' VS '+L.teams[g.a].nm});
@@ -4548,7 +4779,7 @@ async function lnLeave(){
    =================================================================================================================== */
 const lnWait=ms=>new Promise(r=>setTimeout(()=>r({kind:'wait'}),ms));
 const lnTx=(c,fn)=>LNK.test?c.ad.transaction(fn):cgT(c.ad.transaction(fn));
-const lnPending=s=>!!(s&&s.lnk&&(s.lnk.queue||[]).some(x=>x.k==='up'||x.st==='wait'||x.st==='fail'));
+const lnPending=s=>!!(s&&s.lnk&&((s.lnk.queue||[]).some(x=>x.k==='up'||x.st==='wait'||x.st==='fail')||s.lnk.xd));
 function lnPlayLabel(){
  const c=lnCur(S);if(!c)return'PLAY GAME';
  if(lnSimMarked(S,c))return'PLAY FOR FUN';
@@ -4567,7 +4798,7 @@ async function lnPlayGo(){
   const c=lnCur(s);
   if(!c){lnRefresh();notice('NO GAME TO PLAY RIGHT NOW');return}
   LNK.game={s:c.season,w:c.wkNo,gi:c.gi,opp:c.opp,fun:lnSimMarked(s,c)};
-  openLocker()}
+  foPlay()}
  finally{LNK.go=false}}
 /* the game that just ended: queue the result (a result of the commissioner's SIM week or a game for fun is not queued) */
 function lnAfterGame(win,tie,cr,mp,op,src){
@@ -4606,6 +4837,30 @@ function lnBuy(kind,key,cost){
  s.credits-=cost;
  (k.queue=k.queue||[]).push({k:'up',s:L.ssn,w:L.wk,cost:cost,lines:lines});
  stdSync(s);save();Promise.resolve().then(()=>lnFlush());return true}
+/* ---------- v2.54 (lg-cloud 1.1): the extras of MY team go into MY team document: nm, lk, lo (the wardrobe with sleeves and my own uniforms), pb (the playbook, at most 40 plays) and stx (relief, drives). Never ro, cr or up (lnPushUps, above) and never yp or pv (the commissioner's offseason writes those). k.l2 = the league is layout 2 (older leagues are left alone); k.xd = something changed that is not in the cloud yet. A refusal by the rules (not published yet) is silent: nothing is shown, nothing is retried until the next change. ---------- */
+function lnXMark(s){if(s&&s.lnk&&s.lnk.l2){s.lnk.xd=1;lnXSoon()}}
+function lnXSoon(){if(LNK.test||LNK.xt)return;LNK.xt=setTimeout(()=>{LNK.xt=null;if(S&&S.lnk&&S.lnk.xd&&!S.lnk.st)lnFlush({force:true})},4000)}
+const lnStxOf=s=>{const o={},x=s.stx||{};if(x.relief===0||x.relief===1)o.relief=x.relief;if(x.drv===0||x.drv===1)o.drv=x.drv;return o};
+async function lnPushMine(s,c){
+ const k=s.lnk,pt=lnPath.team(k.lg,k.idx),t=s.std.teams[s.stm|0],pb=LNC.encPlaybook(pbList(),PBK.libv),lo=LNC.lookOf(t).lo,stx=lnStxOf(s);let out='ok';
+ await lnTx(c,async tx=>{
+  out='ok';
+  const mg=await tx.get(lnPath.meta(k.lg));if(!mg.exists){out='gone';return}
+  const sg=await tx.get(lnPath.slot(k.lg,k.idx));if(!sg.exists||sg.data.uid!==c.uid){out='slot';return}
+  const cg=await tx.get(pt);if(!cg.exists){out='gone';return}
+  const nd=Object.assign({},cg.data,{nm:t.nm,lk:{c:t.lk.c,d:t.lk.d}});
+  if(lo)nd.lo=lo;else delete nd.lo;
+  if(pb)nd.pb=pb;
+  if(Object.keys(stx).length)nd.stx=stx;
+  if(JSON.stringify(nd)===JSON.stringify(cg.data)){out='same';return}
+  tx.set(pt,nd)});
+ return out}
+/* what my team document holds goes onto this phone: the options (when nothing of mine waits to be sent) and the playbook (MERGED into the one playbook of this phone, never replacing it). No pb or stx in the document yet: it is mine to send. */
+function lnXApply(s,ch){
+ if(!s||!s.lnk||!ch)return;const k=s.lnk,x=LNC.humanExtras(ch);
+ if(!k.xd){if(x.stx){const r=x.stx.relief===0||x.stx.relief===1?x.stx.relief:null,d=x.stx.drv===0||x.stx.drv===1?x.stx.drv:null;s.stx=Object.assign({},s.stx);if(r!=null)s.stx.relief=r;if(d!=null)s.stx.drv=d}}
+ if(x.plays&&x.plays.length)try{pbMerge(x.plays)}catch(e){}
+ if(!ch.pb||!ch.stx)k.xd=1}
 /* write my queued upgrades into MY team chunk: ro, cr and up only, in one transaction that re-reads the chunk (so a chunk is never overwritten with a stale copy) and refuses during a season change */
 async function lnPushUps(s,c){
  const k=s.lnk,items=(k.queue||[]).filter(q=>q.k==='up');
@@ -4668,6 +4923,9 @@ function lnFlush(o){
      const r2=await lnPull({force:true});if(S!==s)break;if(r2.kind==='err'){net=lnKind({cgKind:r2.err})==='net';break}
      continue}
     break}}
+  if(!net&&k.xd&&!k.st){
+   try{const r=await lnPushMine(s,c);k.xd=0;if(r==='gone'||r==='slot')k.xd=0}
+   catch(e){const kd=lnKind(e);if(kd==='net')net=true;else k.xd=0}}   /* denied or any other refusal: silent, tried again at the next change */
   save();
   if(net)sched();
   return{kind:net?'offline':fails?'failed':'done',up:up&&up.kind}})();
@@ -4805,14 +5063,16 @@ async function acCreate(L,pick){
  await LNC.createLeague(c.ad,plan);
  const nm=acNm();
  try{await LNC.takeSlot(c.ad,plan.lg,pick,c.uid,nm)}catch(e){const x=LNC.CloudError(LNC.classify(e)==='other'?'other':LNC.classify(e),LNC.cloudMsg(e),e);x.half=true;throw x}
- return lnEnter(plan.lg,plan.code,pick,nm,c.uid,c.ad)}
+ const s=await lnEnter(plan.lg,plan.code,pick,nm,c.uid,c.ad);
+ try{await lnFlush({force:true})}catch(e){}   /* v2.54: my wardrobe, playbook and options go into my team document at once */
+ return s}
 async function hmStartCloud(L){
  if(HOME.saving)return;const pick=HOME.pick;HOME.saving=true;HOME.svMsg='SAVING TO YOUR ACCOUNT...';renderHome();let s=null,err=null;
  try{s=await acCreate(L,pick)}catch(e){err=e}
  HOME.saving=false;HOME.svMsg='';
- if(s){ACC.list=null;ACC.listAt=0;HOME.drafts[HOME.fmt]=null;HOME.nm='';HOME.pick=0;HOME.cz={src:'draft',team:0};resetSprites();hmPlay(s.id);notice('SAVED TO YOUR ACCOUNT. CODE '+S.lnk.code);return s}
+ if(s){ACC.list=null;ACC.listAt=0;HOME.inj='OFF';HOME.drafts[HOME.fmt]=null;HOME.nm='';HOME.pick=0;HOME.cz={src:'draft',team:0};resetSprites();hmPlay(s.id);notice('SAVED TO YOUR ACCOUNT. CODE '+S.lnk.code);return s}
  /* never lose a league: the same league, made on this phone only */
- stdNew(L,pick);HOME.drafts[HOME.fmt]=null;HOME.nm='';HOME.pick=0;HOME.cz={src:'draft',team:0};resetSprites();renderHub();
+ stdNew(L,pick);HOME.inj='OFF';HOME.drafts[HOME.fmt]=null;HOME.nm='';HOME.pick=0;HOME.cz={src:'draft',team:0};resetSprites();renderHub();
  notice('COULD NOT SAVE TO YOUR ACCOUNT ('+String(lnMsg(err)).slice(0,90)+'). THE LEAGUE IS ON THIS PHONE ONLY.');return null}
 /* ----- MY LEAGUES: the account's leagues ----- */
 const acAccountOn=()=>!!(acEmail()&&acOk());
@@ -4867,11 +5127,11 @@ function hmMake(name){
 function hmDraft(){HOME.fmt=hmKeyOf();return HOME.drafts[HOME.fmt]||(HOME.drafts[HOME.fmt]=hmMake(HOME.nm||'PIXEL LEAGUE'))}   /* null when a custom shape cannot work (hmShape says why) */
 function hmName(){const n=$('lgn');if(n)HOME.nm=n.value.toUpperCase();const L=HOME.drafts[HOME.fmt];if(L&&HOME.nm)L.name=HOME.nm}   /* the name box keeps its text when LEAGUE, PLAYERS or a stepper changes the draft */
 function hmPicked(){HOME.pick=0;const L=hmDraft();if(L&&HOME.nm)L.name=HOME.nm;for(const k of Object.keys(HOME.drafts))if(/^STD\|C/.test(k)&&k!==HOME.fmt)delete HOME.drafts[k]}   /* one custom draft is kept at a time */
-function openMenu(){if(S)save();HOME.ret=null;HOME.tab=rdIdx().length?'lg':'new';HOME.del=null;renderHome();show('menu')}
+function openMenu(){if(S&&!S.sbx)save();UI.hm=true;HOME.ret=null;HOME.tab=rdIdx().length?'lg':'new';HOME.del=null;renderHome();show('menu')}
 function czFocusKey(){const a=document.activeElement;if(!a||a.tagName==='INPUT'||!$('mbody').contains(a))return null;const q=[...a.attributes].filter(x=>x.name.startsWith('data-')).map(x=>`[${x.name}="${x.value}"]`).join('');return q?'#mbody '+q:null} /* v2.04: a button that re-draws the LOOK tab keeps focus */
 /* v2.05: LOOK under TEAM and HELP under MORE: the same screens as the home tabs (renderHome draws them into #mbody), shown inside the shell with their own screen ids */
 function openLook(){if(!S||!S.lg||S.lnk)return;   /* v2.42: a Standard league can be dressed too (what you change goes back into the league record, std.js stdLookBack); a linked league cannot */
- save();HOME.cz={src:S.id,team:S.lg.me};HOME.tab='cz';HOME.ret=null;HOME.del=null;show('look');renderHome()}
+ save();UI.hm=false;HOME.cz={src:S.id,team:S.lg.me};HOME.tab='cz';HOME.ret=null;HOME.del=null;show('look');renderHome()}
 function openHelp(){HOME.tab='help';HOME.ret=null;HOME.del=null;show('help');renderHome()}
 function hmTab(k){HOME.tab=k;HOME.del=null;HOME.join=null;HOME.ret=null;renderHome()} /* v2.01: the five home tabs are drawn by the nav (sh.js) */
 function renderHome(){
@@ -4879,7 +5139,7 @@ function renderHome(){
  if(!cz)czShClose(true);
  $('mbody').innerHTML=f();
  if(cz){czDraw();m.scrollTop=st;const e=fk&&document.querySelector(fk);if(e)try{e.focus({preventScroll:true})}catch(x){}}
- mrotUI();pwaUI();cgFoot();shDraw()}
+ mrotUI();pwaUI();cgFoot();shDraw();foPaintAll($('mbody'))}
 /* v1.89: the AUTO / FLIP direction only matters while UPRIGHT PLAY is ON */
 function mrotUI(){const e=$('mrot');if(e)e.innerHTML=coarse()&&upOn()?`<span class="sm">${sc(`ROTATION:`)}</span><button class="btn xs ${rotPref()===1?'sel':'alt'}" data-rot="1">AUTO</button><button class="btn xs ${rotPref()===-1?'sel':'alt'}" data-rot="-1">FLIP</button>`:''}
 
@@ -4895,15 +5155,15 @@ document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.clo
 function hmLeagues(){
  if(HOME.join)return lnJoinHtml();   /* v2.33: JOIN LEAGUE (a linked league) */
  const ix=rdIdx();acKick();const ac=acRows(ix);   /* v2.43: the leagues in the account too, each marked ON THIS PHONE / IN YOUR ACCOUNT */
- const btns=`<div class="row"><button class="btn${ix.length||ac.rows?' alt':''}" data-tab="new">NEW LEAGUE</button><button class="btn alt" data-ln="join">JOIN LEAGUE</button><button class="btn alt" data-hm="bks">BACKUPS</button></div>`; /* v2.46: IMPORT, RESTORE FROM CODE and BACK UP ALL LEAGUES are behind one button; the yellow button of this screen is PLAY */
- if(!ix.length&&!ac.rows)return`<p style="margin:2em 0">${sc(`NO SAVED LEAGUES YET.<br>START ONE IN THE NEW LEAGUE TAB.`)}</p>${ac.line}`+btns;
- return'<div class="lgcols"><div class="lgmain"><div class="lst">'+ix.map(e=>HOME.ren===e.id?`<div class="slot"><div style="flex:1;text-align:left"><div class="sm">${sc(`NEW NAME FOR THIS LEAGUE`)}</div><input id="rnn" maxlength="16" value="${hmEsc(e.name)}" style="width:13em" aria-label="League name"></div><button class="btn xs" data-rn="save" data-id="${e.id}">SAVE</button><button class="btn xs alt" data-rn="x">CANCEL</button></div>`:`<div class="slot"><div style="flex:1;text-align:left"><b>${hmEsc(e.name)}</b><div class="sm">${sc(`${hmEsc(tn(e.team))} - ${e.fmt} - SEASON ${e.season} - ${e.w}-${e.l}${e.t?'-'+e.t:''}${e.champs?' - TITLES '+e.champs:''}${e.lk?' - LINKED '+hmEsc(e.lk):''}`)}</div>${acAccountOn()?`<div class="sm mk">${sc(`${acMark(e)}`)}</div>`:''}${e.lk?`<div class="sm">${sc(`THE COMMISSIONER NAMES THIS LEAGUE.`)}</div>`:''}${gsHas(e.id)?'<div class="sm gtag" style="color:#ffd400">Game in progress</div>':''}</div>
- <button class="btn xs" data-play="${e.id}">PLAY</button>${e.lk?'':`<button class="btn xs alt" data-rn="open" data-id="${e.id}">RENAME</button>`}<button class="btn xs alt" data-bk="export" data-id="${e.id}">EXPORT</button><button class="btn xs alt" data-del="${e.id}">${HOME.del===e.id?'SURE?':'DELETE'}</button></div>`).join('')+ac.rows+'</div>'+ac.line+'</div><div class="lgside">'+btns+'</div></div>'}
+ /* v2.53: MY LEAGUES only picks. Each league is a team-color card (team, league, week, record, STANDARD / SIMPLE / LINKED); a tap opens it. Rename, back up and delete are in SETTINGS > LEAGUE of the open league. */
+ const btns=`<div class="row abar"><button class="btn${ix.length||ac.rows?' alt':''}" data-tab="new">NEW LEAGUE</button><button class="btn alt" data-ln="join">JOIN LEAGUE</button><button class="btn alt" data-hm="bks">BACKUPS AND CODES</button></div>`;
+ if(!ix.length&&!ac.rows)return`<p style="margin:2em 0">${sc(`NO SAVED LEAGUES YET.<br>START ONE WITH NEW LEAGUE.`)}</p>${ac.line}`+btns;
+ return'<div class="lgcols"><div class="lgmain"><div class="lst hsl2">'+ix.map(e=>hsCard(e,'data-play',true)).join('')+ac.rows+'</div>'+ac.line+'</div></div>'+btns}
 
 /* ----- tab 2: new league wizard ----- */
-/* v2.45: INJURIES OFF / LOW / NORMAL for a new Standard league (default OFF). A league saved to the account stays OFF for now (HQ does not offer it yet). */
+/* v2.45: INJURIES OFF / LOW / NORMAL for a new Standard league (default OFF). A league saved to your account keeps it too. */
 const hmInj=L=>`<div class="row"><span class="sm">${sc(`INJURIES`)}</span>${['OFF','LOW','NORMAL'].map(v=>`<button class="btn xs ${(HOME.inj||'OFF')===v?'on':'alt'}" data-act2="inj" data-iv="${v}" aria-pressed="${(HOME.inj||'OFF')===v}">${v}</button>`).join('')}</div>
- <div class="sm">Players can get hurt between games and miss a few weeks. A weaker stand-in plays for them.${L&&acWantsCloud(L)&&(HOME.inj||'OFF')!=='OFF'?' A league saved to your account starts with injuries off for now.':''}</div>`;   /* plain sentence case on purpose: sc() keeps PLAYS in capitals (a button name) */
+ <div class="sm">Players can get hurt between games and miss a few weeks. A weaker stand-in plays for them.</div>`;   /* plain sentence case on purpose: sc() keeps PLAYS in capitals (a button name) */
 function hmNew(){
  const sh=hmShape(),L=sh.ok?hmDraft():null,cf=L?lgCfg(L):null,cls=HOME.pl==='CLS',cs=HOME.cs;
  const lkb=(k,l)=>`<button class="btn xs ${HOME.lk===k?'on':'alt'}" data-lk="${k}" aria-pressed="${HOME.lk===k}"${cls&&(k==='8'||k==='CUSTOM')?' disabled':''}>${l}</button>`;
@@ -4940,14 +5200,14 @@ function czSave(o){const T=o?null:czTarget(),obj=o||T.obj;if(!obj){const D=T&&T.
  const me=obj.lg.teams[obj.lg.me];obj.name=me.name;if(obj.std)stdLookBack(obj.std,obj.lg);if(keep&&keep.id===obj.id)S=keep;save();S=keep}
 const CZ_C=[['helmet','HELMET'],['jersey','JERSEY'],['pants','PANTS'],['socks','SOCKS']];
 const CZ_F={helmet:['shell','stripe','mask','logo'],jersey:['main','trim','number','sleeve'],pants:['main','stripe'],socks:['main','stripe']};
-/* ----- v2.38: uniforms from two colors. HOME = primary everywhere with the secondary on the helmet stripe and logo, the jersey trim, the pants stripe and the sock stripe. AWAY = the mirror; when the colors are under 1.6:1 AWAY is white with the primary as the stripes. WHITE (white with the primary as trim) only when neither color is white-ish (luminance .75) and AWAY is not already white. The number is the stripe color when that is 3:1 on the jersey, else white or #111827.
+/* ----- v2.38: uniforms from two colors. HOME = primary everywhere with the secondary on the helmet stripe and logo, the jersey trim, the pants stripe and the sock stripe. AWAY = always the mirror (v2.52: the white fallback under 1.6:1 is gone). WHITE (white with the primary as trim) whenever neither color is white-ish (luminance .75; v2.52: the 'AWAY is not already white' part is gone). The number is the stripe color when that is 3:1 on the jersey, else white or #111827.
    A style made from the colors carries a:1; a style of your own uniform carries o:1 (your uniform is the style at the same place in all four lists). Mask, gloves and shoes are as before. ----- */
 const CZ_MASK='#cfd3dc',CZ_MAXU=6;
 const czNum=(base,alt)=>cRat(base,alt)>=3?alt:(rLum(base)>.4?'#111827':'#ffffff');
 const czIsW=h=>rLum(h)>=.75;
 function czMk(base,trim,n){return{helmet:{shell:base,stripe:trim,mask:CZ_MASK,logo:trim,n,a:1},jersey:{main:base,trim,number:czNum(base,trim),n,a:1},pants:{main:base,stripe:trim,n,a:1},socks:{main:base,stripe:trim,n,a:1}}}
-function czSet(c){const P=c.c,S=c.d,aw=cRat(P,S)<1.6?'#ffffff':S,out=[['HOME',czMk(P,S,'HOME')],['AWAY',czMk(aw,P,'AWAY')]];
- if(!(czIsW(P)||czIsW(S)||czIsW(aw)))out.push(['WHITE',czMk('#ffffff',P,'WHITE')]);
+function czSet(c){const P=c.c,S=c.d,out=[['HOME',czMk(P,S,'HOME')],['AWAY',czMk(S,P,'AWAY')]];   /* v2.52: AWAY is always the mirror (no white fallback); WHITE whenever neither color is white-ish */
+ if(!(czIsW(P)||czIsW(S)))out.push(['WHITE',czMk('#ffffff',P,'WHITE')]);
  return out}
 const czN=w=>Math.max(1,...CZ_C.map(([k])=>w[k].length));
 const czJs=o=>JSON.parse(JSON.stringify(o));
@@ -4976,7 +5236,7 @@ const czEd=(t,k)=>{const w=czWd(t);return w[k][Math.min(czUi(t),w[k].length-1)]}
 const CZ_STEPS=[['team','TEAM'],['ward','WARDROBE'],['lg','LEAGUE']];
 /* the 24 palette colors of the UI Test mock-up; any other color still works through HEX and ANY COLOR */
 const CZ_PAL=['#e23b4a','#ff7a1a','#ffc324','#ffd400','#2fc16f','#18b8a8','#3b7cff','#2b66ff','#a45cf0','#f25cb0','#ffffff','#cfd6e4','#8a93a8','#4a5468','#1d2a44','#101820','#7a1522','#8a3a00','#8a6200','#14633a','#0a5e56','#163a8c','#4e1c8a','#8a1f5c'];
-let CZSH=null,CZRO=null,LKRO=null; /* CZSH = the open sheet: {t:'team'|'league'|'color', p, op, opSel} */
+let CZSH=null,CZRO=null; /* CZSH = the open sheet: {t:'team'|'league'|'color', p, op, opSel} */
 const czGet=(t,p)=>{const wd=czWd(t);if(p==='c'||p==='d')return t.col[p];if(p[0]==='g')return wd[p.slice(2)];const cat=HOME.cz.cat||'helmet',v=czEd(t,cat)[p.slice(2)];return v||(p==='w:sleeve'?czEd(t,'jersey').main:v)};
 const czSame=(t,p)=>p==='w:sleeve'&&!czEd(t,'jersey').sleeve;
 const czSwBtn=(t,p,l)=>{const v=czGet(t,p),tx=czSame(t,p)?'SAME AS JERSEY':v.toUpperCase();return`<button class="czsw" data-csw="${p}" aria-haspopup="dialog" aria-label="${l} color ${tx}. Change it"><i style="background:${v}"></i><span>${l}<b>${tx}</b></span></button>`};
@@ -4984,7 +5244,8 @@ const czSub=(L,t)=>hmEsc(L.conf[t.conf]||'')+(lgCfg(L).dv>1?' '+hmEsc(L.div[t.di
 function czLgLabel(){if(HOME.cz.src==='draft')return'NEW LEAGUE (NOT STARTED)';const e=rdIdx().find(x=>x.id===HOME.cz.src);return e?e.name:czTarget().L.name}
 /* v2.38: the warning under the colors (never a block) and the preview rows: one row of the four players (QB, WR, OL, RB) for HOME, AWAY, WHITE (if there is one) and each uniform of your own */
 function czColWarn(t){const r=cRat(t.col.c,t.col.d);if(r>=3)return'';
- return`<p class="czp czwr"><b class="czwi" aria-hidden="true">!</b><span>${sc(r<1.6?'THE COLORS ARE ALMOST THE SAME: STRIPES WILL BE FAINT AND AWAY WILL BE WHITE.':'THE COLORS ARE CLOSE: STRIPES WILL BE FAINT.')}</span></p>`}
+ const hw=czUnis(czWd(t)).some(u=>u.n==='WHITE'),tx=r<1.6?'These colors are very close. HOME and AWAY will look alike'+(hw?'; the WHITE uniform helps.':'.'):sc('THE COLORS ARE CLOSE: STRIPES WILL BE FAINT.');   /* v2.52: a plain string under 1.6:1, so HOME, AWAY and WHITE keep their capitals */
+ return`<p class="czp czwr"><b class="czwi" aria-hidden="true">!</b><span>${tx}</span></p>`}
 function czRowsHtml(t){return czUnis(czWd(t)).map(u=>`<div class="czur"><b>${hmEsc(u.n)}${u.own?' (YOURS)':''}</b><canvas class="czrc" data-czr="${u.i}" role="img" aria-label="${hmEsc(u.n)} uniform preview, four players"></canvas></div>`).join('')}
 function czRowsPaint(t){document.querySelectorAll('#mbody canvas[data-czr]').forEach(c=>{try{czPaintRow(c,czUniK(t,+c.dataset.czr))}catch(e){}})}
 function czRowsSync(){const{L}=czTarget(),t=L.teams[clamp(HOME.cz.team,0,L.teams.length-1)],r=$('czrows');
@@ -5007,7 +5268,7 @@ function hmCustom(){
  else body=`<div class="czs"><h4>NAMES</h4>${fld('czln','LEAGUE',L.name,16)}${L.conf.map((_,c)=>fld('czcn'+c,'CONFERENCE '+(c+1),L.conf[c],14,`data-cn="${c}"`)).join('')}${(L.div.length>1?L.div:[]).map((_,d)=>fld('czdn'+d,'DIVISION '+(d+1),L.div[d],10,`data-dn="${d}"`)).join('')}</div>
   <div class="czs"><h4>ALL TEAMS</h4><div class="row"><button class="btn xs alt" data-cz="theme">REAL-STYLE TEAMS</button>${lgCfg(L).id==='NFL'?'<button class="btn xs alt" data-cz="sifa">SIFA TEAMS</button>':''}<button class="btn xs alt" data-cz="allnames">RANDOM TEAM NAMES</button><button class="btn xs alt" data-cz="allcols">RANDOM COLORS</button></div>
   <p class="czp">${sc(`${obj?'SAVED AUTOMATICALLY.':'APPLIES WHEN YOU START THE LEAGUE.'}`)}</p></div>`;
- return`<div class="czw"><div class="czbox"><div class="czl">${HOME.ret?'<button class="btn xs alt" data-ret="1">BACK TO LOCKER ROOM</button>':''}
+ return`<div class="czw"><div class="czbox"><div class="czl">${HOME.ret?`<button class="btn xs alt" data-ret="1">${HOME.ret==='next'?'BACK TO NEXT GAME':'BACK TO EXHIBITION'}</button>`:''}
   <button class="czt" data-czs="team" aria-haspopup="dialog"><i class="czdot" style="background:${t.col.c};box-shadow:0 0 0 2px ${t.col.d}"></i><span class="czn"><b id="czpn">${hmEsc(t.name)}</b><small>${sc(`${czSub(L,t)}`)}</small></span><em class="czchg">CHANGE TEAM</em></button>
   <div class="czpv"><canvas id="czp" role="img" aria-label="Uniform preview"></canvas></div><div id="czwarn" role="status">${czWarn(t,ti)}</div></div>
   <div class="czr"><div class="seg czst" role="group" aria-label="Customize step">${CZ_STEPS.map(([k,l])=>`<button class="sb ${step===k?'on':''}" data-czstep="${k}" aria-pressed="${step===k}">${l}</button>`).join('')}</div>${body}</div></div></div>`}
@@ -5111,26 +5372,24 @@ function czShKey(e){if(e.key==='Escape'){e.stopPropagation();e.preventDefault();
   if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}}
 
 /* ----- tab 4: help ----- */
-function hmHelp(){const shl=UI.scr!=='menu'; /* the settings follow the cards only on the home screen, where MORE does not exist */return`<div class="hpt"><h1 class="mh" style="font-size:1.3em">HOW TO PLAY</h1>
-${hpCards(shl?'MORE':'')}
-${shl?'':stGroup()+acRow()}
+function hmHelp(){return`<div class="hpt"><h1 class="mh" style="font-size:1.3em">HOW TO PLAY</h1>
+${hpCards('SET')}
 <h4>ON A PHONE</h4><p>${sc(`HOLD YOUR PHONE SIDEWAYS. IF THE GAME ASKS YOU TO TURN IT AND NOTHING HAPPENS, TURN OFF THE ROTATION LOCK IN CONTROL CENTER.`)}</p>
 <h4>STARTING OUT</h4><p>${sc(`NEW LEAGUE: NAME IT, PICK THE FORMAT AND YOUR TEAM, THEN START LEAGUE. YOUR LEAGUES LIVE ON MY LEAGUES.`)}</p>
 <h4>EACH WEEK</h4><p>${sc(`PLAY GAME: PLAY IT YOURSELF. THE LOCKER ROOM LETS YOU PICK UNIFORMS FIRST. SIM GAME: THE COMPUTER PLAYS IT.<br>PLAYBOOK: DESIGN YOUR OWN PLAYS.<br>LEFT A GAME HALFWAY? TAP RESUME GAME ON YOUR LEAGUE SCREEN.<br>EARN CREDITS AFTER EVERY LEAGUE GAME AND SPEND THEM ON THE TEAM TAB, UPGRADES.`)}</p>
 <h4>EXHIBITION</h4><p>${sc(`THE EXHIBITION TAB LETS YOU PICK A LEAGUE (ONE OF YOURS, OR A NEW NFL OR COLLEGE ONE), YOUR TEAM AND THE OPPONENT. IT IS ONE GAME THAT DOES NOT COUNT AND IS NOT SAVED.`)}</p>
 <h4>LEAGUE FORMATS</h4><p>${sc(`NFL LEAGUE: ${LGF.NFL.help}<br>COLLEGE LEAGUE: ${LGF.COL.help}<br>STANDARD LEAGUE: EVERY TEAM HAS 23 REAL STARTERS WHO GROW, AGE AND RETIRE. PICK THE NFL SHAPE, COLLEGE, 8 TEAMS OR CUSTOM. PLAY EACH WEEK OR SIM IT. THE BEST TEAMS MAKE THE PLAYOFFS.`)}</p>
 <h4>INSTALL</h4><p>${sc(`ON IPHONE: SAFARI, SHARE, ADD TO HOME SCREEN. ON ANDROID OR DESKTOP CHROME: TAP INSTALL BELOW WHEN IT SHOWS.`)}</p>
-<p>${sc(`PROBLEMS? TAP REPORT A PROBLEM.`)}</p></div>
-<div class="row"><button class="btn xs alt" data-cg="open">CLOUD SAVE</button>${cgRestoreBtn('xs alt')}<button class="btn xs alt" data-rp="open">REPORT A PROBLEM</button></div>
+<p>${sc(`PROBLEMS? SETTINGS, DEVICE, REPORT A PROBLEM.`)}</p></div>
 <div class="row"><button class="btn xs alt" data-hn="reset">${HOME.hnDone?'TIPS WILL SHOW AGAIN':'SHOW TIPS AGAIN'}</button></div>
-<p class="sm">${sc(`VERSION V${APP_VERSION}`)}</p>`}
+`}
 
 /* ----- events ----- */
 function hmStart(){
  hmName();const L=hmDraft();if(!L)return;const nameEl=$('lgn');L.name=(nameEl?nameEl.value.trim().toUpperCase():L.name)||'PIXEL LEAGUE';
- if(HOME.tp!==false&&!acWantsCloud(L))styGive(L._std?L._std.teams:L.teams);   /* v2.37: TEAM PERSONALITIES (default ON): one style per team, by a hash of the team id; no random number is drawn */
- if(acWantsCloud(L)){hmStartCloud(L);return}   /* v2.43: SAVE TO MY ACCOUNT: the league is made in the account (lk.js, ac.js); a team personality (sty) is not kept in the cloud, so none is given here */
- if(L._std&&HOME.pl!=='CLS'&&(HOME.inj==='LOW'||HOME.inj==='NORMAL'))STD.setInjuries(L._std,HOME.inj);   /* v2.45: a Standard league made here (not in the account) starts with the chosen setting */
+ if(HOME.tp!==false)styGive(L._std?L._std.teams:L.teams);   /* v2.37: TEAM PERSONALITIES (default ON): one style per team, by a hash of the team id; no random number is drawn */
+ if(L._std&&HOME.pl!=='CLS'&&(HOME.inj==='LOW'||HOME.inj==='NORMAL'))STD.setInjuries(L._std,HOME.inj);   /* v2.45: a Standard league starts with the chosen setting */
+ if(acWantsCloud(L)){hmStartCloud(L);return}   /* v2.43: SAVE TO MY ACCOUNT: the league is made in the account (lk.js, ac.js). v2.54: personalities and injuries go up with it (lg-cloud 1.1) */
  if(L._std)stdNew(L,HOME.pick);else lgNew(L,HOME.pick);HOME.inj='OFF';HOME.drafts[HOME.fmt]=null;HOME.nm='';HOME.pick=0;HOME.cz={src:'draft',team:0};resetSprites();renderHub()}
 /* v2.42 RENAME: the league's name, for every league that is not linked (a commissioner names those). A Standard league keeps it in its record (std.nm), a simple league in lg.name, a classic game is named by its team. Same 16 letters as when it was made. */
 function hmRename(id,nm){
@@ -5142,7 +5401,7 @@ function hmRename(id,nm){
  return true}
 function hmPlay(id){const s=loadSlot(id);if(!s)return;S=s;if(S.lg){if(!S.lg.ho){lgOrient(S.lg.sched);S.lg.ho=1;save()}lgSync()}resetSprites();renderHub();sqKick();lnOpen()}
 $('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
- if(d.ret){HOME.ret=null;openLocker()}
+ if(d.ret)foBack()
  else if(d.czs)czShOpen({t:'team'},b)
  else if(d.csw)czShOpen({t:'color',p:d.csw},b)
  else if(d.czstep){HOME.cz.step=d.czstep;renderHome()}
@@ -5195,33 +5454,7 @@ $('menu').oninput=e=>{const el=e.target;if(el.tagName!=='INPUT'||el.id==='rnn'||
  else if(el.dataset.cu)czSetColor(el.dataset.cu,el.value)};
 migrateOld();
 
-/* ----- locker room: choose helmet, jersey, pants and socks for both teams right before the game ----- */
-const LKX={};   /* v2.46: which teams' CHANGE UNIFORMS panel is open in the locker room (closed by default, remembered until the page is closed) */
-function lkSide(t,who){
- czWd(t);const wd=t.wd,open=!!LKX[t.id];
- return`<div class="card cz"><h3>${who}: ${hmEsc(t.name)}</h3><canvas class="lkc" data-lkc="${t.id}" width="200" height="130"></canvas>`+
- `<div class="up lkun"><b style="width:4.5em">UNIFORM</b><div class="seg" role="group" aria-label="${hmEsc(who)} uniform">${czUnis(wd).map(u=>{const on=CZ_C.every(([k])=>wd.sel[k]===Math.min(u.i,wd[k].length-1));return`<button class="sb ${on?'on':''}" data-lk="${t.id}:u:${u.i}" aria-pressed="${on}">${hmEsc(u.n)}</button>`}).join('')}</div></div>`+
- `<div class="row" style="margin:.4em 0"><button class="btn xs alt" data-lk="tog:${t.id}" aria-expanded="${open}">${open?'HIDE UNIFORM PARTS':'CHANGE UNIFORMS'}</button></div>`+
- (open?CZ_C.map(([k,l])=>{const i=wd.sel[k],n=wd[k].length,it=wd[k][i];
-  return`<div class="up"><b style="width:4.5em">${l}</b><button class="btn xs alt" data-lk="${t.id}:${k}:-1">&lt;</button><span style="flex:1;text-align:center">${hmEsc(it.n||i+1)} <span class="sm">${i+1}/${n}</span></span><button class="btn xs alt" data-lk="${t.id}:${k}:1">&gt;</button></div>`}).join('')+
- `<div class="row" style="margin-top:.5em"><button class="btn xs alt" data-lk="edit:${t.id}">EDIT TEAM</button></div>`:'')+`</div>`}
-function openLocker(){
- const L=S.lg,t=L.teams[L.me],o=lgNextOpp(),ot=L.teams[o.id];
- const wsel=(x,v)=>{if(!x.wd&&!x.uni){czWd(x);const s=x.wd.sel;s.helmet=s.jersey=s.pants=s.socks=v}}; /* first look at a team: HOME (primary) set at home, AWAY (secondary) set on the road */
- wsel(ot,o.home===false?0:1);wsel(t,o.home===false?1:0);
- $('lock').innerHTML=`<h1 class="mh">LOCKER ROOM</h1><div class="sm">${sc(`${lgLabel()} ${o.home===false?'AT':'VS'} ${hmEsc(tn(o.name))} - ${siteTxt(o.home)}`)}</div>
- <div class="czg2">${lkSide(t,'YOU')}${lkSide(ot,'OPPONENT')}</div>
- <div class="abar" role="group" aria-label="Locker room actions"><button class="btn" data-lk="go">KICK OFF</button><button class="btn alt" data-lk="back">BACK</button></div>`;
- show('lock');const cs=$('lock').querySelectorAll('canvas[data-lkc]');cs.forEach(c=>czPaint(c,lgUni(L.teams[+c.dataset.lkc])));
- /* v2.30: a size change (turning the phone, resizing the window) redraws the cards at their new size; the canvas box itself is sized by CSS (width and aspect), so redrawing never moves anything */
- if(window.ResizeObserver){if(!LKRO)LKRO=new ResizeObserver(()=>{try{if(!$('lock')||!$('lock').classList.contains('on'))return;const Lg=S&&S.lg;if(!Lg)return;$('lock').querySelectorAll('canvas[data-lkc]').forEach(c=>{const t=Lg.teams[+c.dataset.lkc];if(t&&Math.floor(c.clientWidth)!==c._lw)czPaint(c,lgUni(t))})}catch(e){}});LKRO.disconnect();cs.forEach(c=>LKRO.observe(c))}}
-$('lock').onclick=e=>{const b=e.target.closest('button');if(!b)return;const v=b.dataset.lk;
- if(v==='go')startGame();else if(v==='back')renderHub();
- else if(v){const p=v.split(':');
-  if(p[0]==='tog'){LKX[p[1]]=!LKX[p[1]];const v=$('lock').scrollTop;openLocker();$('lock').scrollTop=v;const nb=$('lock').querySelector('[data-lk="tog:'+p[1]+'"]');if(nb)try{nb.focus({preventScroll:true})}catch(x){}}
-  else if(p[0]==='edit'){save();HOME.cz={src:S.id,team:+p[1],cat:'helmet'};HOME.ret=true;HOME.tab='cz';renderHome();show('menu')}
-  else if(p[1]==='u'){const t=S.lg.teams[+p[0]],wd=czWd(t),i=+p[2];CZ_C.forEach(([k])=>{wd.sel[k]=Math.max(0,Math.min(i,wd[k].length-1))});save();resetSprites();openLocker()}
-  else{const t=S.lg.teams[+p[0]],wd=czWd(t),k=p[1],n=wd[k].length;wd.sel[k]=(wd.sel[k]+ +p[2]+n)%n;save();resetSprites();openLocker()}}};
+/* v2.53 part B: the locker room is gone (its screen, CSS and clicks). PLAY GAME goes straight to kickoff (fo.js foPlay); the uniform picks are on NEXT GAME and EXHIBITION (the team sheet, fo.js). */
 
 /* ---------- v2.49 TITLE SCREEN ----------
    Shown once when the app opens (never coming back from a game or a menu, never on an online join link ?room=). PIXEL PIGSKIN over a field-stripe picture. CONTINUE (yellow) = RESUME GAME in the most recent league that has a saved game, else the most recent league's hub; MY LEAGUES = the home screen. With no leagues: QUICK GAME (yellow, v2.51: the same call as the first-launch EXHIBITION tap, xhQuick: random opponent, today's settings, straight to kickoff, sets pixelPigskin.qs) and START A LEAGUE. Under automation (navigator.webdriver, or jsdom) it stays hidden unless window.__TITLE is set, so the older test suites that click the home screen keep working. */
@@ -5229,18 +5462,7 @@ const ttlOn=()=>{const e=document.getElementById('ttl');return !!(e&&e.classList
 function ttlEl(){let e=$('ttl');if(!e){e=document.createElement('div');e.id='ttl';e.className='screen ovp';e.setAttribute('role','dialog');e.setAttribute('aria-label','Pixel Pigskin Football');$('app').appendChild(e);
   e.addEventListener('click',x=>{const b=x.target.closest&&x.target.closest('[data-tt]');if(b)ttlGo(b.dataset.tt)})}
  return e}
-function ttlShow(){try{if(OL.pre)return;if((navigator.webdriver||/jsdom/i.test(navigator.userAgent))&&!window.__TITLE)return;const e=ttlEl(),n=rdIdx().length;
-  e.innerHTML=`<div class="ttart" aria-hidden="true"></div><div class="ttw"><h1 class="ttn">PIXEL PIGSKIN</h1><div class="tts">FOOTBALL</div><div class="ttb">${n?`<button class="btn" data-tt="cont">CONTINUE</button><button class="btn alt" data-tt="lg">MY LEAGUES</button>`:`<button class="btn" data-tt="quick">QUICK GAME</button><button class="btn alt" data-tt="new">START A LEAGUE</button>`}</div></div>`;
-  e.classList.add('on');document.querySelectorAll('#nav button.qsp').forEach(q=>q.classList.remove('qsp')); /* v2.51: no EXHIBITION pulse behind the title screen */
-  const b=e.querySelector('.btn');if(b)try{b.focus({preventScroll:true})}catch(x){}}catch(x){}}
 function ttlHide(){const e=$('ttl');if(e){e.classList.remove('on');if(e.contains(document.activeElement))document.activeElement.blur()}}
-function ttlGo(a){ttlHide();try{
- if(a==='lg'){HOME.tab='lg';renderHome();return}
- if(a==='new'){HOME.tab='new';renderHome();return}
- if(a==='quick'){xhQuick();return}
- if(a==='cont'){const ix=rdIdx().slice().sort((p,q)=>(q.upd||0)-(p.upd||0));if(!ix.length){HOME.tab='new';renderHome();return}
-  let id=ix[0].id,g=false;for(const e of ix){if(gsHas(e.id)){id=e.id;g=true;break}}
-  hmPlay(id);if(g)gsResume()}}catch(x){try{openMenu()}catch(y){}}}
 /* ----- installable web app (PWA). Everything here is skipped unless the page is served from chipperbaily.github.io ----- */
 const PWA_ON=location.hostname==='chipperbaily.github.io',PWA_KEY='pixelPigskin.iosTipDismissed';
 let pwaEv=null;
@@ -5306,15 +5528,15 @@ async function bkUnpack(text){
    d=migrate(d);
    if(!bkShape(d))return bkBad('THIS CODE OPENED, BUT IT IS NOT A COMPLETE LEAGUE (TEAMS, SEASON OR YOUR TEAM IS MISSING).');
    items.push({obj:d,info:bkInfo(d)})}
-  return{ok:true,items}
+  return{ok:true,items,playbook:obj&&obj.ppBackup==='all'&&Array.isArray(obj.playbook)?obj.playbook:null}
  }catch(e){return bkBad('THE CODE COULD NOT BE READ. IT MAY BE DAMAGED OR CUT OFF. COPY IT AGAIN IN FULL.')}}
 /* export: one league slot, or every slot ('all') in one code */
 async function exportCode(id,opts){
  opts=opts||{};
- if(id==null||id==='all'){const slots=[];for(const e of rdIdx()){const d=loadSlot(e.id);if(d)slots.push(d)}return bkPack({ppBackup:'all',slots},opts.raw)}
+ if(id==null||id==='all'){const slots=[];for(const e of rdIdx()){const d=loadSlot(e.id);if(d)slots.push(d)}return bkPack({ppBackup:'all',slots,playbook:pbList()},opts.raw)}   /* v2.53: BACK UP ALL LEAGUES carries the one playbook as its own field */
  const d=loadSlot(id);if(!d)throw new Error('NO SUCH LEAGUE');return bkPack(d,opts.raw)}
 /* import: always new slots with fresh ids, never overwrites; a repeated name gets " (2)", " (3)" ... */
-function bkCommit(items){
+function bkCommit(items,pbk){
  const ids=[],names=[];
  try{
   const taken=new Set(rdIdx().map(e=>e.name));
@@ -5324,13 +5546,14 @@ function bkCommit(items){
    let base=String(d.std?d.std.nm:d.lg?d.lg.name:d.name),n=base,k=2;while(taken.has(n))n=base+' ('+(k++)+')';
    taken.add(n);if(d.std)d.std.nm=n;else if(d.lg)d.lg.name=n;else d.name=n;
    d.id=id;
+   try{pbMerge(d.plays);if(pbk)pbMerge(pbk);pbk=null}catch(e){}   /* v2.53: the plays of an imported league join the one playbook (same name and routes = one play; same name, other routes = both) */
    if(!writeSlot(d))return{ok:false,msg:"COULDN'T SAVE THE LEAGUE (STORAGE MAY BE FULL). NOTHING EXISTING WAS CHANGED.",ids,names};
    ids.push(id);names.push(n)}
   return{ok:true,ids,names}
  }catch(e){return{ok:false,msg:"COULDN'T SAVE THE LEAGUE. NOTHING EXISTING WAS CHANGED.",ids,names}}}
 async function importCode(text){
  const r=await bkUnpack(text);if(!r.ok)return r;
- const c=bkCommit(r.items);if(c.ok){try{if(typeof HOME!=='undefined'&&$('menu').classList.contains('on'))renderHome()}catch(e){}}return c}
+ const c=bkCommit(r.items,r.playbook);if(c.ok){try{if(typeof HOME!=='undefined'&&$('menu').classList.contains('on'))renderHome()}catch(e){}}return c}
 function bkMark(ids){try{const ix=rdIdx(),now=Date.now();let ch=false;ix.forEach(e=>{if(ids==='all'||ids.includes(e.id)){e.exp=now;ch=true}});if(ch)wrIdx(ix)}catch(e){}}
 queueMicrotask(()=>{try{if(window.__pp)Object.assign(window.__pp,{exportCode,importCode,decodeCode:bkUnpack})}catch(e){}});
 
@@ -6065,7 +6288,7 @@ function hpCards(where){const C=[['P','PASS',`DRAG THE QB BACK AND LET GO. PULL 
  ['K','KICK',`PULL DOWN FROM ANYWHERE: A SHORT PULL IS FULL POWER. PULL SIDEWAYS TO AIM (PULLING LEFT AIMS RIGHT) AND WATCH THE WIND ARROW. AFTER A TOUCHDOWN: KICK FOR 1 POINT OR GO FOR 2.`],
  ['4','4TH DOWN',`TAP THE CORNER BUTTON: PUNT, FIELD GOAL (ONLY WHEN IN RANGE) OR GO FOR IT. YOU CAN ALSO DRAG THE QB OR TAP THE RB TO GO FOR IT. IN THE LAST 30 SECONDS OF A HALF YOU CAN KICK A FIELD GOAL ON ANY DOWN.`],
  ['D','DEFENSE',`WHEN THE OTHER TEAM HAS THE BALL THE COMPUTER PLAYS THE DRIVE. TURN ON CALL YOUR DEFENSE IN SETTINGS TO PICK A SCHEME BEFORE EACH DRIVE.`]];
- const tail=where==='MENU'?'Settings are in MENU > SETTINGS.':where==='MORE'?'Settings are in MORE > SETTINGS.':'Settings are below.'; /* already in sentence case (sc would lower MORE) */
+ const tail=where==='MENU'?'Settings are in MENU > SETTINGS.':'Settings are in SETTINGS.'; /* already in sentence case (sc would lower MORE) */
  return`<div class="hpcs">${C.map(c=>`<div class="hpc"><i class="hpi" aria-hidden="true">${c[0]}</i><h4>${c[1]}</h4><p>${sc(c[2])}</p></div>`).join('')}</div><p class="hpn">${tail}</p><p class="hpn hpk">P pass snap - R run - 1-5 quick throw - B bullet - C play call - K punt - F field goal - up/down or W/S steer - space or shift juke - M mute</p>`}
 const HP_TAIL=`<h4>ON A PHONE</h4><p>${sc(`HOLD YOUR PHONE SIDEWAYS. IF THE GAME ASKS YOU TO TURN IT AND NOTHING HAPPENS, TURN OFF THE ROTATION LOCK IN CONTROL CENTER.`)}</p>
 <h4>LINKED LEAGUE</h4><p>${sc(`A LINKED LEAGUE IS A LEAGUE YOUR COMMISSIONER RUNS FOR SEVERAL FRIENDS. MY LEAGUES, JOIN LEAGUE: TYPE THE 6-CHARACTER CODE, PICK AN OPEN TEAM.`)}</p>
@@ -6442,13 +6665,8 @@ const hbMatch=(who,col,off,def)=>`<div class="hbm1"><h4 style="color:${hbInk(col
 function hbUni(side,o){try{
  if(side==='me')return S.lg?(lgUni(S.lg.teams[S.lg.me])||defaultUni(S.lg.teams[S.lg.me].col)):(S.uni||defaultUni(myC()));
  return S.lg?(lgUni(S.lg.teams[o.id])||defaultUni(S.lg.teams[o.id].col,true)):defaultUni(o.cobj,true)}catch(e){return null}}
-function hbPosPaint(){try{const o=hbNext();document.querySelectorAll('#hub canvas[data-pos]').forEach(c=>{
- const side=c.dataset.pos,u=hbUni(side,o);if(!u)return;
- const d=Math.max(1,Math.min(3,Math.round(window.devicePixelRatio||1))),W=Math.floor(c.clientWidth),H=Math.floor(c.clientHeight);if(W<20||H<20)return;
- c.width=W*d;c.height=H*d;const x=c.getContext('2d');if(!x)return;
- const R=(H*d-6*d)/(FG_H*SPR_SCALE),b=figPv(u,side==='me'?0:1,'ready',side==='me'?1:-1,R);
- x.clearRect(0,0,c.width,c.height);x.drawImage(b.c,Math.round(c.width/2-b.ax),Math.round(c.height-4*d-b.ay))})}catch(e){}}
-const hbSide=(side,name,col,rec,sub,off,def)=>`<div class="ps ${side==="me"?"pm":"po"}"><div class="pb" style="background:${hbDeep(col)}"><canvas data-pos="${side}" aria-hidden="true"></canvas></div><div class="pn" style="color:${hbInk(col.c||col)}">${hmEsc(name)}</div><div class="sm pr">${sc(`${rec}`)}</div>${sub?`<div class="sm pq">${sc(`${sub}`)}</div>`:''}<div class="up"><b>OFFENSE</b>${pips(off)}</div><div class="up"><b>DEFENSE</b>${pips(def)}</div></div>`;
+function hbPosPaint(){foPaintAll($('hub'))}   /* v2.53: the picture is the face-off picture (fo.js) */
+const hbSide=(side,name,col,rec,sub,off,def)=>`<div class="ps ${side==="me"?"pm":"po"}"><div class="pn" style="color:${hbInk(col.c||col)}">${hmEsc(name)}</div><div class="sm pr">${sc(`${rec}`)}</div>${sub?`<div class="sm pq">${sc(`${sub}`)}</div>`:''}<div class="up"><b>OFFENSE</b>${pips(off)}</div><div class="up"><b>DEFENSE</b>${pips(def)}</div></div>`;
 const hbDeep=c=>{try{return(c&&c.d)||'#223'}catch(e){return'#223'}};
 function hbHub(){
  if(S.lnk&&S.over)return lnWaitHub();   /* v2.33: a linked league whose season is over for my team */
@@ -6464,7 +6682,7 @@ function hbHub(){
  const dv=L?hbDiv(L):'';
  return`<div class="hbh" style="border-color:${mc}"><div style="text-align:left"><div class="hbt" style="color:${hbInk(mc)}">${hmEsc(S.name)}</div><div class="sm">${sc(`${hmEsc(sub)}`)}</div></div><div class="hbc"><span class="sm">${sc(`CREDITS`)}</span><b>${S.credits}</b></div></div>
  <div class="hbcols"><div class="hbc1"><div class="card hbn pos"><div class="pst">${sc(`${label} - ${siteTxt(o.home)}${kind?' - '+kind:''}`)}</div>
- <div class="pbd">${hbSide('me',S.name,myC(),'RECORD '+hbRec(r),rank?rank.slice(3):'',hbOff(),S.r.def)}<div class="pvs" aria-label="versus">VS</div>${hbSide('op',o.name,o.cobj,L?'RECORD '+oRec:'OPPONENT','',o.off,o.def)}</div>
+ ${foHub(o,L)}<div class="pbd">${hbSide('me',S.name,myC(),'RECORD '+hbRec(r),rank?rank.slice(3):'',hbOff(),S.r.def)}<div class="pvs" aria-label="versus">VS</div>${hbSide('op',o.name,o.cobj,L?'RECORD '+oRec:'OPPONENT','',o.off,o.def)}</div>
  <div class="pxt">${persHubOK()?`<div class="row" style="margin-top:.9em">${persBtn('cl')}</div>${scoutHtml(persRec(persCur('cl')))}`:scoutHtml(L||S.std?styTeam(o.id,1):null)}
  ${S.std?stdOppLine(o):''}${hurt?`<div class="sm hbinj">${sc(hurt)}</div>`:''}
  <p style="margin-top:.6em">${sc(`${S.last?'LAST: '+S.last:'FIRST GAME OF THE SEASON'}`)}</p></div></div>
@@ -6492,20 +6710,18 @@ $('coach').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b
  if(sel===null)return;const v=$('view'),st=v?v.scrollTop:0;openCoach(); /* the buttons are drawn again: keep the scroll place and the focus on the button that was used */
  if(v)v.scrollTop=st;const nb=$('coach').querySelector(sel);if(nb)try{(nb.disabled?$('coach').querySelector('.btn:not([disabled])')||$('sub').querySelector('.on'):nb).focus({preventScroll:true})}catch(x){}};
 /* ----- SETTINGS: the game options that used to sit on the hub, with the device settings under them ----- */
-function openSet(){
- $('gset').innerHTML=`<div class="hbh" style="border-color:${myC().c}"><div style="text-align:left"><div class="hbt">SETTINGS</div><div class="sm">${sc(`${hmEsc(tn(S.name))}`)}</div></div></div>
- <div class="card hbw"><h3>THIS LEAGUE</h3>
- <div class="stw"><div class="row"><span class="sm">${sc(`DRIVE`)}</span><button class="btn xs ${S.flip!==false?'alt':'sel'}" data-dir="0">RIGHT &gt;</button><button class="btn xs ${S.flip!==false?'sel':'alt'}" data-dir="1">&lt; LEFT</button></div><div class="sm spdn">${sc(`WHICH WAY YOUR OFFENSE DRIVES ON SCREEN.`)}</div></div>
- <div class="stw"><div class="row"><span class="sm">${sc(`LEVEL`)}</span><button class="btn xs alt" data-dl="-1">-</button><span class="sm">${sc(`${DIFF()} ${dName()}`)}</span><button class="btn xs alt" data-dl="1">+</button></div><div class="sm spdn">${sc(`HOW HARD THE OPPONENT PLAYS. IT COUNTS FOR THE RECORD.`)}</div></div>
- ${S.std?`<div class="stw"><div class="row"><span class="sm">${sc(`RELIEF`)}</span><button class="btn xs ${stdRelief()?'sel':'alt'}" data-rl="1">ON</button><button class="btn xs ${stdRelief()?'alt':'sel'}" data-rl="0">OFF</button></div><div class="sm spdn">${sc(`EASIER GAMES FOR A WEAK TEAM: IF YOUR TEAM IS WEAKER THAN THE LEAGUE AVERAGE, THE OPPONENT PLAYS A LITTLE WEAKER. TAKES EFFECT AT THE NEXT DRIVE.`)}</div></div>`:''}
- <div class="stw"><div class="row"><span class="sm">${sc(`OPPONENT DRIVES`)}</span><button class="btn xs ${drvPref()?'sel':'alt'}" data-dv="1" aria-pressed="${drvPref()}">NEW</button><button class="btn xs ${drvPref()?'alt':'sel'}" data-dv="0" aria-pressed="${!drvPref()}">CLASSIC</button></div><div class="sm spdn">${sc(`NEW PLAYS THE OPPONENT LIKE A REAL TEAM: A PASSING TEAM THROWS, A RUNNING TEAM RUNS. CLASSIC IS THE OLD WAY. STARTS WITH YOUR NEXT GAME.`)}</div></div>
- <div class="stw"><div class="row"><span class="sm">${sc(`QUARTER`)}</span>${[60,90,150].map(q=>`<button class="btn xs ${S.qLen===q?'sel':'alt'}" data-q="${q}">${q}S</button>`).join('')}</div><div class="sm spdn">${sc(`HOW LONG EACH QUARTER RUNS.`)}</div></div></div>
- <div class="card hbw"><h3>THIS DEVICE</h3>${stGroup()}</div>
- <div class="card hbw"><h3>YOUR ACCOUNT</h3>${acRow()}</div>
- `;
- show('gset')}
+/* v2.53: openSet (SETTINGS, four tabs) lives in hs.js */
 $('gset').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
- if(d.dl){S.diff=clamp(DIFF()+ +d.dl,1,10);save();openSet()}
+ if(d.hs){const a=d.hs;
+  if(a==='ren'){HS.ren=true;openSet();const n=$('rnn');if(n)try{n.focus();n.select()}catch(x){}}
+  else if(a==='rencancel'){HS.ren=false;openSet()}
+  else if(a==='rensave'){const n=$('rnn');if(n&&S&&S.id&&hmRename(S.id,n.value)){HS.ren=false;openSet()}}
+  else if(a==='del'){if(HS.del&&S&&S.id){const id=S.id;S=null;delSlot(id);HS.del=false;openMenu()}else{HS.del=true;openSet()}}
+  else if(a==='delno'){HS.del=false;openSet()}
+  else if(a==='help')openHelp();
+  return}
+ else if(d.ln){lnHubClick(d.ln)}
+ else if(d.dl){S.diff=clamp(DIFF()+ +d.dl,1,10);save();openSet()}
  else if(d.dir!=null){S.flip=d.dir==='1';save();openSet()}
  else if(d.q){S.qLen=+d.q;save();openSet()}
  else if(d.rl!=null&&S.std){stdSetRelief(d.rl==='1');openSet()}
@@ -6585,60 +6801,141 @@ $('ros').onclick=e=>{const b=e.target.closest('button');if(!b)return;
  else if(b.dataset.rb){RR.sel=null;openRoster();const v=$('view');if(v&&RR.back)v.scrollTop=RR.back;const r=RR.last&&$('ros').querySelector('[data-rp="'+RR.last+'"]');if(r)try{r.focus({preventScroll:true})}catch(x){}}};
 /* ---------- v2.01 UI step 2: the nav shell. One function (shDraw) draws the nav, the header and the sub-tab strip for every DESTINATION screen (SHD in p1.js); the CSS is the "nav shell" block at the end of head.html.
    Which tab is lit is a pure function of UI.scr (and HOME.tab on the home screen), so a tile, the nav and a test all go through the same openers (renderHub, lgOpenStand, openCoach, openLook, openHelp, glOpen, openDesigner, openSet, openExh, openMenu) and nothing has to be kept in sync. ---------- */
-const SHL={tm:'coach',mo:'gset'}; /* the last TEAM and MORE screen, for the tab (v2.05: TEAM = coach | look, MORE = gset | exh | help) */
+const SHL={tm:'coach'}; /* the last TEAM screen, for the tab (v2.53: TEAM = coach | ros; LOOK, EXHIB and SETTINGS are menu items of their own and MORE is gone) */
 const SH_IC={ball:['..####..','.#.##.#.','#.####.#','#..##..#','#.####.#','.#.##.#.','..####..','........'],trophy:['########','#.####.#','#.####.#','.######.','..####..','...##...','...##...','.######.'],
 helmet:['..####..','.######.','########','###..###','###..###','#######.','.#####..','..###...'],book:['########','#......#','#.####.#','#......#','#.####.#','#......#','########','........'],
 gear:['..#..#..','.######.','########','###..###','###..###','########','.######.','..#..#..'],list:['########','........','########','........','########','........','########','........'],
 plus:['...##...','...##...','...##...','########','########','...##...','...##...','...##...'],vs:['#.....#.','##...##.','.##.##..','..###...','..###...','.##.##..','##...##.','#.....#.'],
 shirt:['##....##','########','.######.','.######.','.######.','.######.','.######.','........'],q:['.#####..','##...##.','.....##.','...###..','..##....','........','..##....','..##....']};
 const shIc=n=>`<svg class="ic" viewBox="0 0 8 8" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true">${SH_IC[n].map((r,y)=>[...r].map((c,x)=>c==='#'?`<rect x="${x}" y="${y}" width="1" height="1"/>`:'').join('')).join('')}</svg>`;
-const SH_HOME={lg:['LEAGUES','list'],new:['NEW','plus'],ex:['EXHIB','vs'],cz:['LOOK','shirt'],help:['HELP','q']}; /* short label, icon; the long names are hmTabs' */
-const SH_LG=[['game','GAME','NEXT GAME','ball'],['league','LEAGUE','LEAGUE','trophy'],['team','TEAM','MY TEAM','helmet'],['book','BOOK','PLAYBOOK','book'],['more','MORE','MORE','gear']];
-const SH_ON={hub:'game',stand:'league',book:'book',coach:'team',ros:'team',look:'team',gset:'more',exh:'more',help:'more'};
-const SH_TT={hub:'NEXT GAME',stand:'LEAGUE',book:'PLAYBOOK',coach:'UPGRADES',ros:'ROSTER',look:'LOOK',gset:'SETTINGS',exh:'EXHIBITION',help:'HELP'};
-const SH_SUB={more:[['gset','SETTINGS'],['exh','EXHIBITION'],['help','HELP'],['menu','ALL LEAGUES']]};
-const shTeamSubs=()=>[['coach','UPGRADES'],...(S&&S.std?[['ros','ROSTER']]:[]),['stats','STATS'],...(S&&S.lg&&!S.lnk?[['look','LOOK']]:[])]; /* v2.05: one UPGRADES screen; LOOK needs a league team to dress, so a classic game has two */
-/* v2.03: LEAGUE and BOOK have sub-tabs of their own (lgSubs in lg.js, boSubs in bo.js) whose lit tab is the screen's own state (ST.tab, BK.sub) */
-const shSubs=on=>on==='league'?lgSubs():on==='book'?boSubs():on==='team'?shTeamSubs():SH_SUB[on];
-const shSubOn=(on,k)=>on==='league'?ST.tab===k:on==='book'?BOK.sub===k:k===UI.scr;
+/* v2.53 THE LEAGUE MENU: seven items. Short names for the rail and the bottom bar, long names for the iPad sidebar. HOME context (UI.hm: a screen opened from HOME) has no menu at all, only a plain header with a HOME button. */
+const SH_LG=[['game','GAME','NEXT GAME','ball'],['league','LEAGUE','LEAGUE','trophy'],['team','TEAM','MY TEAM','helmet'],['book','BOOK','PLAYBOOK','book'],['look','LOOK','CUSTOMIZE','shirt'],['exh','EXHIB','EXHIBITION','vs'],['set','SETTINGS','SETTINGS','gear']];
+const SH_ON={hub:'game',stand:'league',book:'book',coach:'team',ros:'team',look:'look',xex:'exh',exh:'exh',gset:'set'};
+const SH_TT={hub:'NEXT GAME',stand:'LEAGUE',book:'PLAYBOOK',coach:'UPGRADES',ros:'ROSTER',look:'LOOK',gset:'SETTINGS',exh:'EXHIBITION',xex:'EXHIBITION',help:'HOW TO PLAY'};
+const SH_HT={lg:'MY LEAGUES',new:'NEW LEAGUE',ex:'EXHIBITION',cz:'CUSTOMIZE',help:'HOW TO PLAY'};   /* the title of a screen opened from HOME that is drawn in #menu */
+const shTeamSubs=()=>[['coach','UPGRADES'],...(S&&S.std?[['ros','ROSTER']]:[]),['stats','STATS']]; /* v2.53: LOOK is a menu item now */
+/* v2.03: LEAGUE and BOOK have sub-tabs of their own (lgSubs in lg.js, boSubs in bo.js) whose lit tab is the screen's own state (ST.tab, BK.sub); v2.53: SETTINGS has its four tabs */
+const shSubs=on=>on==='league'?lgSubs():on==='book'?boSubs():on==='team'?shTeamSubs():on==='set'?hsSetTabs():null;
+const shSubOn=(on,k)=>on==='league'?ST.tab===k:on==='book'?BOK.sub===k:on==='set'?HS.set===k:k===UI.scr;
 function shDraw(){
  const nv=$('nav');if(!nv||!UI.sh||UI.bare)return; /* the nav and header exist only for destination screens (and not for standings opened from SEASON END) */
- const home=UI.scr==='menu';
- try{const k=UI.scr+'/'+(home?HOME.tab:'');if(UI.shk!==undefined&&UI.shk!==k){const a=$('app');a.classList.add('swp');clearTimeout(UI.shT);UI.shT=setTimeout(()=>a.classList.remove('swp'),170)}UI.shk=k}catch(e){} /* v2.49: a quick 120 ms slide-fade on a screen or tab change (CSS, off under reduced motion) */
- if(UI.scr==='coach'||UI.scr==='look'||UI.scr==='ros')SHL.tm=UI.scr;if(UI.scr==='gset'||UI.scr==='exh'||UI.scr==='help')SHL.mo=UI.scr;
- const items=home?hmTabs.map(([k,l])=>[k,SH_HOME[k][0],l,SH_HOME[k][1]]):SH_LG.filter(x=>x[0]!=='league'||(S&&S.lg)); /* a classic game has no standings: four tabs */
- const on=home?HOME.tab:SH_ON[UI.scr];
- const qsp=home&&xhQsPulse(); /* v2.50: a fresh device's EXHIBITION button pulses until tapped once */
- nv.innerHTML=items.map(([k,s,l,i])=>`<button type="button" class="${(k===on?'on':'')+(qsp&&k==='ex'?' qsp':'')}" data-shn="${k}"${home?` data-tab="${k}"`:''}${k===on?' aria-current="page"':''}>${shIc(i)}<span class="s">${s}</span><span class="l">${l}</span></button>`).join('');
- let t,sm='',cr='';
- if(home){t=(hmTabs.find(x=>x[0]===HOME.tab)||['','PIXEL PIGSKIN'])[1];sm='PIXEL PIGSKIN'}
- else{t=SH_TT[UI.scr]||'';
-  if(S){try{const L=S.lg?LG():null;sm=S.name+' - '+hbRec(L?L.rec[L.me]:S)+' - '+(L?lgLabel():'SEASON '+S.season)}catch(e){sm=S.name||''}cr=S.credits==null?'':S.credits}}
- const tp=$('top');tp.innerHTML=`<div class="ttl"><b>${hmEsc(t)}</b>${sm?`<small>${sc(`${hmEsc(sm)}`)}</small>`:''}</div>${cr!==''?`<span class="cr" aria-label="${cr} credits">CREDITS ${cr}</span>`:''}`;
- let ac='#ffd400';if(!home&&S){try{ac=myC().c}catch(e){}}tp.style.setProperty('--acc',ac);
- const sub=home?null:shSubs(on);
+ const hm=!!UI.hm||!S;
+ try{const k=UI.scr+'/'+(UI.scr==='menu'?HOME.tab:'');if(UI.shk!==undefined&&UI.shk!==k){const a=$('app');a.classList.add('swp');clearTimeout(UI.shT);UI.shT=setTimeout(()=>a.classList.remove('swp'),170)}UI.shk=k}catch(e){} /* v2.49: a quick 120 ms slide-fade on a screen or tab change (CSS, off under reduced motion) */
+ if(UI.scr==='coach'||UI.scr==='ros')SHL.tm=UI.scr;
+ const on=SH_ON[UI.scr];
+ const items=hm?[]:SH_LG.filter(x=>(x[0]!=='league'&&x[0]!=='look'||(S&&S.lg))&&(x[0]!=='look'||!S.lnk)); /* a classic game has no standings and nothing to dress; a linked league cannot be dressed */
+ nv.innerHTML=items.map(([k,s,l,i])=>`<button type="button" class="${k===on?'on':''}" data-shn="${k}" aria-label="${l}"${k===on?' aria-current="page"':''}>${shIc(i)}<span class="s">${s}</span><span class="l">${l}</span></button>`).join('');
+ const t=UI.scr==='menu'?(SH_HT[HOME.tab]||'PIXEL PIGSKIN'):(SH_TT[UI.scr]||''),tp=$('top');
+ if(hm){
+  tp.className='';tp.style.removeProperty('--tcp');tp.removeAttribute('style');tp.style.setProperty('--acc','#ffd400');
+  tp.innerHTML=`<div class="ttl"><b>${hmEsc(t)}</b><small>PIXEL PIGSKIN</small></div><button type="button" class="hcb" data-shh="home">HOME</button>`}
+ else{
+  let col=null,ln='',tn1='';
+  try{const L=S.lg?LG():null;col=myC();tn1=S.name;ln=L?`${L.name} - ${lgLabel()} - ${hbRec(L.rec[L.me])}`:`CLASSIC SEASON ${S.season} - ${hbRec(S)}`}catch(e){tn1=S.name||''}
+  const cr=S.credits==null?'':S.credits;
+  tp.className='tc';tp.setAttribute('style',hsVars(col));
+  tp.innerHTML=`<div class="ttl"><b>${hmEsc(tn1)}</b><small>${sc(`${hmEsc(ln)}`)}</small></div><div class="tcr"><span class="scn">${hmEsc(t)}</span>${cr!==''?`<span class="cr" aria-label="${cr} credits">CREDITS ${cr}</span>`:''}<button type="button" class="hcb" data-shh="home">HOME</button><button type="button" class="hcb" data-shh="sw">SWITCH</button></div>`}
+ const sub=hm&&on!=='set'?null:shSubs(on);
  $('sub').innerHTML=sub?sub.map(([k,l])=>`<button type="button" role="tab" class="${shSubOn(on,k)?'on':''}" aria-selected="${shSubOn(on,k)}" data-shs="${k}">${l}</button>`).join(''):''}
 /* after a tab change the page is redrawn, so the focus goes back to the tab that was used (a keyboard user stays where they were) */
 function shFocus(sel){if(!UI.sh||UI.bare)return;const b=document.querySelector(sel+' button.on');if(b)try{b.focus({preventScroll:true})}catch(e){}}
-function shGo(k){const c=UI.scr; /* LEAGUE-set tabs: each opens an existing screen; nothing is rebuilt */
+function shGo(k){const c=UI.scr;UI.hm=false;HS.home=false; /* the league menu: each item opens an existing screen; nothing is rebuilt */
  if(k==='game'){if(c!=='hub')renderHub()}
  else if(k==='league'){if(c!=='stand'){lgOpenStand();shFocus('#sub');return true}} /* v2.03: a new screen with sub-tabs puts the focus on its first sub-tab */
- else if(k==='team'){if(c!=='coach'&&c!=='look'&&c!=='ros')(SHL.tm==='look'&&S&&S.lg&&!S.lnk?openLook:SHL.tm==='ros'&&S&&S.std?openRoster:openCoach)()}
+ else if(k==='team'){if(c!=='coach'&&c!=='ros')(SHL.tm==='ros'&&S&&S.std?openRoster:openCoach)()}
  else if(k==='book'){if(c!=='book'){BOK.sub='bo';openBook();shFocus('#sub');return true}} /* v2.03: BOOK is a screen; the designer is one tap away from it */
- else if(k==='more'){if(c!=='gset'&&c!=='exh'&&c!=='help')(SHL.mo==='exh'?openExh:SHL.mo==='help'?openHelp:openSet)()}
+ else if(k==='look'){if(c!=='look')openLook()}
+ else if(k==='exh'){if(c!=='xex')xexOpen()}
+ else if(k==='set'){if(c!=='gset'){HS.set='game';openSet();shFocus('#sub');return true}}
  shFocus('#nav')}
-$('nav').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.shn==null)return;
- if(UI.scr==='menu'&&b.dataset.shn==='ex'&&xhQsPulse()){e.stopPropagation();xhQuick();return} /* v2.50: the first tap on a fresh device is a QUICK GAME */
- if(UI.scr==='menu'){hmTab(b.dataset.shn);shFocus('#nav')}else if(!shGo(b.dataset.shn))shFocus('#nav')};
+$('nav').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.shn==null)return;if(!shGo(b.dataset.shn))shFocus('#nav')};
+/* v2.53: HOME (the home screen) and SWITCH (MY LEAGUES) on the header */
+$('top').onclick=e=>{const b=e.target.closest('button');if(!b||!b.dataset.shh)return;if(b.dataset.shh==='home')openHome();else openMenu()};
 $('sub').onclick=e=>{const b=e.target.closest('button'),k=b&&b.dataset.shs;if(!k)return;
+ if(UI.scr==='gset'){hsSetTab(k);shFocus('#sub');return}
  if(UI.scr==='stand'){lgTab(k);shFocus('#sub');return}if(UI.scr==='book'){boTab(k);shFocus('#sub');return}
- if(k==='coach'){if(UI.scr!=='coach')openCoach()}else if(k==='ros'){if(UI.scr!=='ros')openRoster()}else if(k==='look'){if(UI.scr!=='look')openLook()}else if(k==='help'){if(UI.scr!=='help')openHelp()}else if(k==='stats'){glOpen();return}
- else if(k==='gset'){if(UI.scr!=='gset')openSet()}else if(k==='exh'){if(UI.scr!=='exh')openExh()}else if(k==='menu'){openMenu();shFocus('#nav');return}
+ if(k==='coach'){if(UI.scr!=='coach')openCoach()}else if(k==='ros'){if(UI.scr!=='ros')openRoster()}else if(k==='stats'){glOpen();return}
  shFocus('#sub')};
+/* ---------- v2.53 THE MENUS. HOME is the old title screen (#ttl) made permanent: PIXEL PIGSKIN over a field strip, CONTINUE inside the team-color card of the last-played league, then MY LEAGUES, NEW LEAGUE, EXHIBITION, PLAYBOOK, HOW TO PLAY, SETTINGS. A tap closes it (show() hides it) and opens the screen; every home screen has a HOME button in its header (sh.js, data-shh). UI.hm = "the screen was opened from HOME" (no league menu, a plain header); inside a league the header is the team-color card and the league menu has seven items.
+   This file holds: the team-color helpers, the league cards (MY LEAGUES and CONTINUE), SETTINGS with its four tabs (GAME, DISPLAY, DEVICE, LEAGUE), the openers for HOME and the home destinations. Nothing here writes a save except the LEAGUE tab (rename / delete) which uses the old calls. ---------- */
+const HS={set:'game',ren:false,del:false,home:false};   /* home = SETTINGS was opened from HOME (no LEAGUE tab) */
+const hsInk=c=>{try{return cRat(c,'#ffffff')>=cRat(c,'#10131c')?'#ffffff':'#10131c'}catch(e){return'#ffffff'}};   /* white or dark text, whichever reads better on the team's primary color */
+const hsVars=col=>{const c=(col&&col.c)||'#3b7cff',d=(col&&col.d)||'#163a8c';return`--tcp:${c};--tcs:${d};--tci:${hsInk(c)}`};
+/* one league's card facts (team, league, week, record, kind, colors) from its index entry: the open league is read live, any other from its save (cached by the time it was written) */
+const HS_C={};
+function hsInfo(e){
+ const k=e.id+'|'+(e.upd||0)+'|'+(S&&S.id===e.id?'live':'');if(!(S&&S.id===e.id)&&HS_C[k])return HS_C[k];
+ let d=S&&S.id===e.id?S:null;if(!d){try{d=parseSave(lsGet(SLOT+e.id))}catch(x){d=null}}
+ let col=COLORS[0],wk='SEASON '+e.season;
+ if(d){try{const L=d.lg||(d.std?stdView(d):null);col=L&&L.teams&&L.teams[L.me|0]?L.teams[L.me|0].col:(d.col||COLORS[d.ci|0]);if(L)wk=d.phase==='reg'||d.phase==null?'WEEK '+(((d.week|0)||0)+1):'PLAYOFFS'}catch(x){}}
+ const r={team:e.team,league:e.name,wk,rec:e.w+'-'+e.l+(e.t?'-'+e.t:''),tag:e.lk?'LINKED':/CLASSIC/.test(e.fmt||'')?'SIMPLE':'STANDARD',col,id:e.id};
+ if(!(S&&S.id===e.id))HS_C[k]=r;return r}
+const hsLastIdx=ix=>(ix||rdIdx()).slice().sort((p,q)=>(q.upd||0)-(p.upd||0))[0]||null;
+/* a team-color league card; the tag is only for MY LEAGUES */
+function hsCard(e,attr,tag){const i=hsInfo(e);
+ return`<button type="button" class="hsc" ${attr}="${e.id}" style="${hsVars(i.col)}"><span class="hst">${hmEsc(i.team)}</span><span class="hsl">${sc(`${hmEsc(i.league)} - ${i.wk} - ${i.rec}`)}</span>${tag?`<span class="hsg">${i.tag}</span><span class="hsm">${acMark(e)}</span>`:''}</button>`}   /* the marker is the v2.43 one: ON THIS PHONE, or ON THIS PHONE - IN YOUR ACCOUNT for a linked league in the account */
+/* ----- HOME ----- */
+function ttlShow(force){try{if(OL.pre)return;if(!force&&(navigator.webdriver||/jsdom/i.test(navigator.userAgent))&&!window.__TITLE)return;
+  const e=ttlEl(),ix=rdIdx(),last=hsLastIdx(ix),n=ix.length,pulse=xhQsPulse();
+  const ci=last?hsInfo(last):null;
+  e.innerHTML=`<div class="ttw"><h1 class="ttn">PIXEL PIGSKIN</h1><div class="tts">FOOTBALL</div>${foHomeHtml()}
+  ${ci?`<div class="hsk" style="${hsVars(ci.col)}"><div class="hskt"><b>${hmEsc(ci.team)}</b><small>${sc(`${hmEsc(ci.league)} - ${ci.wk} - ${ci.rec}`)}</small></div><button class="btn" data-tt="cont">CONTINUE</button></div>`:''}
+  <div class="ttb"><button class="btn alt" data-tt="lg">MY LEAGUES</button><button class="btn alt" data-tt="new">NEW LEAGUE</button><button class="btn${n?' alt':''}${pulse?' qsp':''}" data-tt="ex">EXHIBITION</button><button class="btn alt" data-tt="pb">PLAYBOOK</button><button class="btn alt" data-tt="help">HOW TO PLAY</button><button class="btn alt" data-tt="set">SETTINGS</button></div></div>`;
+  e.classList.add('on');foPaintAll(e);
+  const b=e.querySelector('.btn');if(b)try{b.focus({preventScroll:true})}catch(x){}}catch(x){}}
+function openHome(){try{if(S&&!S.sbx)save()}catch(e){}UI.hm=true;HOME.tab=rdIdx().length?'lg':'new';HOME.del=null;HOME.join=null;HOME.ret=null;renderHome();show('menu');ttlShow(true)}
+/* the home destinations: each one hides HOME (show() does), marks the screen as a home screen (UI.hm) and opens the same screen the league menu uses */
+function hmOpen(k){ttlHide();UI.hm=true;HOME.del=null;HOME.join=null;HOME.ret=null;
+ if(k==='lg'||k==='new'){HOME.tab=k;renderHome();show('menu')}
+ else if(k==='ex')xexOpen();
+ else if(k==='pb'){hsEnsureS();BOK.sub='bo';openBook()}
+ else if(k==='help')openHelp();
+ else if(k==='set'){HS.set='game';HS.home=true;openSet()}
+ try{const b=document.querySelector('#top button[data-shh]');if(b)b.focus({preventScroll:true})}catch(e){}}
+function ttlGo(a){try{
+ if(a==='cont'){ttlHide();const ix=rdIdx().slice().sort((p,q)=>(q.upd||0)-(p.upd||0));if(!ix.length){hmOpen('new');return}
+  let id=ix[0].id,g=false;for(const e of ix){if(gsHas(e.id)){id=e.id;g=true;break}}
+  hmPlay(id);if(g)gsResume();return}
+ if(a==='ex'){try{lsSet(QS_KEY,'1')}catch(x){}}   /* the first-launch pulse stops after the first tap */
+ hmOpen(a)}catch(x){try{openMenu()}catch(y){}}}
+/* the PLAYBOOK on HOME needs a league object to hang the designer on when no league is open: a throwaway one (never saved), like the exhibition's */
+function hsEnsureS(){if(S)return;try{S=lgNew(lgMake('PLAYBOOK','NFL'),0,true);S.sbx=1}catch(e){}}
+/* EXHIBITION: from a league it is set to that league, from HOME to the league last played (or a built-in set with no league) */
+function xexOpen(){
+ try{const sv=xhSaved();if(!UI.hm&&S&&S.id&&sv.some(e=>e.id===S.id)){if(XH.src!==S.id){XH.src=S.id;XH.me=null;XH.opp=null}}
+  else if(UI.hm){const l=hsLastIdx(sv);if(l&&sv.some(e=>e.id===l.id)&&XH.src!==l.id){XH.src=l.id;XH.me=null;XH.opp=null}else if(!l&&XH.src!=='NFL'&&XH.src!=='COL'){XH.src='NFL';XH.me=null;XH.opp=null}}}catch(e){}
+ HOME.tab='ex';HOME.del=null;show('xex');renderHome()}
+/* ----- SETTINGS: GAME, DISPLAY, DEVICE and (inside a league) LEAGUE ----- */
+const hsHasLg=()=>!HS.home&&!!(S&&!S.sbx);
+const hsSetTabs=()=>[['game','GAME'],['disp','DISPLAY'],['dev','DEVICE'],...(hsHasLg()?[['lg','LEAGUE']]:[])];
+const hsTp=r=>r?r.replace('</div><div class="sm spdn">','<span class="tph">THIS PHONE</span></div><div class="sm spdn">'):'';   /* a small tag on every row that lives on this phone only */
+function hsLgBody(){
+ const s=S;let h=`<div class="card hbw"><h3>THIS LEAGUE</h3>
+ <div class="stw"><div class="row"><span class="sm">${sc(`DRIVE`)}</span><button class="btn xs ${s.flip!==false?'alt':'sel'}" data-dir="0">RIGHT &gt;</button><button class="btn xs ${s.flip!==false?'sel':'alt'}" data-dir="1">&lt; LEFT</button></div><div class="sm spdn">${sc(`WHICH WAY YOUR OFFENSE DRIVES ON SCREEN.`)}</div></div>
+ <div class="stw"><div class="row"><span class="sm">${sc(`LEVEL`)}</span><button class="btn xs alt" data-dl="-1">-</button><span class="sm">${sc(`${DIFF()} ${dName()}`)}</span><button class="btn xs alt" data-dl="1">+</button></div><div class="sm spdn">${sc(`HOW HARD THE OPPONENT PLAYS. IT COUNTS FOR THE RECORD.`)}</div></div>
+ ${s.std?`<div class="stw"><div class="row"><span class="sm">${sc(`RELIEF`)}</span><button class="btn xs ${stdRelief()?'sel':'alt'}" data-rl="1">ON</button><button class="btn xs ${stdRelief()?'alt':'sel'}" data-rl="0">OFF</button></div><div class="sm spdn">${sc(`EASIER GAMES FOR A WEAK TEAM: IF YOUR TEAM IS WEAKER THAN THE LEAGUE AVERAGE, THE OPPONENT PLAYS A LITTLE WEAKER. TAKES EFFECT AT THE NEXT DRIVE.`)}</div></div>`:''}
+ <div class="stw"><div class="row"><span class="sm">${sc(`OPPONENT DRIVES`)}</span><button class="btn xs ${drvPref()?'sel':'alt'}" data-dv="1" aria-pressed="${drvPref()}">NEW</button><button class="btn xs ${drvPref()?'alt':'sel'}" data-dv="0" aria-pressed="${!drvPref()}">CLASSIC</button></div><div class="sm spdn">${sc(`NEW PLAYS THE OPPONENT LIKE A REAL TEAM: A PASSING TEAM THROWS, A RUNNING TEAM RUNS. CLASSIC IS THE OLD WAY. STARTS WITH YOUR NEXT GAME.`)}</div></div>
+ <div class="stw"><div class="row"><span class="sm">${sc(`QUARTER`)}</span>${[60,90,150].map(q=>`<button class="btn xs ${s.qLen===q?'sel':'alt'}" data-q="${q}">${q}S</button>`).join('')}</div><div class="sm spdn">${sc(`HOW LONG EACH QUARTER RUNS.`)}</div></div></div>`;
+ if(s.lnk)h+=`<div class="card hbw"><h3>LINKED LEAGUE</h3><p class="sm">${sc(`CODE ${hmEsc(s.lnk.code)}`)}</p><p class="sm">${sc(`LAST SYNCED ${lnClock(s.lnk.lastSync)}`)}</p><div class="row">${lnBtn('sync','SYNC NOW','xs alt',LNK.busy?'disabled':'')}${LNK.sure==='leave'?lnBtn('leave2','SURE? LEAVE','xs alt')+lnBtn('leave0','NO','xs alt'):lnBtn('leave','LEAVE LEAGUE','xs alt')}</div></div>`;
+ const rn=HS.ren&&!s.lnk;
+ h+=`<div class="card hbw"><h3>THIS LEAGUE'S SAVE</h3>${rn?`<div class="row"><span class="sm">${sc(`NEW NAME`)}</span><input id="rnn" maxlength="16" value="${hmEsc(lgNameOf(s))}" style="width:13em" aria-label="League name"><button class="btn xs" data-hs="rensave">SAVE</button><button class="btn xs alt" data-hs="rencancel">CANCEL</button></div>`
+  :`<div class="row">${s.lnk?'':'<button class="btn alt" data-hs="ren">RENAME</button>'}<button class="btn alt" data-bk="hubexp">BACK UP (CODE OR FILE)</button><button class="btn alt" data-hs="del">${HS.del?'SURE? DELETE LEAGUE':'DELETE LEAGUE'}</button>${HS.del?'<button class="btn alt" data-hs="delno">NO</button>':''}</div><div class="sm spdn">${sc(`A BACKUP CODE OR FILE HOLDS THIS LEAGUE. DELETING IT CANNOT BE UNDONE.`)}</div>`}</div>`;
+ return h}
+const lgNameOf=s=>{try{const L=s.lg||(s.std?stdView(s):null);return L?L.name:s.name}catch(e){return s.name}};
+function hsSetBody(t){
+ if(t==='game')return`<div class="stg">${[spdRow(),dcRow(),v24Row('to'),dtRow(),v24Row('sn')].map(hsTp).join('')}</div>`;
+ if(t==='disp')return`<div class="stg">${[flRow(),pvRow(),v24Row('hx'),afRow(),thRow(),sndRow(),bzRow()].map(hsTp).join('')}</div>`;
+ if(t==='dev')return`<div class="card hbw"><h3>YOUR ACCOUNT</h3>${acRow()}<div class="row"><button class="btn xs alt" data-cg="open">CLOUD SAVE</button>${cgRestoreBtn('xs alt')}</div></div><div class="stg">${[sqRow(),upRow()].map(hsTp).join('')}</div><div class="row"><button class="btn alt" data-hs="help">HOW TO PLAY</button><button class="btn alt" data-rp="open">REPORT A PROBLEM</button></div><p class="sm">${sc(`VERSION V${APP_VERSION}`)}</p>`;
+ return hsLgBody()}
+function openSet(){
+ if(!hsSetTabs().some(x=>x[0]===HS.set))HS.set='game';
+ $('gset').innerHTML=hsSetBody(HS.set);
+ show('gset')}
+function hsSetTab(k){if(!hsSetTabs().some(x=>x[0]===k))return;HS.set=k;HS.ren=false;HS.del=false;openSet()}
 /* ---------- v2.03 UI step 3: the BOOK screen. A real screen inside the nav shell (SHD in p1.js): sub-tabs OFFENSE and DEFENSE, a card gallery for each, and the designer one tap away. Offense cards are the game's own thumb() pictures of S.plays (the same pictures CALL A PLAY shows); defense cards are the v2.02 cached card pictures (dcCardCanvas) and are display only. The designer is unchanged and still leaves the shell; DS.bk makes its BACK come back here (closeDesigner in pd.js). Pictures are 1x (100x76 and 120x128 canvas pixels); an iPad-sized window shows them at 2x. ---------- */
 const BOK={sub:'bo',sel:-1,key:false};
 const boSubs=()=>[['bo','OFFENSE'],['bd','DEFENSE']];
-function openBook(){if(!S)return;callPlay();BOK.sel=BOK.sel>=S.plays.length?-1:BOK.sel;boDraw();show('book')}
+function openBook(){if(!S)return;pbUse();callPlay();BOK.sel=BOK.sel>=S.plays.length?-1:BOK.sel;boDraw();show('book')}
 function boTab(k){if(k!=='bo'&&k!=='bd')return;BOK.sub=k;boDraw();shDraw()}
 function boBar(){const b=$('book').querySelector('.bkbar');if(!b)return;const p=BOK.sel>=0?S.plays[BOK.sel]:null;
  b.innerHTML=p?`<span class="bkn">${hmEsc(p.name)}</span><button type="button" class="btn" data-bk="edit">EDIT IN DESIGNER</button>`:'<span class="bkn dim">TAP A PLAY TO SELECT IT</span>'}
@@ -6661,7 +6958,7 @@ $('book').onclick=e=>{const b=e.target.closest('button');if(!b)return;
    The game runs on a throwaway copy of the league (S.sbx=1): nothing is saved, no record, no credits, no game log, no saved-game snapshot, and your real leagues are not touched.
    Only the picker's own settings are remembered, under pixelPigskin.exh. The exhibition inside a league (EXHIBITION on the hub) is unchanged. ---------- */
 const XH_KEY='pixelPigskin.exh',DNM=['ROOKIE','ROOKIE','EASY','EASY','PRO','HARD','HARD','ALL-PRO','ALL-PRO','LEGEND'];
-const XH={src:null,me:null,opp:null,site:true,q:90,flip:true,diff:5,drafts:{},cache:{},prev:null};
+const XH={src:null,me:null,opp:null,site:true,q:90,flip:true,diff:5,drafts:{},cache:{},prev:null,ul:{},more:false,on:false};   /* v2.53: ul = the uniforms picked on the EXHIBITION screen (in memory only, key 'league:team'); more / on = the settings card and the ONLINE card are open */
 try{const o=JSON.parse(lsGet(XH_KEY)||'null');if(o&&o.v===1){if(typeof o.src==='string')XH.src=o.src;if(o.site===true||o.site===false||o.site===null)XH.site=o.site;if([60,90,150].includes(o.q))XH.q=o.q;XH.flip=o.flip!==false;if(o.diff>=1&&o.diff<=10)XH.diff=Math.round(o.diff)}}catch(e){}
 const xhSave=()=>lsSet(XH_KEY,JSON.stringify({v:1,src:XH.src,site:XH.site,q:XH.q,flip:XH.flip,diff:XH.diff}));
 /* the leagues you can pick from: saved leagues (not the old classic ones) and the two formats */
@@ -6687,17 +6984,22 @@ function hmExh(){
  const sel=xhLeague();xhTeams(sel);const L=sel.L,x=XH,sv=xhSaved();
  const leagueOpts=sv.map(e=>`<option value="${e.id}" ${x.src===e.id?'selected':''}>${hmEsc(e.name)} - ${/COLLEGE/.test(e.fmt)?'COLLEGE':'NFL'} (YOUR LEAGUE)</option>`).join('')
   +Object.values(LGF).map(f=>`<option value="${f.id}" ${x.src===f.id?'selected':''}>NEW ${f.id==='COL'?'COLLEGE':'NFL'} LEAGUE - ${lgN(f)} TEAMS</option>`).join('');
- const card='style="flex:none;width:100%;max-width:40em"';
- return`<div class="sm">${sc(`PLAY ONE GAME BETWEEN ANY TWO TEAMS. NOTHING IS SAVED AND NOTHING COUNTS.`)}</div>
- <div class="row"><button class="btn" data-xh="quick">QUICK START</button></div>
- <div class="card" ${card}><h3>LEAGUE</h3><div class="row"><select id="xhS" style="min-width:28em;max-width:100%">${leagueOpts}</select>${sel.id?'':'<button class="btn xs alt" data-xh="reroll">NEW TEAMS</button>'}</div><div class="sm">${sc(`${hmEsc(sel.cf.info)}`)}</div></div>
- <div class="card" ${card}><h3>TEAMS</h3>
- <div class="row"><span class="sm" style="width:6em">${sc(`YOUR TEAM`)}</span><select id="xhM" style="min-width:28em;max-width:100%">${xhOpts(sel,x.me,x.opp)}</select></div>
- <div class="row"><span class="sm" style="width:6em">${sc(`OPPONENT`)}</span><select id="xhO" style="min-width:28em;max-width:100%">${xhOpts(sel,x.opp,x.me)}</select><button class="btn xs alt" data-xh="rnd">RANDOM</button></div><div class="row" style="margin-top:.9em">${persBtn('ex','data-xh="pers"')}</div>${scoutHtml(persRec(PERS.ex))}</div>
+ const card='style="flex:none;width:100%;max-width:40em"',ed=!!sel.id,inLg=!UI.hm&&S&&sel.id===S.id;
+ const tm=(i,s)=>{const t=L.teams[i];return{kind:'xh',t,away:!!s,name:t.name,role:s?'RIGHT TEAM':sel.own===i?'YOUR TEAM':'LEFT TEAM',key:x.src+':'+i,ed,who:s?'RIGHT SIDE.':'LEFT SIDE.',sub:(sel.id?L.name:'NEW LEAGUE')+' - OFF '+t.off.toFixed(1)+' DEF '+t.def.toFixed(1)}};
+ const site=x.site===true?'HOME':x.site===false?'AWAY':'NEUTRAL',note=`NO EFFECT ON YOUR RECORD AND NOTHING IS SAVED. ${inLg?'THIS LEAGUE: ':''}LEVEL ${x.diff} ${DNM[x.diff-1]}, ${x.q} SECOND QUARTERS, DRIVE ${x.flip?'LEFT':'RIGHT'}, ${site}.`;
+ const more=x.more?`<div class="card" ${card}><h3>TEAMS</h3>
+ <div class="row"><span class="sm" style="width:6em">${sc(`LEFT TEAM`)}</span><select id="xhM" style="min-width:28em;max-width:100%">${xhOpts(sel,x.me,x.opp)}</select></div>
+ <div class="row"><span class="sm" style="width:6em">${sc(`RIGHT TEAM`)}</span><select id="xhO" style="min-width:28em;max-width:100%">${xhOpts(sel,x.opp,x.me)}</select><button class="btn xs alt" data-xh="rnd">RANDOM</button></div><div class="row" style="margin-top:.9em">${persBtn('ex','data-xh="pers"')}</div>${scoutHtml(persRec(PERS.ex))}</div>
  <div class="card" ${card}><h3>GAME SETTINGS</h3><div class="row"><span class="sm">${sc(`DRIVE:`)}</span><button class="btn xs ${x.flip?'alt':'sel'}" data-xh="d0">RIGHT &gt;</button><button class="btn xs ${x.flip?'sel':'alt'}" data-xh="d1">&lt; LEFT</button><span class="sm">${sc(`QUARTER:`)}</span>${[60,90,150].map(q=>`<button class="btn xs ${x.q===q?'sel':'alt'}" data-xh="q${q}">${q}S</button>`).join('')}</div>
  <div class="row" style="margin-top:.5em"><span class="sm">${sc(`SITE:`)}</span>${[[true,'HOME'],[false,'AWAY'],[null,'NEUTRAL']].map(([v,t])=>`<button class="btn xs ${x.site===v?'sel':'alt'}" data-xh="s${v}">${t}</button>`).join('')}</div>
- <div class="row" style="margin-top:.9em"><span class="sm">${sc(`LEVEL:`)}</span><button class="btn xs alt" data-xh="dl-1">-</button><span class="sm">${sc(`${x.diff} ${DNM[x.diff-1]}`)}</span><button class="btn xs alt" data-xh="dl1">+</button></div></div>
- <div class="row"><button class="btn alt" data-xh="go">KICK OFF</button></div>${olCard()}`}
+ <div class="row" style="margin-top:.9em"><span class="sm">${sc(`LEVEL:`)}</span><button class="btn xs alt" data-xh="dl-1">-</button><span class="sm">${sc(`${x.diff} ${DNM[x.diff-1]}`)}</span><button class="btn xs alt" data-xh="dl1">+</button></div></div>`:'';
+ return`<div class="row" style="width:100%;max-width:40em;justify-content:flex-start"><span class="sm">${sc(`LEAGUE`)}</span><select id="xhS" style="flex:1 1 14em;min-width:0;max-width:100%">${leagueOpts}</select>${sel.id?'':'<button class="btn xs alt" data-xh="reroll">NEW TEAMS</button>'}</div>
+ <div class="sm" style="max-width:40em">${sc(`${hmEsc(sel.cf.info)}`)}</div>
+ ${foHtmlArrows('exh',tm(x.me,0),tm(x.opp,1))}
+ <div class="sm exnote" style="max-width:40em">${sc(`${note}`)}</div>
+ <div class="row"><button class="btn xs alt" data-xh="more" aria-expanded="${x.more}">${x.more?'HIDE GAME SETTINGS AND TEAM LIST':'GAME SETTINGS AND TEAM LIST'}</button></div>${more}
+ ${x.on||OL.pre?olCard():''}
+ <div class="abar" role="group" aria-label="Exhibition actions"><button class="btn alt" data-xh="ol" aria-expanded="${!!(x.on||OL.pre)}">ONLINE: PLAY A FRIEND</button><button class="btn" data-xh="go">KICK OFF</button></div>`}
 /* build the throwaway league save the game will run on */
 function xhBuild(){
  const sel=xhLeague();xhTeams(sel);let s;
@@ -6705,13 +7007,14 @@ function xhBuild(){
  else s=lgNew(sel.L,XH.me,true);
  const L=s.lg,t=L.teams[XH.me],keep=sel.id&&XH.me===sel.own;
  L.me=XH.me;s.name=t.name;
+ [XH.me,XH.opp].forEach(i=>{const p=XH.ul[XH.src+':'+i],tt=L.teams[i];if(p&&tt){czWd(tt);CZ_C.forEach(([k])=>{tt.wd.sel[k]=Math.max(0,Math.min(p[k],tt.wd[k].length-1))})}}); /* v2.53: the uniforms picked on the EXHIBITION screen go on the throwaway copy */
  if(!keep){s.r={qb:t.off,wr:t.off,rb:t.off,ol:t.off,def:t.def,k:(t.off+t.def)/2};delete s.ro;delete s.uni;s.names=nmRoster()}
  delete s.id;s.sbx=1;s.qLen=XH.q;s.flip=XH.flip;s.diff=XH.diff;
  return s}
 /* v2.50: first launch QUICK START (v2.51: the title screen's QUICK GAME is the same call, xhQuick). Device key pixelPigskin.qs = 1 once the first quick game was started (never in saves, backups or reports). */
 const QS_KEY='pixelPigskin.qs';
 const xhQsDone=()=>{try{return lsGet(QS_KEY)==='1'}catch(e){return true}};
-const xhQsPulse=()=>{try{return !xhQsDone()&&rdIdx().length===0&&!ttlOn()}catch(e){return false}}; /* a device with saves never pulses; v2.51: nor while the title screen is up (its QUICK GAME is the quick start there) */
+const xhQsPulse=()=>{try{return !xhQsDone()&&rdIdx().length===0}catch(e){return false}}; /* a device with saves never pulses; v2.51: nor while the title screen is up (its QUICK GAME is the quick start there) */
 function xhQuick(){try{lsSet(QS_KEY,'1')}catch(e){}XH.me=null;XH.opp=null;xhGo()}
 function xhGo(){
  let s;try{s=xhBuild()}catch(e){s=null}
@@ -6721,12 +7024,14 @@ function xhGo(){
  EXH={o:{name:o.name,off:o.off,def:o.def,col:o.col,uni:lgUni(o),id:o.id},home:XH.site,psty:persEx()};
  startGame()}
 /* back to the home screen's EXHIBITION tab with the real league (if any) loaded again */
-function xhLeave(){if(S&&S.sbx){S=XH.prev;XH.prev=null}ctrl.down=false;fx=[];G=null;EXH=null;HOME.tab='ex';HOME.del=null;XH.cache={};resetSprites();renderHome();show('menu')}
+function xhLeave(){if(S&&S.sbx){S=XH.prev;XH.prev=null}ctrl.down=false;fx=[];G=null;EXH=null;HOME.tab='ex';HOME.del=null;XH.cache={};resetSprites();renderHome();show(UI.hm||!S?'menu':'xex')}
 $('menu').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-xh]');if(!b)return;const v=b.dataset.xh;
  if(v==='go'){xhGo();return}
- if(v==='quick'){xhQuick();return}
  if(v==='pers'){persOpen('ex',renderHome);return}
- if(v==='reroll')XH.drafts[XH.src]=null;
+ if(v==='ol')XH.on=!XH.on;
+ else if(v==='more')XH.more=!XH.more;
+ else if(/^[ab]-?1$/.test(v)){const sel=xhLeague();xhTeams(sel);const n=sel.L.teams.length,k=v[0],st=+v.slice(1),o=k==='a'?'opp':'me',f=k==='a'?'me':'opp';let nv=(XH[f]+st+n)%n;if(nv===XH[o])nv=(nv+st+n)%n;XH[f]=nv}
+ else if(v==='reroll'){XH.drafts[XH.src]=null;XH.ul={}}
  else if(v==='rnd')XH.opp=null;
  else if(v==='d0'||v==='d1'){XH.flip=v==='d1';xhSave()}
  else if(v[0]==='q'){XH.q=+v.slice(1);xhSave()}
@@ -6738,6 +7043,134 @@ $('menu').addEventListener('change',e=>{const el=e.target;
  if(el.id==='xhS'){XH.src=el.value;XH.me=null;XH.opp=null;xhSave();renderHome()}
  else if(el.id==='xhM'){XH.me=+el.value;if(XH.opp===XH.me)XH.opp=null;renderHome()}
  else if(el.id==='xhO'){XH.opp=+el.value;if(XH.me===XH.opp)XH.me=null;renderHome()}});
+/* ---------- v2.53 part B: the FACE-OFF PICTURE, the TEAM SHEET and the SIM GAME result ----------
+   foPaint draws the picture the game's own way: a turf with a line of scrimmage, three players a side facing each other (a lineman in a 3-point stance at the line, two in a 2-point ready stance behind him), made with the game's figures (figPv) in each team's CHOSEN uniform, sharp at the device pixel ratio.
+   It is used by HOME, NEXT GAME (hb.js), EXHIBITION (xh.js) and the SIM GAME result (foSimShow). On NEXT GAME and EXHIBITION each half of the picture is a button that opens the TEAM SHEET: the uniform for this game (HOME / AWAY / WHITE / your own, or a change to single parts), EDIT COLORS AND UNIFORMS (LOOK on that team), DONE.
+   The locker room is gone: foDress does what its first look at a team did (a team with no look yet wears HOME at home, AWAY on the road), foPlay is PLAY GAME. Picks in a league are the team's wardrobe choice (wd.sel, saved like the locker's); an EXHIBITION pick is kept in memory (XH.ul) and put on the throwaway copy at kickoff. ---------- */
+const FO={reg:{},sh:null,seen:new WeakSet(),ro:null};
+const FO_TONE=[[0,1,2],[1,2,0]],FO_POS=[['ready',-27,-2.2],['ready',-15,0],['p3',-4.6,0]];
+const foD=()=>Math.max(1,Math.min(3,Math.round(window.devicePixelRatio||1)));
+function foTurf(x,w,h){
+ x.fillStyle='#2a7030';x.fillRect(0,0,w,h);const s=w/8;x.fillStyle='#2e7d32';for(let i=1;i<8;i+=2)x.fillRect(Math.round(i*s),0,Math.ceil(s),h);
+ const lw=Math.max(1,Math.round(w/420));x.fillStyle='rgba(255,255,255,.5)';for(let i=1;i<8;i++)if(i!==4)x.fillRect(Math.round(i*s),0,lw,h);
+ x.fillStyle='#4df0ff';x.fillRect(Math.round(w/2)-lw,0,lw*2+1,h)}
+/* the picture itself: ua = the left team's uniform (faces right), ub = the right team's (faces left) */
+function foPaint(c,ua,ub,ball){try{
+ const W=Math.floor(c.clientWidth),H=Math.floor(c.clientHeight);if(W<40||H<40||!ua||!ub)return false;
+ const d=foD();c.width=W*d;c.height=H*d;c._lw=W;const x=c.getContext('2d');if(!x)return false;
+ foTurf(x,W*d,H*d);
+ const bw=FG_W*SPR_SCALE,bh=FG_H*SPR_SCALE,z=Math.min(H*.85/bh,W/(2*(27+bw/2)+4)),sp=Math.max(1,Math.min(2.2,(W/2-8-bw/2*z)/(27*z))),R=Math.round(z*d*100)/100,mid=W/2,gy=H*.88;
+ const L=[];
+ [ua,ub].forEach((u,s)=>FO_POS.forEach(([pose,dx,dy],i)=>{const ax=Math.abs(dx)>10?Math.abs(dx)*sp:Math.abs(dx);L.push({u,pose,s,tone:FO_TONE[s][i],cx:mid+(s?1:-1)*ax*z,cy:gy+dy*z*.6})}));
+ L.sort((p,q)=>p.cy-q.cy);
+ x.fillStyle='rgba(0,0,0,.28)';
+ L.forEach(f=>{x.beginPath();x.ellipse(f.cx*d,(f.cy+FGSH[2])*d,FGSH[0]*z*d,FGSH[1]*z*d,0,0,7);x.fill()});
+ if(ball){x.fillStyle='#8a4b1e';x.beginPath();x.ellipse(mid*d,(gy-.6*z)*d,1.3*z*d,.75*z*d,0,0,7);x.fill()}
+ L.forEach(f=>{const b=figPv(f.u,f.tone,f.pose,f.s?-1:1,R);x.drawImage(b.c,Math.round(f.cx*d-b.ax),Math.round(f.cy*d-b.ay))});
+ return true}catch(e){return false}}
+/* ----- uniforms ----- */
+const foWd=t=>t.wd&&!(t.two&&t.wv!==2)?t.wd:czWd(Object.assign({},t));   /* a team's wardrobe, made on a copy when the team has none yet (the team itself is not touched) */
+const foAt=(t,sel)=>{const w=foWd(t),g=k=>w[k][Math.min(sel[k],w[k].length-1)];return{helmet:g('helmet'),jersey:g('jersey'),pants:g('pants'),socks:g('socks'),gloves:w.gloves,shoes:w.shoes,outline:'#0b0b12'}};
+const foSelDef=(t,away)=>{if(t.wd)return Object.assign({},t.wd.sel);const v=!t.uni&&away?1:0;return{helmet:v,jersey:v,pants:v,socks:v}};
+const foUni=(t,away,pick)=>pick?foAt(t,pick):(t.wd||t.uni)?lgUni(t):defaultUni(t.col,away);
+function foDressT(t,away){if(!t.wd&&!t.uni){czWd(t);const s=t.wd.sel;s.helmet=s.jersey=s.pants=s.socks=away?1:0}}   /* what the locker room did on its first look at a team */
+function foDress(){try{if(!S||!S.lg||S.sbx)return;const L=S.lg,t=L.teams[L.me],o=lgNextOpp(),ot=L.teams[o.id];foDressT(ot,o.home!==false);foDressT(t,o.home===false)}catch(e){}}
+function foPlay(){foDress();startGame()}
+/* a picture side: T = {kind:'lg'|'xh'|'cl', t, away, name, role, key, u} */
+const foSel=T=>T.kind==='lg'?(T.t.wd?T.t.wd.sel:foSelDef(T.t,T.away)):(XH.ul[T.key]||foSelDef(T.t,T.away));
+const foTU=T=>T.kind==='cl'?(typeof T.u==='function'?T.u():T.u):T.kind==='xh'?foUni(T.t,T.away,XH.ul[T.key]):foUni(T.t,T.away);
+function foWear(T){try{if(T.kind==='cl')return '';const wd=foWd(T.t),sel=foSel(T),u=czUnis(wd).find(u=>CZ_C.every(([k])=>sel[k]===Math.min(u.i,wd[k].length-1)));return u?u.n:'MIXED'}catch(e){return ''}}
+const foSub=T=>(T.role?T.role+' - ':'')+(T.kind==='cl'?'':foWear(T)+' - TAP TO CHANGE');
+/* ----- markup: the picture, with two halves that are buttons (tap = the sheet) or plain names; id names the registry entry that gives the picture its teams ----- */
+function foHtml(id,a,b,tap){
+ FO.reg[id]={a,b};
+ const half=(T,s)=>tap&&T.kind!=='cl'?`<button type="button" class="fob ${s?'r':'l'}" data-fot="${id}:${s}"><b>${hmEsc(T.name)}</b><small>${hmEsc(foSub(T))}</small></button>`:`<div class="fob ${s?'r':'l'}"><b>${hmEsc(T.name)}</b><small>${hmEsc(T.role||'')}</small></div>`;
+ return`<div class="fop" data-fo="${id}"><canvas aria-hidden="true"></canvas>${half(a,0)}${half(b,1)}</div>`}
+/* the same with an arrow on each side of each team (EXHIBITION): the name button opens the sheet */
+function foHtmlArrows(id,a,b){
+ FO.reg[id]={a,b};
+ const half=(T,s,k)=>`<div class="fob fx ${s?'r':'l'}"><button type="button" class="fa" data-xh="${k}-1" aria-label="Previous team">&lt;</button><button type="button" class="fn" data-fot="${id}:${s}"><b>${hmEsc(T.name)}</b><small>${hmEsc(foSub(T))}</small></button><button type="button" class="fa" data-xh="${k}1" aria-label="Next team">&gt;</button></div>`;
+ return`<div class="fop" data-fo="${id}"><canvas aria-hidden="true"></canvas>${half(a,0,'a')}${half(b,1,'b')}</div>`}
+function foPaintOne(e){const r=FO.reg[e.dataset.fo],c=e.querySelector('canvas');if(!r||!c)return;try{foPaint(c,foTU(r.a),foTU(r.b),!e.hasAttribute('data-nb'))}catch(x){}
+ if(window.ResizeObserver&&!FO.seen.has(e)){FO.seen.add(e);if(!FO.ro)FO.ro=new ResizeObserver(es=>es.forEach(en=>{const el=en.target,cv=el.querySelector('canvas');if(cv&&Math.floor(cv.clientWidth)!==cv._lw&&document.contains(el))foPaintOne(el)}));FO.ro.observe(e)}}
+function foPaintAll(root){try{(root||document).querySelectorAll('.fop[data-fo]').forEach(foPaintOne)}catch(e){}}
+/* the labels under the team names, after a pick */
+function foRefresh(){try{document.querySelectorAll('.fop[data-fo]').forEach(e=>{const r=FO.reg[e.dataset.fo];if(!r)return;e.querySelectorAll('[data-fot] small').forEach(sm=>{const s=+sm.parentNode.dataset.fot.split(':')[1];sm.textContent=foSub(s?r.b:r.a)})});foPaintAll(document)}catch(e){}}
+/* ----- the HOME picture: the last league's team against another team of that league (the next opponent when that league is open), or two built-in colors ----- */
+const FOH={k:null,u:null};
+function foHomeU(){
+ try{const last=hsLastIdx(rdIdx());
+  if(last){const live=S&&S.id===last.id&&S.lg&&!S.sbx,k=last.id+'|'+(last.upd||0)+'|'+(live?'live':'');if(FOH.k===k&&FOH.u)return FOH.u;
+   const d=live?S:parseSave(lsGet(SLOT+last.id)),L=d&&(d.lg||(d.std?stdView(d):null));
+   if(L&&L.teams&&L.teams.length>1){const me=L.me|0,t=L.teams[me];let oi=(me+1)%L.teams.length;if(live){try{oi=lgNextOpp().id}catch(e){}}
+    const u=[foUni(t,false),foUni(L.teams[oi],true)];FOH.k=k;FOH.u=u;return u}}}catch(e){}
+ return[defaultUni(COLORS[0]),defaultUni(COLORS[Math.min(3,COLORS.length-1)],true)]}
+function foHomeHtml(){FO.reg.home={a:{kind:'cl',u:()=>foHomeU()[0]},b:{kind:'cl',u:()=>foHomeU()[1]}};return`<div class="fop fotl" data-fo="home" aria-hidden="true"><canvas></canvas></div>`}
+/* ----- NEXT GAME: my team and the next opponent in the picture; in a league each half opens the sheet ----- */
+function foHub(o,L){
+ if(L){const t=L.teams[L.me],ot=L.teams[o.id],away=o.home===false;
+  return foHtml('next',{kind:'lg',t,away,name:t.name,role:'YOU',who:'YOUR TEAM.',sub:L.name+' - '+hbRec(L.rec[L.me])},{kind:'lg',t:ot,away:!away,name:o.name,role:hbRec(L.rec[o.id]),who:'OPPONENT.',sub:L.name+' - '+hbRec(L.rec[o.id])},true)}
+ return foHtml('next',{kind:'cl',name:S.name,role:'YOU',u:()=>hbUni('me',o)||defaultUni(myC())},{kind:'cl',name:o.name,role:'OPPONENT',u:()=>hbUni('op',o)||defaultUni(o.cobj,true)},false)}
+/* ----- the sheet ----- */
+const FO_FOC='button,input,[tabindex]:not([tabindex="-1"])';
+function foHost(){let h=$('fosh');if(!h){h=document.createElement('div');h.id='fosh';$('view').appendChild(h);h.addEventListener('click',foShClick);h.addEventListener('keydown',foShKey)}return h}
+function foOpen(id,s,op){const r=FO.reg[id];if(!r)return;const T=s?r.b:r.a;if(T.kind==='cl')return;
+ if(T.kind==='lg')foDressT(T.t,T.away);
+ FO.sh={T,id,s,op:op||document.activeElement,parts:FO.sh?FO.sh.parts:false};foShDraw();
+ const f=foHost().querySelector('[data-first]');if(f)try{f.focus({preventScroll:true})}catch(e){}}
+function foClose(){const sh=FO.sh;FO.sh=null;const h=$('fosh');if(h)h.innerHTML='';foRefresh();
+ if(sh&&sh.op&&document.contains(sh.op))try{sh.op.focus({preventScroll:true})}catch(e){}}
+function foShDraw(){const sh=FO.sh;if(!sh)return;const T=sh.T,t=T.t,wd=foWd(t),sel=foSel(T),uns=czUnis(wd),h=foHost();
+ const canEdit=T.kind==='lg'?!(S&&S.lnk):T.kind==='xh'&&!!T.ed;
+ const on=u=>CZ_C.every(([k])=>sel[k]===Math.min(u.i,wd[k].length-1));
+ h.innerHTML=`<div class="czbg" data-fox="bg"><div class="czsheet fosheet" role="dialog" aria-modal="true" aria-label="Uniform for ${hmEsc(t.name)}">
+ <div class="hsc fotc" style="${hsVars(t.col)}"><span class="hst">${hmEsc(t.name)}</span><span class="hsl">${sc(`${hmEsc(T.sub||'')}`)}</span></div>
+ <p class="sm fonote">${sc(`${hmEsc(T.who||'')} PICK THE UNIFORM FOR THIS GAME.`)}</p>
+ <canvas class="fo1" id="fo1" aria-hidden="true"></canvas>
+ <div class="seg" role="group" aria-label="Uniform">${uns.map(u=>`<button type="button" class="sb ${on(u)?'on':''}" data-fox="u:${u.i}" aria-pressed="${on(u)}">${hmEsc(u.n)}</button>`).join('')}</div>
+ <div class="row"><button type="button" class="btn xs alt" data-fox="parts" aria-expanded="${sh.parts}">${sh.parts?'HIDE UNIFORM PARTS':'CHANGE UNIFORM PARTS'}</button></div>
+ ${sh.parts?CZ_C.map(([k,l])=>{const i=sel[k],n=wd[k].length,it=wd[k][Math.min(i,n-1)];return`<div class="up"><b style="width:4.5em">${l}</b><button type="button" class="btn xs alt" data-fox="p:${k}:-1">&lt;</button><span style="flex:1;text-align:center">${hmEsc(it.n||i+1)} <span class="sm">${i+1}/${n}</span></span><button type="button" class="btn xs alt" data-fox="p:${k}:1">&gt;</button></div>`}).join(''):''}
+ <div class="row fobtn">${canEdit?'<button type="button" class="btn alt" data-fox="edit">EDIT COLORS AND UNIFORMS</button>':''}<button type="button" class="btn" data-fox="x" data-first="1">DONE</button></div></div></div>`;
+ foOne()}
+function foOne(){const c=$('fo1');if(!c||!FO.sh)return;const T=FO.sh.T,u=foTU(T),d=foD(),W=Math.floor(c.clientWidth),H=Math.floor(c.clientHeight);if(W<20||H<20)return;
+ c.width=W*d;c.height=H*d;const x=c.getContext('2d');if(!x)return;const z=Math.min(H*.9/(FG_H*SPR_SCALE),W*.9/(FG_W*SPR_SCALE)),R=Math.round(z*d*100)/100,face=FO.sh.s?-1:1;
+ x.clearRect(0,0,c.width,c.height);x.fillStyle='rgba(0,0,0,.28)';x.beginPath();x.ellipse(W/2*d,(H*.9+FGSH[2]*z)*d,FGSH[0]*z*d,FGSH[1]*z*d,0,0,7);x.fill();
+ const b=figPv(u,0,'ready',face,R);x.drawImage(b.c,Math.round(W/2*d-b.ax),Math.round(H*.9*d-b.ay))}
+function foSetSel(T,fn){
+ if(T.kind==='lg'){const wd=czWd(T.t);fn(wd.sel,wd);if(S&&S.lnk&&S.std&&T.t.id===(S.stm|0))try{stdLookBack(S.std,S.lg);lnXMark(S)}catch(e){}   /* v2.54: my uniform pick in a linked league goes into the record and to my team document */
+  try{save()}catch(e){}resetSprites()}
+ else{const wd=foWd(T.t),s=Object.assign({},foSel(T));fn(s,wd);XH.ul[T.key]=s}}
+function foShClick(e){const b=e.target.closest('button,.czbg');if(!b||!FO.sh)return;const v=b.dataset.fox;if(b.classList.contains('czbg')&&e.target!==b)return;
+ if(v==='x'||v==='bg')return foClose();
+ const T=FO.sh.T;
+ if(v==='parts'){FO.sh.parts=!FO.sh.parts;foShDraw();foShFocus('[data-fox="parts"]')}
+ else if(v==='edit')foEdit();
+ else if(v&&v[0]==='u'){const i=+v.split(':')[1];foSetSel(T,(s,wd)=>{CZ_C.forEach(([k])=>{s[k]=Math.max(0,Math.min(i,wd[k].length-1))})});foShDraw();foRefresh();foShFocus('[data-fox="'+v+'"]')}
+ else if(v&&v[0]==='p'){const p=v.split(':'),k=p[1];foSetSel(T,(s,wd)=>{const n=wd[k].length;s[k]=(Math.min(s[k],n-1)+ +p[2]+n)%n});foShDraw();foRefresh();foShFocus('[data-fox="'+v+'"]')}}
+function foShFocus(q){try{const e=$('fosh').querySelector(q);if(e)e.focus({preventScroll:true})}catch(x){}}
+function foShKey(e){if(!FO.sh)return;if(e.key==='Escape'){e.preventDefault();foClose();return}
+ if(e.key==='Tab'){const f=[...$('fosh').querySelectorAll('.czsheet '+FO_FOC)].filter(x=>!x.disabled&&x.offsetParent!==null);if(!f.length)return;const a=f[0],z=f[f.length-1];
+  if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}}
+/* EDIT COLORS AND UNIFORMS: LOOK on that team in that league, with a button that comes back to this screen */
+function foEdit(){const sh=FO.sh;if(!sh)return;const T=sh.T,id=sh.id;FO.sh=null;const h=$('fosh');if(h)h.innerHTML='';
+ if(T.kind==='lg'){try{save()}catch(e){}UI.hm=false;HOME.cz={src:S.id,team:T.t.id};HOME.tab='cz';HOME.ret='next';HOME.del=null;show('look');renderHome()}
+ else{const home=!!UI.hm;HOME.cz={src:XH.src,team:T.t.id,cat:'helmet'};HOME.tab='cz';HOME.ret=home?'exhh':'exh';HOME.del=null;show(home?'menu':'look');renderHome()}}
+/* BACK in LOOK (hm.js data-ret) */
+function foBack(){const r=HOME.ret;HOME.ret=null;
+ if(r==='next'){UI.hm=false;renderHub()}
+ else{XH.cache={};HOME.tab='ex';HOME.del=null;if(r==='exhh'){UI.hm=true;show('menu')}else show('xex');renderHome()}}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-fot]');if(!b)return;const p=b.dataset.fot.split(':');foOpen(p[0],+p[1],b)});
+/* ----- the SIM GAME result: FINAL, two team-color cards with the scores (WIN on the winner), the picture, the new record and place, the credits, CONTINUE. Only what the sim really makes: no box score, no player lines. ----- */
+function foSimShow(o,win,tie,mp,op,cr,lbl){
+ const L=S.lg,t=L.teams[L.me],ot=L.teams[o.id],r=L.rec[L.me],away=o.home===false,card=(x,n,s,w)=>`<div class="fsc" style="${hsVars(x.col)}"><b>${hmEsc(n)}</b><span class="big">${s}</span>${w?'<em>WIN</em>':''}</div>`;
+ const place=S.phase==='reg'&&!S.over&&S.week?lgRank(L.me)+' IN '+lgGrp(L,t):'';
+ FO.reg.sim={a:{kind:'cl',u:()=>foUni(t,away)},b:{kind:'cl',u:()=>foUni(ot,!away)}};
+ $('post').innerHTML=`<div class="fsim"><div class="sm">${sc(`${lbl} - SIM GAME`)}</div><h1 class="fsh">FINAL</h1>
+ <div class="fscs">${card(t,S.name,mp,win)}${card(ot,o.name,op,!win&&!tie)}</div>
+ <div class="fop fosim" data-fo="sim" data-nb="1" aria-hidden="true"><canvas></canvas></div>
+ <ul class="fres"><li><b>${sc(`RECORD`)}</b> ${hbRec(r)}</li>${place?`<li><b>${sc(`PLACE`)}</b> ${sc(place)}</li>`:''}<li><b>${sc(`CREDITS`)}</b> +${cr}</li></ul>
+ <div class="row"><button class="btn" id="bPostGo">CONTINUE</button></div></div>`;
+ $('bPostGo').onclick=()=>{if(S.over)showSeasonEnd();else renderHub()};show('post');foPaintAll($('post'))}
 /* ---------- v2.41 OPPONENTS: pick the opponent's personality, the scouting line ----------
    A personality is a team record `sty` (lg.js STY_CLS: the eight classes). A league sets it for its own teams (a hash of the team id). Where no league sets it (an exhibition, the classic season) the player may pick one for ONE game:
    the pick rides on the game as G.psty (a normalized record, never a team's own record, not stored for AUTO), is in the mid-game snapshot (gs.js) and is passed on by REMATCH. Nothing is written onto a league team.
@@ -7821,7 +8254,7 @@ function simOpp(start,call){
 /* v2.41: OPPONENT DRIVES NEW / CLASSIC. The mark lives on the save (S.stx.drv: 1 = NEW, 0 or missing = CLASSIC), set to 1 when a league, season or install starts from v2.41; a game remembers the mode it STARTED in (G.drv, rides in the snapshot) and keeps it until it ends. window.__DRV still overrides. */
 const drvPref=()=>!!(S&&S.stx&&S.stx.drv===1);
 function drvOn(){const v=window.__DRV;if(v===1||v===true)return true;if(v===0||v===false)return false;if(G&&(G.drv===0||G.drv===1))return G.drv===1;return drvPref()}
-function drvSet(on){S.stx=Object.assign({},S.stx,{drv:on?1:0});try{save()}catch(e){}return S.stx.drv}
+function drvSet(on){S.stx=Object.assign({},S.stx,{drv:on?1:0});try{save()}catch(e){}lnXMark(S);return S.stx.drv}
 const drvSeedNew=()=>Math.floor(Math.random()*4294967296)>>>0;
 /* the stream of ONE opponent drive: the game seed mixed with the drive number (G.ost.dr), so the same game position always gives the same drive */
 function drvMix(seed,n){let h=((seed>>>0)^Math.imul((n|0)+1,0x9E3779B1))>>>0;h^=h>>>16;h=Math.imul(h,0x85ebca6b)>>>0;h^=h>>>13;h=Math.imul(h,0xc2b2ae35)>>>0;h^=h>>>16;return h>>>0}
@@ -8444,7 +8877,8 @@ const RT=[
  {t:'corner',n:7,l:'CORNER',d:12},{t:'post',n:8,l:'POST',d:12},{t:'go',n:9,l:'GO',d:22},
  {t:'hitch',n:0,l:'HITCH',d:6},{t:'block',n:'B',l:'BLOCK',d:0}];
 const RTD={};for(const r of RT)RTD[r.t]=r;
-const PL=['WR 1','WR 2','WR 3','RB','TE'],DSC=12.4,DX=x=>(x+10)*DSC,PSPD=6.8,MAXP=40;
+const PL=['WR 1','WR 2','WR 3','RB','TE'],DSC=12.4,DX=x=>(x+10)*DSC,PSPD=6.8;
+let MAXP=40;   /* v2.53: let, because the one playbook (pbk.js) can hold more plays than 40 after the merge */
 const DS={on:false,i:0,sel:0,drag:null,prev:null,ts:0,ents:null};
 const curPlay=()=>S.plays[DS.i];
 
@@ -8522,7 +8956,7 @@ const NEWN=['TRIPS BUNCH','SCISSORS','DRAGON','DOUBLE MOVE','SHALLOW','OUT AND U
 
 function openDesigner(){
  if(S.lg){const _t=S.lg.teams[S.lg.me];S.uni=lgUni(_t)||defaultUni(_t.col)}else if(!S.uni)S.uni=defaultUni(myC());
- if(!Array.isArray(S.plays)||!S.plays.length){S.plays=seedPlays();save()}
+ pbUse();   /* v2.53: the one playbook (pbk.js) */
  fixPlays();DS.i=clamp(DS.i,0,S.plays.length-1);DS.sel=0;DS.drag=null;DS.prev=null;DS.ts=0;
  const e=DS.ents={qb:mk('QB',-5,20),ol:[14,17,20,23,26].map(y=>mk('OL',-1,y)),recs:['WR','WR','WR','RB','TE'].map(k=>mk(k,0,0))};
  dress(e.qb,'me',0);e.ol.forEach((o,i)=>dress(o,'me',i));e.recs.forEach((r,i)=>dress(r,'me',i));
@@ -8655,7 +9089,7 @@ function drawDesigner(){
    The call sticks from down to down. setRoutes() lines the receivers up and gives them their routes. */
 const PC={on:false},DEFA=[[-1,5],[-1,35],[-1.2,28],[-5,15.5],[-1,11]];
 function callPlay(){
- if(!Array.isArray(S.plays)||!S.plays.length){S.plays=seedPlays();save()}
+ pbUse();   /* v2.53: the one playbook (pbk.js) */
  fixPlays();return S.call>=0&&S.call<S.plays.length?S.plays[S.call]:null}
 const callName=()=>{const p=callPlay();return p?p.name:'RANDOM'+(G&&G.cpt?': '+G.cpt.name:'')};
 function setRoutes(){
@@ -9616,7 +10050,7 @@ function fit(){
  const up=coarse()&&H0>W0; /* a touch screen held upright */
  const mn=UIM.has(UI.scr); /* v2.00: a menu screen is showing (UI.scr is set by show() in p1.js) */
  ROT=!mn&&up&&upOn()?rotPref():0;turnSet(!mn&&up&&!upOn());
- GMD=!mn&&!DS.on;if(!GMD)HR=0;a.classList.toggle('gm',GMD);a.classList.toggle('ds',!!DS.on&&!mn);a.classList.toggle('mn',mn);a.classList.toggle('sh',mn&&UI.sh);a.classList.toggle('bare',mn&&UI.sh&&UI.bare); /* v2.01: sh = the nav shell is up (destination screens), bare = without nav and header */
+ GMD=!mn&&!DS.on;if(!GMD)HR=0;a.classList.toggle('gm',GMD);a.classList.toggle('ds',!!DS.on&&!mn);a.classList.toggle('mn',mn);a.classList.toggle('sh',mn&&UI.sh);a.classList.toggle('bare',mn&&UI.sh&&UI.bare);a.classList.toggle('hm0',mn&&UI.sh&&!!UI.hm); /* v2.01: sh = the nav shell is up (destination screens), bare = without nav and header */
  const I=insets(),mg=v=>Math.max(8,v+4);
  if(mn){ /* menus: the whole window inside the safe areas, never rotated, never 16:9; their text comes from the CSS tokens, not from the 16:9 box */
   for(const k of['position','width','height','left','top','transform','transformOrigin'])wr.style[k]='';
@@ -9672,8 +10106,8 @@ let fsTried=false;
 function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return;if(isIOS()&&!upOn())return;
  fsTried=true;try{const p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(p&&p.then)p.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}catch(e){}}
 document.addEventListener('pointerup',fsTry,{capture:true});
-UI.ready=true;fit();openMenu();olBoot();ttlShow();
+UI.ready=true;fit();try{pbList()}catch(e){}openMenu();olBoot();ttlShow();   /* v2.53: the one playbook is read (or merged from the saves, first run) before any league loads; HOME is the permanent title screen */
 requestAnimationFrame(frame);
-window.__pp={xhQuick,xhQsPulse,scoreTD,confetti,roar,buzz,sndSet,bzSet,sfx,ttlShow,hpCards,hbInk,COLORS,cssK,rsz,kickFull,KN,cancelR,gpItems,keyOn,hmBks,whiteLook,pickSix,gsLine,ghUpdate,stdLookBack,stdCfgOf,stdOrder,hmRename,hmDraft,hmMake,hmShape,hmStart,hmName,hmNew,lgStand,lgOpenStand,lgPoTie,lgSimMine,openSet,persRec,persOpen,persTake,PERS,PERS_N,scoutPhrases,scoutTxt,SCOUT_T,defLean,defBlitz,pickWeighted,DEFD,styOpp,styNorm,newFranchise,renderHub,drvPref,openExh,v24Set,setPresnap,EXHset:v=>{EXH=v},mkOpp,pop,toLeft,toCan,toTl,doTimeout,hitGo,hitOn,hitTint,HIT,hitShake,oppTimeouts,figFront,figFMake,figSide,fgFrontSolve,fgFrontDraw,FIGX,FRB,DS_SC,hmPlay,exportCode,bkUnpack,bkCommit,lnMenu,lnLeave,lnFlush,lnBuy,lnPlayLabel,lnHubClick,lnOpen,lnWatch,lnUnwatch,lnAfterGame,lnPlayGo,lnSimGo,lnWaitHub,LN:LNK,LNC,CG,ACC,acSignIn,acSignOut,acFinishRedirect,acRow,acSaveRow,acCreate,hmStartCloud,acLoadList,acOpenCloud,acRows,acMark,acHint,acEmail,lnEnter,lnTakeover,LNA,lnAdv,lnIsCommish,lnSimMine,lnAdvHtml,lnDerive,lnPull,lnFind,lnJoin,lnShape,lnCur,lnLast,lnWeeksOf,lnLocalize,lnKeepLocal,lnPanel,lnJoinHtml,FULL,LGFULL,gsResume,LGD,simOppDrv,drvOn,drvSet,drvCtx,drvMix,drvRng,LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,openRoster,RR,rrInjLine,rrYours,rrList,rrCard,rrHand,stdStars,stdStandIn,stdFitTeam,stdSnap,stdYourSet,STD_POS,hmInj,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:upShift,upShift,stdRelief,stdSetRelief,stdCostR,stdOppLine,RELIEF_SLOPE,RELIEF_CAP,STD_NEAR,teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,openLocker,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdN,n:spdN,mult:m,step:SPD_STEP[spdN-1]}},spdMul:SPD_MUL,spdStep:SPD_STEP,czSetColor,czRedraw,czDraw,FIGPV,figPv,setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub,tiltV2:on=>{DC_TILT_V2=!!on;LGD.tiltV2(on)},tiltTable:()=>DC_T,dcAutoCall,lgPoTie,lgPoCoin,sty:t=>typeof t==='number'?styTeam(t):t&&typeof t==='object'?styNorm(t.sty):null,styNorm,wdFix,lgUni,jClose,olUni,czSet,czWd,czRebuild,czUnis,czUniK,czOwnOf,fgPal,fgDraw,figMake,styFix,styGive,styMake,styClass,styOpp,styMine,STY_CLS};
+window.__pp={openHome,hmOpen,xexOpen,hsSetTab,hsInfo,hsSetTabs,pbList,pbMerge,PBK,HS,lgCol,lgColOk,czColWarn,xhQuick,XH,xhLeave,RUNU:()=>RUNU,xhQsPulse,scoreTD,confetti,roar,buzz,sndSet,bzSet,sfx,ttlShow,hpCards,hbInk,COLORS,cssK,rsz,kickFull,KN,cancelR,gpItems,keyOn,hmBks,whiteLook,pickSix,gsLine,ghUpdate,stdLookBack,stdCfgOf,stdOrder,hmRename,hmDraft,hmMake,hmShape,hmStart,hmName,hmNew,lgStand,lgOpenStand,lgPoTie,lgSimMine,openSet,persRec,persOpen,persTake,PERS,PERS_N,scoutPhrases,scoutTxt,SCOUT_T,defLean,defBlitz,pickWeighted,DEFD,styOpp,styNorm,newFranchise,renderHub,drvPref,openExh,v24Set,setPresnap,EXHset:v=>{EXH=v},mkOpp,pop,toLeft,toCan,toTl,doTimeout,hitGo,hitOn,hitTint,HIT,hitShake,oppTimeouts,figFront,figFMake,figSide,fgFrontSolve,fgFrontDraw,FIGX,FRB,DS_SC,hmPlay,exportCode,bkUnpack,bkCommit,lnMenu,lnLeave,lnFlush,lnBuy,lnPlayLabel,lnHubClick,lnOpen,lnWatch,lnUnwatch,lnAfterGame,lnPlayGo,lnSimGo,lnWaitHub,LN:LNK,LNC,CG,ACC,acSignIn,acSignOut,acFinishRedirect,acRow,acSaveRow,acCreate,hmStartCloud,acLoadList,acOpenCloud,acRows,acMark,acHint,acEmail,lnEnter,lnTakeover,LNA,lnAdv,lnIsCommish,lnSimMine,lnAdvHtml,lnDerive,lnPull,lnFind,lnJoin,lnShape,lnCur,lnLast,lnWeeksOf,lnLocalize,lnKeepLocal,lnPanel,lnJoinHtml,FULL,LGFULL,gsResume,LGD,simOppDrv,drvOn,drvSet,drvCtx,drvMix,drvRng,LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,openRoster,RR,rrInjLine,rrYours,rrList,rrCard,rrHand,stdStars,stdStandIn,stdFitTeam,stdSnap,stdYourSet,STD_POS,hmInj,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:upShift,upShift,stdRelief,stdSetRelief,stdCostR,stdOppLine,RELIEF_SLOPE,RELIEF_CAP,STD_NEAR,teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,foPlay,foOpen,foDress,foPaint,foBack,foSimShow,FO,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdN,n:spdN,mult:m,step:SPD_STEP[spdN-1]}},spdMul:SPD_MUL,spdStep:SPD_STEP,czSetColor,czRedraw,czDraw,FIGPV,figPv,setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub,tiltV2:on=>{DC_TILT_V2=!!on;LGD.tiltV2(on)},tiltTable:()=>DC_T,dcAutoCall,lgPoTie,lgPoCoin,sty:t=>typeof t==='number'?styTeam(t):t&&typeof t==='object'?styNorm(t.sty):null,styNorm,wdFix,lgUni,jClose,olUni,czSet,czWd,czRebuild,czUnis,czUniK,czOwnOf,fgPal,fgDraw,figMake,styFix,styGive,styMake,styClass,styOpp,styMine,STY_CLS};
 })();
 </script></body></html>

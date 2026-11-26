@@ -3,44 +3,50 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pixel Pigskin HQ v0.11</title>
+<title>Pixel Pigskin HQ v0.13</title>
 <style>
 /* Pixel Pigskin HQ v0.3: plain dark theme, system fonts only. */
 :root{
   --bg:#0e1424; --panel:#18213a; --panel2:#222d4d; --line:#33437a;
-  --text:#eef2ff; --muted:#a9b9e6; --yel:#ffd400; --grn:#4ee08a; --amb:#ffb020; --red:#ff8a8a;
+  --text:#eef2ff; --muted:#a9b9e6; --cream:#f3ead2; --sel:#2b3a55; --ink:#10142a; --focus:#4ea3ff; --yel:#ffd400; --grn:#4ee08a; --amb:#ffb020; --red:#ff8a8a;
   --fs:16px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
   font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;font-size:var(--fs);line-height:1.45}
-#app{display:flex;min-height:100vh}
+#app{display:flex;min-height:100vh;align-items:flex-start}
 #menu{width:12.5em;flex:none;background:var(--panel);border-right:2px solid var(--line);
-  padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column;gap:8px}
-#menu .brand{font-weight:700;letter-spacing:.08em;color:var(--yel);margin-bottom:8px;font-size:1.05em}
+  padding:16px 12px;position:sticky;top:0;height:100vh;height:100dvh;overflow:auto;display:flex;flex-direction:column;gap:8px;align-self:flex-start}
+#menu .brand{font-weight:700;letter-spacing:.08em;color:var(--cream);font-size:1.05em}
+#menu .mtop{margin-bottom:8px}
+#menu .mbtns{display:flex;flex-direction:column;gap:8px}
 #menu button{display:block;width:100%;text-align:left;padding:10px 12px;min-height:44px;
   background:var(--bg);color:var(--text);border:2px solid var(--line);font:inherit;cursor:pointer}
 #menu button:hover:not([disabled]){background:var(--panel2)}
-#menu button.on{background:var(--yel);color:#111;border-color:var(--yel);font-weight:700}
+/* HQ 0.12: the current page = lighter navy, white text, a 4 px white bar on the outer edge. It wins over hover and focus (the text stays white). */
+#menu button.on,#menu button.on:hover:not([disabled]),#menu button.on:focus,#menu button.on:focus-visible{background:var(--sel);color:#fff;border-color:var(--sel);box-shadow:inset 4px 0 0 #fff;font-weight:700}
 #menu button[disabled]{opacity:.4;cursor:not-allowed}
-#menu .lgname.top{margin-top:0;padding:8px 2px 6px}
+#menu .lgname.top{margin-top:0;padding:4px 2px 2px;display:flex;flex-direction:column;gap:1px;font-size:13px;color:var(--muted);word-break:break-word}
+#menu .lgname.top b{color:var(--text);font-size:1.05em}
 #menu .grp{margin:14px 0 4px;padding-top:8px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;letter-spacing:.08em}
 #menu .lgname{color:var(--muted);font-size:13px;margin-top:auto;padding-top:12px;word-break:break-word}
-#right{flex:1;min-width:0;display:flex;flex-direction:column}
+#right{flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh;align-self:stretch}
 main{flex:1;padding:20px 28px 28px;max-width:1800px;width:100%}
 footer{padding:10px 28px;color:var(--muted);font-size:.85em;border-top:1px solid var(--line)}
-h1{font-size:1.65em;margin:0 0 4px;letter-spacing:.04em}
-h2{font-size:1.2em;margin:22px 0 8px;color:var(--yel);letter-spacing:.04em}
+h1{font-size:1.65em;margin:0 0 4px;letter-spacing:.04em;color:var(--cream)}
+h2{font-size:1.2em;margin:22px 0 8px;color:var(--cream);letter-spacing:.04em}
 h3{font-size:1em;margin:18px 0 6px;color:var(--muted);letter-spacing:.04em}
 p,.note{margin:6px 0}
 .note{color:var(--muted);font-size:.92em}
 .sub{color:var(--muted);margin-bottom:14px}
 button,select,textarea,input{font:inherit}
-:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .btn{background:var(--panel2);color:var(--text);border:2px solid var(--line);padding:9px 16px;min-height:44px;cursor:pointer}
 .btn:hover{background:var(--line)}
 .btn.pri{background:var(--yel);color:#111;border-color:var(--yel);font-weight:700}
 .btn.pri:hover{background:#ffe55c}
+/* HQ 0.12: a selected choice (conference tabs, OFFENSE/DEFENSE, the playbook filters, the source buttons) = white fill, dark text. Yellow is only for the one action on a page and for what is yours. */
+.btn[aria-selected="true"],.btn[aria-pressed="true"],.btn[aria-selected="true"]:hover,.btn[aria-pressed="true"]:hover{background:#fff;color:var(--ink);border-color:#fff;font-weight:700}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0}
 select{background:var(--bg);color:var(--text);border:2px solid var(--line);padding:8px 10px;min-height:40px}
 textarea{width:100%;min-height:110px;background:var(--bg);color:var(--text);border:2px solid var(--line);padding:10px;
@@ -60,7 +66,7 @@ textarea{width:100%;min-height:110px;background:var(--bg);color:var(--text);bord
 .tag.bk{color:var(--muted)}
 .tag.rt{border-color:var(--amb);color:var(--amb)}
 .tag.rd{border-color:var(--red);color:var(--red)}
-.tag.star{border-color:var(--yel);background:var(--yel);color:#111;font-weight:700}
+.tag.star{border-color:var(--cream);background:var(--cream);color:var(--ink);font-weight:700}
 .tag.hs{border-color:var(--line);color:var(--muted);margin-left:.4em}
 .wrap{overflow-x:auto}
 table.tbl{border-collapse:collapse;width:100%;background:var(--panel)}
@@ -70,7 +76,7 @@ table.tbl{border-collapse:collapse;width:100%;background:var(--panel)}
 .tbl tr.me td{background:#2b2a14}
 .tbl tr.click{cursor:pointer}
 .tbl tr.click:hover td{background:var(--panel2)}
-.tbl tr.sec td{background:var(--panel2);color:var(--yel);font-weight:700;letter-spacing:.05em}
+.tbl tr.sec td{background:var(--panel2);color:var(--cream);font-weight:700;letter-spacing:.05em}
 a.lnk,button.lnk{color:#9cc4ff;background:none;border:0;padding:0;font:inherit;cursor:pointer;text-decoration:underline}
 dl.kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 22px;margin:8px 0;background:var(--panel);padding:14px 18px;border:2px solid var(--line)}
 dl.kv dt{color:var(--muted)} dl.kv dd{margin:0}
@@ -79,7 +85,7 @@ dl.kv dt{color:var(--muted)} dl.kv dd{margin:0}
 .tlist button{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;padding:8px 10px;min-height:40px;
   background:none;color:var(--text);border:0;border-bottom:1px solid var(--line);cursor:pointer}
 .tlist button:hover{background:var(--panel2)}
-.tlist button.on{background:var(--yel);color:#111;font-weight:700}
+.tlist button.on{background:var(--sel);color:#fff;box-shadow:inset 4px 0 0 #fff;font-weight:700}
 .tlist .gh{padding:6px 10px;background:var(--panel2);color:var(--muted);font-size:.75em;letter-spacing:.06em}
 .sw{display:inline-block;width:22px;height:22px;border:2px solid #fff;vertical-align:middle;margin-right:6px}
 .big{font-size:1.4em;font-weight:700}
@@ -89,9 +95,9 @@ dl.kv dt{color:var(--muted)} dl.kv dd{margin:0}
 .card{background:var(--panel);border:2px solid var(--line);padding:10px 16px;min-width:110px}
 .card b{display:block;font-size:1.4em} .card span{color:var(--muted);font-size:.82em}
 details.key{margin-top:18px;background:var(--panel);border:2px solid var(--line);padding:8px 14px}
-details.key summary{cursor:pointer;color:var(--yel)}
+details.key summary{cursor:pointer;color:var(--cream)}
 details.key dl{display:grid;grid-template-columns:max-content 1fr;gap:3px 18px;margin:8px 0 2px}
-details.key dt{color:var(--yel)} details.key dd{margin:0;color:var(--muted)}
+details.key dt{color:var(--cream)} details.key dd{margin:0;color:var(--muted)}
 pre{background:var(--panel);border:2px solid var(--line);padding:10px;overflow:auto;max-height:260px;font-size:.8em}
 /* big screens: larger type so it reads from across a room */
 @media (min-width:1500px){ :root{--fs:19px} }
@@ -103,18 +109,25 @@ pre{background:var(--panel);border:2px solid var(--line);padding:10px;overflow:a
   .tlist{max-height:30vh}
 }
 @media (max-width:900px){
-  #app{flex-direction:column}
-  #menu{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:2px solid var(--line);padding:10px;align-items:center}
-  #menu .brand{margin:0 8px 0 0}
-  #menu button{width:auto;min-height:40px;padding:6px 10px}
-  #menu .lgname{margin:0 0 0 auto;padding:0}
+  #app{flex-direction:column;align-items:stretch}
+  #menu{width:auto;height:auto;align-self:stretch;position:static;border-right:0;border-bottom:2px solid var(--line);padding:8px 10px;gap:4px}
+  #menu .mtop{display:flex;align-items:baseline;gap:10px;margin:0;min-width:0}
+  #menu .mtop .brand{display:none}
+  #menu .lgname.top{padding:0;flex-direction:row;gap:8px;align-items:baseline;min-width:0;white-space:nowrap;overflow:hidden}
+  #menu .lgname.top span{overflow:hidden;text-overflow:ellipsis}
+  #menu .mbtns{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding-bottom:6px;align-items:center;-webkit-overflow-scrolling:touch}
+  #menu button{width:auto;flex:none;min-height:44px;padding:6px 12px;white-space:nowrap}
+  #menu button.on,#menu button.on:hover:not([disabled]),#menu button.on:focus,#menu button.on:focus-visible{box-shadow:inset 0 -4px 0 #fff}
+  #menu .grp{display:none}
+  #menu .who{display:none}
+  #right{min-height:0;align-self:auto}
 }
 
 /* v0.3: online parts */
 #menu .who{color:var(--muted);font-size:13px;padding-top:10px;display:flex;flex-direction:column;gap:2px;word-break:break-word}
 #menu .who b{color:var(--text);font-weight:600}
 input[type=text]{background:var(--bg);color:var(--text);border:2px solid var(--line);padding:8px 10px;min-height:44px;font:inherit}
-input.code-in{text-transform:uppercase;letter-spacing:.2em;width:9em;font-family:Consolas,Menlo,monospace}
+input.code-in{text-transform:uppercase;letter-spacing:.2em;width:12.5em;max-width:100%;font-family:Consolas,Menlo,monospace}
 input.name-in{width:min(24em,100%)}
 .codebig{display:inline-block;font-family:Consolas,Menlo,monospace;font-size:2.6em;font-weight:700;letter-spacing:.3em;color:var(--yel);background:var(--panel);border:2px solid var(--yel);padding:.1em .45em .1em .75em}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
@@ -156,6 +169,23 @@ details.more summary{cursor:pointer;min-height:44px;display:flex;align-items:cen
 .dfkey{margin:6px 0 10px 18px;padding:0;color:var(--muted);font-size:.9em}
 #dfKeyBox{margin:8px 0}
 #dfKeyBox summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700}
+
+/* ===== HQ 0.12: phone (under about 700 px) ===== */
+@media (max-width:700px){
+  #main{padding:12px 10px}
+  h1{font-size:1.35em}
+  .tbl th,.tbl td{white-space:normal;padding:.4em .45em}
+  .tbl .hm,.tbl th.hm,.tbl td.hm{display:none}
+  table.tbl.fixed{table-layout:auto}
+  .tbl .pbarw{display:none}
+  .cards{gap:8px}
+  .card{flex:1 1 40%;min-width:0;padding:8px 10px}
+  .row>select,.row>input[type=text]{max-width:100%}
+  .pbgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .pbcard svg{width:100%;height:auto;max-height:110px}
+  #menu .mbtns::-webkit-scrollbar{height:4px}
+  #foot{padding:8px 10px}
+}
 </style>
 </head>
 <body>
@@ -1161,7 +1191,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LGSTD;
    page makes no network request of any kind. It opens PPSAVE1 backup codes and
    Standard league files as before (read only), and linked leagues from the cloud.
    ===================================================================== */
-var HQ_VERSION = '0.11';   /* filled in by build.mjs from package.json "version" (major.minor): the ONE place to bump it */
+var HQ_VERSION = '0.13';   /* filled in by build.mjs from package.json "version" (major.minor): the ONE place to bump it */
 
 /* ---------- small helpers (build page parts without innerHTML, so a
    strange name inside a save can never run as code) ---------- */
@@ -1205,9 +1235,11 @@ function tag(text, cls){ return el('span', {class:'tag ' + (cls || '')}, text); 
    col = {h:'HEADER', v:function(row,i){...}, n:true (number column)} */
 function table(cols, rows, opt){
   opt = opt || {};
-  var tb = el('table', {class:'tbl'});
+  var tb = el('table', {class:'tbl' + (opt.fixed ? ' fixed' : '')});
+  var cc = function(c){ return (c.n ? 'n' : '') + (c.hm ? ' hm' : ''); };   /* hm = hidden on a phone */
+  if (opt.fixed){ var cg = el('colgroup'); cols.forEach(function(c){ var k = el('col'); if (c.w) k.style.width = c.w; cg.appendChild(k); }); tb.appendChild(cg); }
   var tr = el('tr');
-  cols.forEach(function(c){ tr.appendChild(el('th', {class:c.n ? 'n' : ''}, c.h)); });
+  cols.forEach(function(c){ tr.appendChild(el('th', {class:cc(c)}, c.h)); });
   tb.appendChild(el('thead', null, tr));
   var body = el('tbody');
   rows.forEach(function(r, i){
@@ -1221,7 +1253,7 @@ function table(cols, rows, opt){
     var row = el('tr', {class:cls.join(' ')});
     if (opt.click) row.addEventListener('click', function(){ opt.click(r); });
     cols.forEach(function(c){
-      row.appendChild(el('td', {class:c.n ? 'n' : ''}, c.v(r, i)));
+      row.appendChild(el('td', {class:cc(c)}, c.v(r, i)));
     });
     body.appendChild(row);
   });
@@ -1232,6 +1264,15 @@ function kv(pairs){
   var dl = el('dl', {class:'kv'});
   pairs.forEach(function(p){ if (p[1] == null || p[1] === '') return; dl.appendChild(el('dt', null, p[0])); dl.appendChild(el('dd', null, p[1])); });
   return dl;
+}
+/* HQ 0.12: the file details nobody needs on a normal day: one closed section at the bottom of a page */
+function connText(){ return state.auth.kind === 'none' ? 'Offline: no network connection is made until you sign in or watch a league.' : 'Online (named app "' + APP_NAME + '"): the game\'s own sign-in is not touched.'; }
+function techBox(main, pairs, extra){
+  var d = el('details', {class:'key tech', id:'techDetails'}, el('summary', null, 'TECH DETAILS'));
+  if (pairs && pairs.length) d.appendChild(kv(pairs));
+  if (extra) add(d, extra);
+  main.appendChild(d);
+  return d;
 }
 function cards(list){
   return el('div', {class:'cards'}, list.map(function(c){ return el('div', {class:'card'}, [el('b', null, c[1]), el('span', null, c[0])]); }));
@@ -1492,7 +1533,8 @@ function buildStd(J, info){
     var rc = Array.isArray(t.rc) ? t.rc : [];
     var team = {idx:i, id:(t.id != null ? t.id : i), name:str(t.nm, 'Team ' + (i + 1)), conf:num(t.cf), div:num(t.dv),
       col:{c:t.lk && t.lk.c, d:t.lk && t.lk.d}, rec:{w:num(rc[0]), l:num(rc[1]), t:num(rc[2]), pf:num(rc[3]), pa:num(rc[4])},
-      mine:false, owner:t.ow, credits:t.cr, edge:(isNum(t.ed) ? t.ed : null), off:null, def:null, roster:[]};
+      mine:false, owner:t.ow, credits:t.cr, edge:(isNum(t.ed) ? t.ed : null), off:null, def:null, roster:[],
+      sty:(isObj(t.sty) ? t.sty : null), wd:(isObj(t.lo) && isObj(t.lo.wd) ? t.lo.wd : null), x:null};      /* 0.13: the personality, the wardrobe, and (a human team of a cloud league) his playbook / YOUR PLAYERS */
     (Array.isArray(t.ro) ? t.ro : []).forEach(function(p, k){
       p = isObj(p) ? p : {};
       var rt = isObj(p.rt) ? p.rt : {}, vals = Object.keys(rt).map(function(x){ return rt[x]; }).filter(isNum);
@@ -1514,8 +1556,9 @@ function buildStd(J, info){
   if (save && isNum(save.stm) && m.teams[save.stm | 0]){ m.meIdx = save.stm | 0; m.teams[m.meIdx].mine = true; }
   m.myTeamName = m.meIdx >= 0 ? m.teams[m.meIdx].name : '';
   m.byDiv = maxDv > 0 || !!(m.shape && m.shape.dv > 0);
-  m.confNames = Array.isArray(J.cn) ? J.cn : (m.shape && Array.isArray(m.shape.cn) ? m.shape.cn : []);
-  m.divNames = Array.isArray(J.dn) ? J.dn : (m.shape && Array.isArray(m.shape.dn) ? m.shape.dn : STD_DIV_NAMES); m.divAssumed = !Array.isArray(J.dn) && !m.shape;
+  var cx = isObj(J.cx) ? J.cx : null;                    /* 0.13: renamed conference and divisions of an 8-team league (the phone's L.cx) */
+  m.confNames = Array.isArray(J.cn) ? J.cn : (m.shape && Array.isArray(m.shape.cn) ? m.shape.cn : (cx && Array.isArray(cx.cn) ? cx.cn : []));
+  m.divNames = Array.isArray(J.dn) ? J.dn : (m.shape && Array.isArray(m.shape.dn) ? m.shape.dn : (cx && Array.isArray(cx.dn) ? cx.dn : STD_DIV_NAMES)); m.divAssumed = !Array.isArray(J.dn) && !m.shape && !(cx && Array.isArray(cx.dn));
   m.multiConf = maxCf > 0;
   m.teamCount = m.teams.length;
   m.gl = (save && Array.isArray(save.gl)) ? save.gl.filter(Array.isArray) : [];
@@ -1769,8 +1812,8 @@ function sampleStd(){
 }
 
 function vOpen(main){
-  add(main, [el('h1', null, 'MY LEAGUES'),
-    el('p', {class:'sub'}, state.auth.kind === 'google' ? 'Open a league to see its standings, or make a new one.' : 'Sign in to see your leagues.')]);
+  add(main, [el('h1', null, 'PIXEL PIGSKIN HQ'),
+    el('p', {class:'sub'}, 'The big-screen view of your Pixel Pigskin leagues: standings, rosters, schedule and playbook.')]);
   if (state.msg) main.appendChild(el('div', {class:'msg ' + state.msg.kind, role:'alert'}, state.msg.text));
 
   /* A. backup code */
@@ -1782,7 +1825,7 @@ function vOpen(main){
     el('p', {class:'note'}, 'The code from the game (starts with PPSAVE1:). It may sit inside other text. A backup of all leagues lets you pick one.'),
     box,
     el('div', {class:'row'}, [
-      el('button', {type:'button', class:'btn pri', id:'btnCode', onclick:function(){ openText(box.value); }}, 'OPEN CODE'),
+      el('button', {type:'button', class:'btn', id:'btnCode', onclick:function(){ openText(box.value); }}, 'OPEN CODE'),
       el('button', {type:'button', class:'btn', id:'btnTxt', onclick:function(){ txtIn.click(); }}, 'LOAD A .TXT FILE'), txtIn])
   ]);
   /* B. Standard league file */
@@ -1795,7 +1838,7 @@ function vOpen(main){
     el('h2', null, 'B. STANDARD LEAGUE FILE'),
     el('p', {class:'note'}, 'A Standard league .json file (teams with full rosters).'),
     el('div', {class:'row'}, [
-      el('button', {type:'button', class:'btn pri', id:'btnJson', onclick:function(){ jsIn.click(); }}, 'LOAD LEAGUE .JSON FILE'), jsIn,
+      el('button', {type:'button', class:'btn', id:'btnJson', onclick:function(){ jsIn.click(); }}, 'LOAD LEAGUE .JSON FILE'), jsIn,
       el('button', {type:'button', class:'btn', id:'btnSample', onclick:function(){ adopt(sampleStd(), {warn:null, from:'the built-in sample'}); }}, 'OPEN BUILT-IN SAMPLE')]),
     el('p', {class:'note'}, 'The sample is a tiny 2-team Standard league made by hand, only for trying the screens.'),
     drop
@@ -1819,7 +1862,7 @@ function vOpen(main){
     main.appendChild(table([
       {h:'SLOT', v:function(r){ return String(r.i + 1); }, n:true}, {h:'LEAGUE', v:function(r){ return r.name; }}, {h:'MY TEAM', v:function(r){ return r.team; }},
       {h:'SEASON', v:function(r){ return str(r.season, '-'); }, n:true}, {h:'W-L-T', v:function(r){ return r.rec; }}, {h:'TYPE', v:function(r){ return r.kind; }},
-      {h:'', v:function(r){ return el('button', {type:'button', class:'btn pri', 'data-slot':r.i, onclick:function(){ adopt(r.s, {warn:state.pending.warn, from:'a backup of all leagues (slot ' + (r.i + 1) + ')'}); }}, 'OPEN'); }}
+      {h:'', v:function(r){ return el('button', {type:'button', class:'btn', 'data-slot':r.i, onclick:function(){ adopt(r.s, {warn:state.pending.warn, from:'a backup of all leagues (slot ' + (r.i + 1) + ')'}); }}, 'OPEN'); }}
     ], rows));
   }
   main.appendChild(more);
@@ -2220,20 +2263,19 @@ function vLeagueStd(main){
     main.appendChild(cards(cs));
   }
   var rules = m.rules, pairs = [
-    ['Type', 'STANDARD LEAGUE (fmt ' + m.fmt + ')'], ['Teams', m.shape ? shapeText(m) : String(m.teamCount) + ', in 2 divisions'],
+    ['Type', 'Standard league' + (m.shape && m.shape.k && m.shape.k !== 'CUSTOM' ? ': ' + m.shape.k + ', ' + m.teamCount + ' teams' : '')], ['Teams', m.shape ? shapeText(m) : String(m.teamCount) + ', in 2 divisions'],
     ['Season', str(m.season, '-')], ['Phase', stdPhaseText(m)],
     ['Weeks played', Math.min(num(L.wk), nG) + ' of ' + nG]
   ];
   if (P && P.ch != null) pairs.push(['Champion this season', teamLabel(m, P.ch)]);
   if (P && P.ru != null && P.ch != null) pairs.push(['Runner-up this season', teamLabel(m, P.ru)]);
-  if (m.inj) pairs.push(['Injuries', m.inj + ' (a hurt starter shows OUT n WEEKS on the team page)']);
+  pairs.push(['Injuries', m.inj ? m.inj + ' (a hurt starter shows OUT n WEEKS on the team page)' : 'OFF']);
   pairs.push(['Past seasons on record', String(m.hist.length)]);
-  pairs.push(['League id', str(L.id, '-')]);
-  pairs.push(['Random seed (rs)', str(L.rs, '-')]);
-  pairs.push(['Rules version', str(rules.version, '-')]);
-  if (rules.edge) pairs.push(['Team edge', (isNum(rules.edge.scale) && rules.edge.scale > 0) ? 'on (scale ' + rules.edge.scale + ')' : 'off']);
-  if (isNum(L.burn)) pairs.push(['Hidden burn-in seasons', String(L.burn)]);
   main.appendChild(kv(pairs));
+  var tech = [['League id', str(L.id, '-')], ['Random seed (rs)', str(L.rs, '-')], ['Rules version', str(rules.version, '-')], ['League file format (fmt)', str(m.fmt, '-')]];
+  if (rules.edge) tech.push(['Team edge', (isNum(rules.edge.scale) && rules.edge.scale > 0) ? 'on (scale ' + rules.edge.scale + ')' : 'off']);
+  if (isNum(L.burn)) tech.push(['Hidden burn-in seasons', String(L.burn)]);
+  tech.push(['Engine version', str(STD.version, '-')]);
 
   /* playoffs */
   if (P && P.shaped){ main.appendChild(el('h2', null, 'PLAYOFFS')); bracketView(main, m); }
@@ -2306,6 +2348,7 @@ function vLeagueStd(main){
     main.appendChild(el('p', {class:'note'}, 'No finished seasons on record yet: the history of champions starts after the first offseason.'));
   }
   main.appendChild(el('p', {class:'note'}, 'Use STANDINGS, TEAM, PLAYER and SCHEDULE AND RESULTS for the details. A Standard league has real rosters for every team.'));
+  techBox(main, tech, el('p', {class:'note'}, connText()));
 }
 
 /* ---------- STANDINGS ---------- */
@@ -2313,7 +2356,7 @@ function vLeagueStd(main){
 function myTeamLink(main){
   var m = state.m;
   if (!m || m.meIdx == null || m.meIdx < 0 || !m.teams[m.meIdx] || m.classic) return;
-  main.appendChild(el('div', {class:'row'}, el('button', {type:'button', class:'btn pri', id:'btnMyTeam', 'data-team':m.meIdx, onclick:function(){ state.selTeam = m.meIdx; state.selPlayer = null; go('team'); }}, 'MY TEAM: ' + m.teams[m.meIdx].name)));
+  main.appendChild(el('div', {class:'row'}, el('button', {type:'button', class:'btn', id:'btnMyTeam', 'data-team':m.meIdx, onclick:function(){ state.selTeam = m.meIdx; state.selPlayer = null; go('team'); }}, 'MY TEAM: ' + m.teams[m.meIdx].name)));
 }
 function vStandingsStd(main){
   if (state.m.shape) return vStandingsShaped(main);
@@ -2331,10 +2374,10 @@ function vStandingsStd(main){
   main.appendChild(table([
     {h:'#', v:function(t){ return m.played ? String(m.place[t.idx]) : '-'; }, n:true},
     {h:'TEAM', v:function(t){ return [t.name, t.mine ? tag('MY TEAM', 'me') : null]; }},
-    {h:'DIV', v:function(t){ return str(m.divNames[t.div], 'Division ' + (t.div + 1)); }},
-    {h:'W-L-T', v:function(t){ return recStr(t.rec); }, n:true}, {h:'PCT', v:function(t){ return pctStr(t.rec); }, n:true},
-    {h:'PF', v:function(t){ return String(t.rec.pf); }, n:true}, {h:'PA', v:function(t){ return String(t.rec.pa); }, n:true},
-    {h:'DIF', v:function(t){ return sgn(t.rec.pf - t.rec.pa); }, n:true},
+    {h:'DIV', hm:true, v:function(t){ return str(m.divNames[t.div], 'Division ' + (t.div + 1)); }},
+    {h:'W-L-T', v:function(t){ return recStr(t.rec); }, n:true}, {h:'PCT', hm:true, v:function(t){ return pctStr(t.rec); }, n:true},
+    {h:'PF', hm:true, v:function(t){ return String(t.rec.pf); }, n:true}, {h:'PA', hm:true, v:function(t){ return String(t.rec.pa); }, n:true},
+    {h:'DIF', hm:true, v:function(t){ return sgn(t.rec.pf - t.rec.pa); }, n:true},
     {h:'PLAYOFFS', v:playoffText},
     {h:'', v:function(t){ return (m.played && tiedAt[t.idx]) ? el('span', {class:'tag hs', title:'level on win percentage and points difference: the seeded draw decides'}, 'DRAW') : null; }}
   ], order.map(function(i){ return m.teams[i]; }), {rowClass:function(t){ return t.mine ? 'me' : ''; }, click:function(t){ state.selTeam = t.idx; go('team'); }}));
@@ -2354,9 +2397,9 @@ function vStandingsStd(main){
     main.appendChild(table([
       {h:'#', v:function(t, i){ return m.played ? String(i + 1) : '-'; }, n:true},
       {h:'TEAM', v:function(t){ return [t.name, t.mine ? tag('MY TEAM', 'me') : null]; }},
-      {h:'W-L-T', v:function(t){ return recStr(t.rec); }, n:true}, {h:'PCT', v:function(t){ return pctStr(t.rec); }, n:true},
-      {h:'PF', v:function(t){ return String(t.rec.pf); }, n:true}, {h:'PA', v:function(t){ return String(t.rec.pa); }, n:true},
-      {h:'DIF', v:function(t){ return sgn(t.rec.pf - t.rec.pa); }, n:true},
+      {h:'W-L-T', v:function(t){ return recStr(t.rec); }, n:true}, {h:'PCT', hm:true, v:function(t){ return pctStr(t.rec); }, n:true},
+      {h:'PF', hm:true, v:function(t){ return String(t.rec.pf); }, n:true}, {h:'PA', hm:true, v:function(t){ return String(t.rec.pa); }, n:true},
+      {h:'DIF', hm:true, v:function(t){ return sgn(t.rec.pf - t.rec.pa); }, n:true},
       {h:'LEAGUE #', v:function(t){ return m.played ? String(m.place[t.idx]) : '-'; }, n:true}
     ], g.teams, {rowClass:function(t){ return t.mine ? 'me' : ''; }, click:function(t){ state.selTeam = t.idx; go('team'); }}));
   });
@@ -2378,18 +2421,33 @@ function formatText(m){
   if (S.dv) t += ' A conference sends its ' + S.dv + ' division winners first (best record first), then the best of the rest as wild cards.';
   else if (S.nc > 1) t += ' The ' + S.nc + ' conference champions (best record inside the conference) go in first, the rest are the best other records.';
   else t += ' The best records go in.';
-  if (byes) t += ' The top ' + byes + ' seed' + (byes === 1 ? '' : 's') + (S.br === 2 ? ' of each conference' : '') + ' skip the first round (BYE).';
+  if (byes) t += (byes === 1 ? ' The top seed' : ' The top ' + byes + ' seeds') + (S.br === 2 ? ' of each conference' : '') + (byes === 1 ? ' skips' : ' skip') + ' the first round (BYE).';
   t += ' Home advantage goes to the better seed' + (S.hr < log2i(pow2up(per)) + (S.br === 2 ? 1 : 0) ? ' until the late rounds, which are played at a neutral park.' : '.');
   return t;
 }
+/* HQ 0.12: the PLAYOFFS column says the seed and how: "1 DIV" (division winner), "5 WC" (wild card); with no divisions "1 CONF" (conference champion) or "5 AT LARGE". The order is STD's own seeding. */
+function seedHow(m, n){
+  var S = m.shape, nc = S.nc || 1, per = nc / (S.br || 1), lead = S.dv ? S.dv : (nc > 1 ? per : 0);
+  if (!lead) return '';
+  return n <= lead ? (S.dv ? 'DIV' : 'CONF') : (S.dv ? 'WC' : 'AT LARGE');
+}
+function winShare(r){ return pct(r); }
 function seedText(m, t){
-  var P = m.po;
+  var P = m.po, S = m.shape;
   if (P){
     var n = seedOf(P, t.id);
-    if (n) return [(P.brackets.length > 1 ? confLabel(m, P.bracketOf[t.id]) + ' ' : '') + 'SEED ' + n + ' ', P.byes[t.id] ? tag('BYE', 'st') : null, P.status[t.id] ? el('span', {class:'note'}, ' ' + P.status[t.id]) : null];
+    if (n) return [n + ' ' + seedHow(m, n) + ' ', (P.brackets.length > 1 ? el('span', {class:'note'}, confLabel(m, P.bracketOf[t.id]) + ' ') : null), P.byes[t.id] ? tag('BYE', 'st') : null, P.status[t.id] ? el('span', {class:'note'}, ' ' + P.status[t.id]) : null];
     return P.opened || P.done ? 'did not qualify' : '';
   }
-  return (m.projIds && m.projIds[t.id]) ? 'IN (PLAYOFF FIELD NOW)' : '';
+  var pr = m.projSeed && m.projSeed[t.id];
+  if (pr) return pr.n + ' ' + seedHow(m, pr.n);
+  if (m.projSeed && m.played){
+    /* out, but level with a team that is in (same win share and points difference, same bracket): the tiebreak decided */
+    var per = (S.nc || 1) / (S.br || 1), bi = Math.floor(t.conf / per), lvl = false;
+    m.teams.forEach(function(o){ var q = m.projSeed[o.id]; if (q && q.bi === bi && winShare(o.rec) === winShare(t.rec) && o.rec.pf - o.rec.pa === t.rec.pf - t.rec.pa) lvl = true; });
+    if (lvl) return 'OUT, TIEBREAK';
+  }
+  return '';
 }
 /* the playoff rounds of a shaped league as the phone shows them: round by round, with the byes and the seeds */
 function bracketView(main, m){
@@ -2421,7 +2479,7 @@ function vStandingsShaped(main){
   add(main, [el('h1', null, 'STANDINGS'), el('p', {class:'sub'}, 'All ' + m.teamCount + ' teams in the order the league uses. ' + (nc > 1 ? 'Pick a conference. ' : '') + 'Click a team to open it.')]);
   myTeamLink(main);
   if (!m.played) main.appendChild(el('div', {class:'msg warn'}, 'No games have been played this season yet, so there is no order: teams are listed by team number.'));
-  if (!P && m.played){ try { var f = {}; STD.seedBrackets(m.L, 0).forEach(function(b){ b.forEach(function(id){ f[id] = true; }); }); m.projIds = f; } catch (e){ m.projIds = null; } }
+  if (!P && m.played){ try { var f = {}, ps = {}; STD.seedBrackets(m.L, 0).forEach(function(b, bi){ b.forEach(function(id, k){ f[id] = true; ps[id] = {n:k + 1, bi:bi}; }); }); m.projIds = f; m.projSeed = ps; } catch (e){ m.projIds = null; m.projSeed = null; } }
   var tiedAt = {}; m.rank.order.forEach(function(ti, i){ tiedAt[ti] = m.rank.tied[i]; });
   var cw = confRecs(m);
   var sel = state.selConf;
@@ -2429,24 +2487,24 @@ function vStandingsShaped(main){
   state.selConf = sel;
   if (nc > 1){
     var row = el('div', {class:'row', id:'confTabs', role:'tablist'});
-    for (var c = 0; c < nc; c++) (function(c){ row.appendChild(el('button', {type:'button', role:'tab', class:'btn' + (sel === c ? ' pri' : ''), 'data-conf':c, 'aria-selected':sel === c ? 'true' : 'false',
+    for (var c = 0; c < nc; c++) (function(c){ row.appendChild(el('button', {type:'button', role:'tab', class:'btn', 'data-conf':c, 'aria-selected':sel === c ? 'true' : 'false',
       onclick:function(){ state.selConf = c; render(); }}, confLabel(m, c))); })(c);
-    row.appendChild(el('button', {type:'button', role:'tab', class:'btn' + (sel === 'all' ? ' pri' : ''), 'data-conf':'all', 'aria-selected':sel === 'all' ? 'true' : 'false',
+    row.appendChild(el('button', {type:'button', role:'tab', class:'btn', 'data-conf':'all', 'aria-selected':sel === 'all' ? 'true' : 'false',
       onclick:function(){ state.selConf = 'all'; render(); }}, 'ALL TEAMS'));
     main.appendChild(row);
   }
   function cols(rank, withConf){
-    var c = [{h:'#', v:function(t, i){ return m.played ? String(rank === 'overall' ? m.place[t.idx] : i + 1) : '-'; }, n:true},
-      {h:'TEAM', v:function(t){ return [t.name, t.mine ? tag('MY TEAM', 'me') : null]; }}];
-    if (rank === 'overall') c.push({h:nc > 1 ? 'CONF' : '', v:function(t){ return nc > 1 ? confLabel(m, t.conf) + (S.dv ? ' ' + divLabel(m, t.div) : '') : ''; }});
-    c.push({h:'W-L-T', v:function(t){ return recStr(t.rec); }, n:true}, {h:'PCT', v:function(t){ return pctStr(t.rec); }, n:true});
-    if (withConf) c.push({h:'CONF', v:function(t){ var x = cw[t.idx]; return x.w + '-' + x.l + (x.t ? '-' + x.t : ''); }, n:true});
-    c.push({h:'PF', v:function(t){ return String(t.rec.pf); }, n:true}, {h:'PA', v:function(t){ return String(t.rec.pa); }, n:true},
-      {h:'DIF', v:function(t){ return sgn(t.rec.pf - t.rec.pa); }, n:true}, {h:'PLAYOFFS', v:function(t){ return seedText(m, t); }});
-    if (rank === 'overall') c.push({h:'', v:function(t){ return (m.played && tiedAt[t.idx]) ? el('span', {class:'tag hs', title:'level on win percentage and points difference: the seeded draw decides'}, 'DRAW') : null; }});
+    var c = [{h:'#', w:'44px', v:function(t, i){ return m.played ? String(rank === 'overall' ? m.place[t.idx] : i + 1) : '-'; }, n:true},
+      {h:'TEAM', w:'210px', v:function(t){ return [t.name, t.mine ? tag('MY TEAM', 'me') : null]; }}];
+    if (rank === 'overall') c.push({h:nc > 1 ? 'CONF' : '', w:'150px', hm:true, v:function(t){ return nc > 1 ? confLabel(m, t.conf) + (S.dv ? ' ' + divLabel(m, t.div) : '') : ''; }});
+    c.push({h:'W-L-T', w:'84px', v:function(t){ return recStr(t.rec); }, n:true}, {h:'PCT', w:'64px', hm:true, v:function(t){ return pctStr(t.rec); }, n:true});
+    if (withConf) c.push({h:'CONF', w:'70px', hm:true, v:function(t){ var x = cw[t.idx]; return x.w + '-' + x.l + (x.t ? '-' + x.t : ''); }, n:true});
+    c.push({h:'PF', w:'56px', hm:true, v:function(t){ return String(t.rec.pf); }, n:true}, {h:'PA', w:'56px', hm:true, v:function(t){ return String(t.rec.pa); }, n:true},
+      {h:'DIF', w:'64px', hm:true, v:function(t){ return sgn(t.rec.pf - t.rec.pa); }, n:true}, {h:'PLAYOFFS', w:'200px', v:function(t){ return seedText(m, t); }});
+    if (rank === 'overall') c.push({h:'', w:'70px', hm:true, v:function(t){ return (m.played && tiedAt[t.idx]) ? el('span', {class:'tag hs', title:'level on win percentage and points difference: the seeded draw decides'}, 'DRAW') : null; }});
     return c;
   }
-  var opt = {rowClass:function(t){ return t.mine ? 'me' : ''; }, click:function(t){ state.selTeam = t.idx; go('team'); }};
+  var opt = {fixed:true, rowClass:function(t){ return t.mine ? 'me' : ''; }, click:function(t){ state.selTeam = t.idx; go('team'); }};
   function teamsOf(ids){ return ids.map(function(i){ return m.teams[i]; }); }
   if (sel === 'all'){
     main.appendChild(el('h2', null, 'ALL TEAMS (LEAGUE ORDER)'));
@@ -2497,14 +2555,15 @@ function vTeamStd(main){
   d.appendChild(el('p', {class:'note'}, where));
   var S = t.str, edge = t.edge;
   d.appendChild(cards([['W-L-T', recStr(t.rec)], ['PF', String(t.rec.pf)], ['PA', String(t.rec.pa)], ['DIF', sgn(t.rec.pf - t.rec.pa)],
-    ['OFF', f2(t.off)], ['DEF', f2(t.def)], ['EDGE', edge == null ? '-' : String(edge)]]));
+    ['OFF', f2(t.off)], ['DEF', f2(t.def)]]));
   if (t.owner && t.owner !== 'ai') d.appendChild(el('p', {class:'note'}, 'Owner: a human team.'));
   if (typeof lookCard === 'function') lookCard(d, m, t);                                   /* HQ 0.9: the uniforms (the phone's HOME, AWAY, WHITE from two colors) */
+  if (typeof teamExtrasCard === 'function') teamExtrasCard(d, m, t);                      /* HQ 0.13: the personality line, YOUR PLAYERS */
 
   /* the unit strengths, with how each is made */
-  d.appendChild(el('h3', null, 'UNIT STRENGTHS (THE GAME\'S FORMULA, WORKED OUT HERE; NOT STORED IN THE FILE)'));
+  var techNodes = [el('h3', null, 'UNIT STRENGTHS (THE GAME\'S FORMULA, WORKED OUT HERE; NOT STORED IN THE FILE)')];
   function eff(x){ return (x != null && edge != null) ? f2(x + edge) : '-'; }
-  d.appendChild(table([
+  techNodes.push(table([
     {h:'UNIT', v:function(r){ return r[0]; }}, {h:'VALUE', v:function(r){ return r[1]; }, n:true}, {h:'HOW', v:function(r){ return r[2]; }}
   ], [
     ['QB (q)', f2(S.q), '(arm + accuracy) / 2'],
@@ -2516,7 +2575,7 @@ function vTeamStd(main){
     ['EDGE', edge == null ? '-' : String(edge), 'the team\'s own bonus, as stored; added to OFF and DEF in the sim'],
     ['OFF WITH EDGE', eff(S.off), 'what the sim uses for offense'], ['DEF WITH EDGE', eff(S.def), 'what the sim uses for defense']
   ]));
-  if (S.off == null || S.def == null) d.appendChild(el('p', {class:'note'}, 'A unit could not be worked out because a starter or a rating is missing.'));
+  if (S.off == null || S.def == null) techNodes.push(el('p', {class:'note'}, 'A unit could not be worked out because a starter or a rating is missing.'));
   var hurt = t.roster.filter(function(p){ return p.ou; });
   if (hurt.length) d.appendChild(el('p', {class:'note', id:'hurtNote'}, hurt.length + ' starter' + (hurt.length === 1 ? ' is' : 's are') + ' hurt (' + hurt.map(function(p){ return p.pos + ' ' + p.name + ' ' + outText(p).toLowerCase(); }).join(', ') + '). The sim replaces a hurt starter with the next fit player; the unit strengths above still count him.'));
 
@@ -2534,8 +2593,8 @@ function vTeamStd(main){
     {h:'NAME', v:function(p){ return [p.name, p.star ? tag('STAR', 'star') : null, p.starter ? null : tag('BACKUP', 'bk'), p.ou ? tag(outText(p), 'rt') : null]; }},
     {h:'AGE', v:function(p){ return str(p.age, '-'); }, n:true},
     {h:'RATINGS', v:function(p){ return ratingTextStd(p); }},
-    {h:'POT', v:function(p){ return rd(p.pot); }, n:true}, {h:'XP', v:function(p){ return str(p.xp, '-'); }, n:true},
-    {h:'TO POTENTIAL', v:function(p){ var g = progressOf(p); return g == null ? '-' : [bar(g), ' ' + Math.round(g) + '%']; }}
+    {h:'POT', v:function(p){ return rd(p.pot); }, n:true}, {h:'XP', hm:true, v:function(p){ return str(p.xp, '-'); }, n:true},
+    {h:'TO POTENTIAL', v:function(p){ var g = progressOf(p); return g == null ? '-' : [el('span', {class:'pbarw'}, bar(g)), ' ' + Math.round(g) + '%']; }}
   ], rows, {click:function(p){ state.selPlayer = {t:t.idx, p:p.key}; go('player'); }}));
   if (miss.length) d.appendChild(el('p', {class:'note'}, 'Missing starters: ' + miss.join(', ') + '.'));
   d.appendChild(el('p', {class:'note'}, 'STAR = potential ' + rd(m.starMin) + ' or more (the file has no star flag of its own). TO POTENTIAL = the average of the player\'s ratings divided by his potential (worked out here). Ratings and potential are shown as stored.'));
@@ -2550,6 +2609,7 @@ function vTeamStd(main){
         seasons.slice().sort(function(a, b){ return b.s - a.s; }))]));
   }
   d.appendChild(keyEl());
+  techBox(d, null, techNodes);
   main.appendChild(el('div', {class:'split'}, [list, d]));
 }
 
@@ -2577,7 +2637,7 @@ function vPlayerStd(main){
   var g = progressOf(p);
   main.appendChild(cards([['AGE', str(p.age, '-')], ['POTENTIAL (POT)', rd(p.pot)], ['XP', str(p.xp, '-')], ['DEPTH SLOT', String(p.sl + 1)],
     ['AT POTENTIAL', g == null ? '-' : Math.round(g) + '%']]));
-  main.appendChild(kv([['Player id', p.id], ['Star', p.star ? 'Yes: potential ' + rd(p.pot) + ' (stars are potential ' + rd(m.starMin) + ' or more)' : 'No']]));
+  main.appendChild(kv([['Star', p.star ? 'Yes: potential ' + rd(p.pot) + ' (stars are potential ' + rd(m.starMin) + ' or more)' : 'No']]));
 
   var keys = Object.keys(p.rt).sort(function(a, b){ var x = RT_ORDER.indexOf(a), y = RT_ORDER.indexOf(b); return (x < 0 ? 99 : x) - (y < 0 ? 99 : y); });
   main.appendChild(el('h3', null, 'RATINGS AND PROGRESS TOWARD POTENTIAL'));
@@ -2601,6 +2661,7 @@ function vPlayerStd(main){
     main.appendChild(el('p', {class:'note'}, 'A career line is [season, games]: the season number and the games his team played that season (regular season plus playoffs). The league keeps no per-game player stats for AI-simulated games.'));
   }
   main.appendChild(keyEl());
+  techBox(main, [['Player id', p.id]]);
 }
 
 /* ---------- SCHEDULE AND RESULTS ---------- */
@@ -2648,7 +2709,7 @@ function vScheduleStd(main){
     {h:'HOME', v:function(x){ return [x.hs, x.h ? x.h.name : '?', (x.h && x.h.mine) ? tag('MY TEAM', 'me') : null]; }},
     {h:'AWAY', v:function(x){ return [x.as, x.a ? x.a.name : '?', (x.a && x.a.mine) ? tag('MY TEAM', 'me') : null]; }},
     {h:'SCORE', v:function(x){ return x.r ? x.r.sc[0] + ' - ' + x.r.sc[1] : 'not played yet'; }, n:true},
-    {h:'WINNER', v:function(x){ return x.r ? (x.r.sc[0] > x.r.sc[1] ? (x.h ? x.h.name : '?') : (x.r.sc[0] < x.r.sc[1] ? (x.a ? x.a.name : '?') : 'tie')) : ''; }},
+    {h:'WINNER', hm:true, v:function(x){ return x.r ? (x.r.sc[0] > x.r.sc[1] ? (x.h ? x.h.name : '?') : (x.r.sc[0] < x.r.sc[1] ? (x.a ? x.a.name : '?') : 'tie')) : ''; }},
     {h:'', v:function(x){ return [x.mine ? tag('MY GAME', 'me') : null, x.r ? srcTag(x.r.src) : null]; }}
   ], rows, {rowClass:function(x){ return x.mine ? 'me' : ''; }}) : el('p', {class:'note'}, 'No games listed for this round yet.'));
   main.appendChild(el('p', {class:'note'}, 'H = a game I played by hand (the league record marks each result as hand or sim). Every other score comes from the league\'s seeded engine.'));
@@ -2661,12 +2722,23 @@ function vScheduleStd(main){
       var opp = teamById(m, r.h === me.id ? r.a : r.h);
       mine.push({wk:r.wk, label:r.wk < nW ? 'Week ' + (r.wk + 1) : poName(m, r.wk - nW), opp:opp ? opp.name : '?', site:r.h === me.id ? 'Home' : 'Away', res:resLine(r, me.id), src:r.src});
     });
+    /* HQ 0.12: the weeks still to play follow the played ones (result blank); the first of them is the NEXT GAME */
+    var seen = {}; mine.forEach(function(r){ seen[r.wk] = true; });
+    m.sched.forEach(function(wkGames, wk){
+      if (seen[wk] || !Array.isArray(wkGames)) return;
+      wkGames.forEach(function(pr){
+        if (!Array.isArray(pr) || (pr[0] !== me.id && pr[1] !== me.id) || seen[wk]) return;
+        var opp = teamById(m, pr[0] === me.id ? pr[1] : pr[0]); seen[wk] = true;
+        mine.push({wk:wk, label:'Week ' + (wk + 1), opp:opp ? opp.name : '?', site:pr[0] === me.id ? 'Home' : 'Away', res:'', src:null, up:true});
+      });
+    });
     if (mine.length){
       mine.sort(function(a, b){ return a.wk - b.wk; });
+      var nx = mine.filter(function(r){ return r.up; })[0]; if (nx) nx.next = true;
       main.appendChild(el('h2', null, 'MY GAMES THIS SEASON'));
-      main.appendChild(table([{h:'WHEN', v:function(r){ return r.label; }}, {h:'OPPONENT', v:function(r){ return r.opp; }}, {h:'SITE', v:function(r){ return r.site; }},
-        {h:'RESULT', v:function(r){ return r.res; }, n:true}, {h:'', v:function(r){ return srcTag(r.src); }}], mine,
-        {click:function(r){ state.selWeek = r.wk; render(); }}));
+      main.appendChild(table([{h:'WHEN', v:function(r){ return [r.label, r.next ? tag('NEXT GAME', 'me') : null]; }}, {h:'OPPONENT', v:function(r){ return r.opp; }}, {h:'SITE', v:function(r){ return r.site; }},
+        {h:'RESULT', v:function(r){ return r.res; }, n:true}, {h:'', hm:true, v:function(r){ return r.src ? srcTag(r.src) : null; }}], mine,
+        {rowClass:function(r){ return r.next ? 'me' : ''; }, click:function(r){ state.selWeek = r.wk; render(); }}));
     }
   }
   if (P) main.appendChild(el('details', {class:'key'}, [el('summary', null, 'Playoff state (raw, as stored)'), el('pre', null, JSON.stringify(m.L.po, null, 1).slice(0, 4000))]));
@@ -2691,7 +2763,7 @@ var STD = LGSTD.make(LGE);
    Three parts: (1) a thin ADAPTER over Firestore, (2) PURE functions that turn a Standard league into cloud documents and back,
    (3) the CLOUD OPERATIONS (create, resume, read) written against the adapter only. */
 
-var LG_CLOUD_VERSION = 'lg-cloud 1.0 (HQ 0.7: league document + human team documents, any league shape)';
+var LG_CLOUD_VERSION = 'lg-cloud 1.1 (HQ 0.13: every field of a phone Standard league: personalities, wardrobes, injuries, names, playbook, YOUR PLAYERS)';
 var CLOUD_SDK_VERSION = '10.14.1';           /* the same Firebase web SDK version the game loads */
 var CLOUD_FORMAT = 1;                        /* meta.v of the OLD layout (one document per team, 8 teams) */
 var CLOUD_FORMAT_BIG = 2;                    /* meta.v of the NEW layout (meta.lay === 2): one league document + one document per HUMAN team */
@@ -2800,12 +2872,22 @@ function blOf(ro, rules){
   ro.forEach(function(p){ bl[p.id] = rules.ratingKeys[p.ps].map(function(k){ return p.rt[k]; }); });
   return bl;
 }
+/* ---------- lg-cloud 1.1: the look and the personality of a team (every team), the playbook, YOUR PLAYERS, options (a human team) ----------
+   sty = the team personality record (absent = the default). lo = { wd: wardrobe } (absent = the standard uniforms built from the colors).
+   Both ride on the team record in the league document (computer teams) or in the team document (human teams). A league without them reads with today's defaults. */
+function jcopy(x){ return x == null ? x : JSON.parse(JSON.stringify(x)); }
+function lookOf(t){
+  var o = {};
+  if (t.sty && typeof t.sty === 'object' && !Array.isArray(t.sty)) o.sty = jcopy(t.sty);
+  if (t.lo && t.lo.wd && typeof t.lo.wd === 'object') o.lo = { wd: jcopy(t.lo.wd) };
+  return o;
+}
 function encTeam(t, rtd, up, rules){
   rules = rules || STD_RULES;
   var d = { id: String(t.id), nm: t.nm, cf: t.cf, dv: t.dv, ow: t.ow, lk: { c: t.lk.c, d: t.lk.d }, cr: t.cr, ed: t.ed,
     rc: [0, 0, 0, 0, 0], ro: t.ro.map(encPlayer), rtd: (rtd || []).slice(), bl: blOf(t.ro, rules) };
   if (up && up.length) d.up = up.slice();
-  return d;
+  return Object.assign(d, lookOf(t));
 }
 /* ---------- the two layouts ----------
    LAYOUT 1 (old, never converted): lgs/{lg} = meta, lgs/{lg}/teams/0..7 = one chunk per team, 8 teams.
@@ -2825,11 +2907,11 @@ function roundsOf(meta){
 }
 /* a computer-run team inside the league document: no baseline, no retired list, no audit list */
 function encTeamLite(t){
-  return { id: String(t.id), nm: t.nm, cf: t.cf, dv: t.dv, ow: t.ow, lk: { c: t.lk.c, d: t.lk.d }, cr: t.cr, ed: t.ed, rc: [0, 0, 0, 0, 0], ro: t.ro.map(encPlayer) };
+  return Object.assign({ id: String(t.id), nm: t.nm, cf: t.cf, dv: t.dv, ow: t.ow, lk: { c: t.lk.c, d: t.lk.d }, cr: t.cr, ed: t.ed, rc: [0, 0, 0, 0, 0], ro: t.ro.map(encPlayer) }, lookOf(t));
 }
 /* the other way: a human team document back to the lite form (keeps the roster as the owner left it) */
 function liteOfDoc(d){
-  return { id: String(d.id), nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0], ro: d.ro.map(function(q){ return Object.assign({}, q); }) };
+  return Object.assign({ id: String(d.id), nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0], ro: d.ro.map(function(q){ return Object.assign({}, q); }) }, lookOf(d));
 }
 /* a friend takes a computer team: his team document is a copy of the league document's team plus the audit baseline */
 function humanDocOf(lite, rules){
@@ -2838,8 +2920,73 @@ function humanDocOf(lite, rules){
 }
 function decTeam(d, rules, idx){
   if (!d || String(d.id) !== String(idx) || !Array.isArray(d.ro) || !d.lk) throw bad('team chunk ' + idx + ' is damaged or missing');
-  return { id: idx, nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0],
-    ro: d.ro.map(function(q){ return decPlayer(q, rules); }) };
+  return Object.assign({ id: idx, nm: d.nm, cf: d.cf, dv: d.dv, ow: d.ow, lk: { c: d.lk.c, d: d.lk.d }, cr: d.cr, ed: d.ed, rc: [0, 0, 0, 0, 0],
+    ro: d.ro.map(function(q){ return decPlayer(q, rules); }) }, lookOf(d));
+}
+/* ---------- the human team's own extras (lg-cloud 1.1) ----------
+   pb = { plays: [ {name, p:[ {x,y,t,d,f} x5 ]} ... ] (at most 40), libv } the playbook of THIS league (S.plays, S.libv)
+   yp = YOUR PLAYERS after an offseason (rows as MAPS: Firestore has no list inside a list), pv = { playerId: last season's overall }
+   stx = { relief, drv } the league options of the phone (S.stx) */
+var PLAYS_MAX = 40;
+function encPlaybook(plays, libv){
+  if (!Array.isArray(plays)) return null;
+  return { plays: jcopy(plays.slice(0, PLAYS_MAX)), libv: libv | 0 };
+}
+function decPlaybook(pb){
+  if (!pb || !Array.isArray(pb.plays)) return null;
+  return { plays: jcopy(pb.plays), libv: pb.libv | 0 };
+}
+function encYp(y){
+  if (!y || typeof y !== 'object') return null;
+  var f = function(a, g){ return (a || []).map(g); };
+  return { s: y.s | 0, up: f(y.up, function(x){ return { p: x[0], n: x[1], d: x[2] }; }), dn: f(y.dn, function(x){ return { p: x[0], n: x[1], d: x[2] }; }),
+    rt: f(y.rt, function(x){ return { p: x[0], n: x[1], a: x[2] }; }), rk: f(y.rk, function(x){ return { p: x[0], n: x[1], g: x[2] }; }) };
+}
+function decYp(d){
+  if (!d || typeof d !== 'object' || !Array.isArray(d.up)) return null;
+  var f = function(a, g){ return (a || []).map(g); };
+  return { s: d.s | 0, up: f(d.up, function(x){ return [x.p, x.n, x.d]; }), dn: f(d.dn, function(x){ return [x.p, x.n, x.d]; }),
+    rt: f(d.rt, function(x){ return [x.p, x.n, x.a]; }), rk: f(d.rk, function(x){ return [x.p, x.n, x.g]; }) };
+}
+/* a human team document -> the extras the phone keeps next to the league (S.plays, S.libv, S.yp, S.pv, S.stx); every one may be null/absent */
+function humanExtras(d){
+  d = d || {};
+  var pb = decPlaybook(d.pb);
+  return { plays: pb ? pb.plays : null, libv: pb ? pb.libv : null, yp: decYp(d.yp), pv: d.pv && typeof d.pv === 'object' ? jcopy(d.pv) : null,
+    stx: d.stx && typeof d.stx === 'object' ? jcopy(d.stx) : null };
+}
+/* YOUR PLAYERS (the phone's stdSnap / stdYourSet, the same arithmetic): snap = the roster BEFORE the offseason { id: [ps, nm, age, overall] } */
+function stdStarsOf(pt){ return pt < 3.8 ? 1 : pt < 4.4 ? 2 : pt < 5.2 ? 3 : pt < 6 ? 4 : 5; }
+function snapOf(t){
+  var o = {}; t.ro.forEach(function(p){ o[p.id] = [p.ps, p.nm, p.ag | 0, Math.round(STD.overall(p) * 100) / 100]; }); return o;
+}
+function yourSet(snap, t, season){
+  var up = [], dn = [], rk = [], pv = {}, ids = {};
+  t.ro.forEach(function(p){ ids[p.id] = 1; });
+  Object.keys(snap).forEach(function(id){ pv[id] = snap[id][3]; });
+  t.ro.forEach(function(p){
+    var o = snap[p.id];
+    if (!o){ rk.push([p.ps, p.nm, stdStarsOf(p.pt)]); return; }
+    var d = Math.round((STD.overall(p) - o[3]) * 10) / 10;
+    if (d >= 0.1) up.push([p.ps, p.nm, d]); else if (d <= -0.1) dn.push([p.ps, p.nm, d]);
+  });
+  var rt = Object.keys(snap).filter(function(id){ return !ids[id]; }).map(function(id){ return [snap[id][0], snap[id][1], snap[id][2]]; });
+  up.sort(function(a, b){ return b[2] - a[2]; }); dn.sort(function(a, b){ return a[2] - b[2]; });
+  return { pv: pv, yp: { s: season, up: up, dn: dn, rt: rt, rk: rk } };
+}
+/* injuries: meta.inj = the setting ('LOW' | 'NORMAL'; absent = OFF), meta.hurt = { "<team idx>": { "<player id>": games still out } } at the stored week */
+function hurtOf(L){
+  var h = {};
+  if (!L.inj) return h;
+  L.teams.forEach(function(t, i){ t.ro.forEach(function(p){ if (p.ou > 0){ (h[String(i)] = h[String(i)] || {})[p.id] = p.ou | 0; } }); });
+  return h;
+}
+function applyHurt(L, hurt){
+  STD.healAll(L);
+  Object.keys(hurt || {}).forEach(function(k){
+    var t = L.teams[Number(k)]; if (!t || !hurt[k] || typeof hurt[k] !== 'object') return;
+    t.ro.forEach(function(p){ var v = hurt[k][p.id]; if (Number.isInteger(v) && v >= 1 && v <= 4) p.ou = v; });
+  });
 }
 function rtdStrings(pairs){ return pairs.map(function(x){ return x[0] + ':' + x[1]; }); }
 function rulesOf(meta){
@@ -2857,6 +3004,8 @@ function metaOf2(L, uid, now){
   var m = { v: CLOUD_FORMAT_BIG, lay: 2, n: L.teams.length, nm: L.nm, rs: L.rs, season: L.ssn, wk: L.wk, ph: L.ph, rules: JSON.stringify(L.rules), commish: uid,
     opts: {}, hold: false, ovr: [], updatedAt: now, ts: ts, rtd: rtdStrings(L.rtd) };
   if (L.shape) m.shape = JSON.parse(JSON.stringify(L.shape));
+  if (L.cx) m.cx = jcopy(L.cx);                       /* 1.1: renamed conference / division of the 8-team league */
+  if (L.inj === 'LOW' || L.inj === 'NORMAL'){ m.inj = L.inj; m.hurt = hurtOf(L); }   /* 1.1: the injury setting and who is out */
   return m;
 }
 /* a short label for a screen: 8 TEAMS, 32 TEAMS (NFL), 60 TEAMS (COLLEGE), 12 TEAMS (CUSTOM) */
@@ -2902,6 +3051,8 @@ function buildLeague(meta, teamDocs, weekDocs, histDocs){
     po: null, hist: [], res: [], rs: meta.rs, rules: rules,
     rtd: rtdAll.map(function(x){ return [x.s, x.id]; }), teams: teams };
   if (shape) L.shape = JSON.parse(JSON.stringify(shape));
+  if (lay2 && meta.cx && typeof meta.cx === 'object') L.cx = jcopy(meta.cx);
+  if (lay2 && (meta.inj === 'LOW' || meta.inj === 'NORMAL')) L.inj = meta.inj;          /* set BEFORE the weeks are applied: the engine's injury step runs with each week */
   Object.keys(histDocs).map(Number).sort(function(a, b){ return a - b; }).forEach(function(s){ L.hist.push(histRowOf(s, histDocs[s])); });
   var nG = L.sch.length, w, applied = 0;
   for (w = 0; w < nG; w++){ var wd = weekDocs[weekKey(season, w)]; if (!wd) break; STD.applyWeek(L, gamesOfDoc(wd)); applied++; }
@@ -2913,6 +3064,7 @@ function buildLeague(meta, teamDocs, weekDocs, histDocs){
     r++;
   }
   for (var q = r + 1; q < r + 8; q++) if (weekDocs[weekKey(season, 100 + q)]) throw bad(q === 1 ? 'the final is stored without the semifinals' : 'a playoff round is stored without the one before it');
+  if (L.inj && meta.hurt && typeof meta.hurt === 'object') applyHurt(L, meta.hurt);      /* what the commissioner stored is the truth (it also covers a setting changed mid-season) */
   if (L.wk !== meta.wk || L.ph !== meta.ph) throw bad('the league says week ' + meta.wk + ' (' + meta.ph + ') but the stored weeks give week ' + L.wk + ' (' + L.ph + ')');
   return L;
 }
@@ -3199,7 +3351,7 @@ async function advanceWeek(ad, lg, o){
     if (cur.exists) throw CloudError('stale', STALE_TEXT);
     var humans = humansOf(parts.slots);
     var subs = await readSubs(g, lg, m.season, wkNo, plan, layoutOf(m) === 2 ? humans : null);
-    var sit = weekSituation(L, plan, subs, humans, m.ovr, m.season, wkNo, o.picks);
+    var sit = weekSituation(L, plan, subs, humans, m.ovr, m.season, wkNo, Object.assign({}, picksFromMeta(m, m.season, wkNo), o.picks || {}));
     if (sit.conflicts.length) throw CloudError('bad', 'Two players sent different scores for the same game. Choose which one counts (USE THIS ONE) or VOID one of them first.');
     if (sit.ties.length){ var tg = sit.games[sit.ties[0]]; throw CloudError('bad', 'A playoff game cannot end in a tie (' + L.teams[tg.h].nm + ' ' + tg.use.sc[0] + ' - ' + tg.use.sc[1] + ' ' + L.teams[tg.a].nm + '). Ask the players to check the score, or VOID that result.'); }
     var now = nextStamp(m.updatedAt);
@@ -3209,6 +3361,8 @@ async function advanceWeek(ad, lg, o){
     if (res.held) throw CloudError('bad', 'The engine held the week (unexpected).');
     var wdoc = weekDocOf(res.games, o.uid, now);
     var nm = Object.assign({}, m, { wk: L.wk, ph: L.ph, season: L.ssn, hold: false, ovr: [], updatedAt: now }), writes = 2;
+    if (L.inj) nm.hurt = hurtOf(L);
+    delete nm.picks;                                                  /* a choice of a score is used once: the next week starts clean */
     if (parts.tidy){ nm.ts = parts.tidy.ts; parts.tidy.del.forEach(function(k){ tx.del(PATH.team(lg, k)); writes++; }); }
     tx.set(PATH.week(lg, m.season, wkNo), wdoc);
     tx.set(PATH.meta(lg), nm);
@@ -3230,6 +3384,32 @@ async function setSimMark(ad, lg, o){
     if (o.on) ovr.push(key);
     if (ovr.length > 20) throw CloudError('bad', 'At most 20 games can be marked SIM.');
     var nm = Object.assign({}, m, { ovr: ovr, updatedAt: nextStamp(m.updatedAt) });
+    tx.set(PATH.meta(lg), nm); out = nm;
+  });
+  return out;
+}
+/* PICK A SCORE (HQ 0.13): when two players sent different scores for one game, the commissioner chooses whose counts. The choice is kept in the league document
+   (meta.picks = { "season-week-game": team index }, at most 20) so that the ADVANCE on the phone uses it. o.team = null clears the choice. The next advance drops all picks. */
+function pickKey(season, wkNo, gi){ return season + '-' + wkNo + '-' + gi; }
+function picksFromMeta(m, season, wkNo){
+  var out = {}, pre = season + '-' + wkNo + '-', p = m && m.picks && typeof m.picks === 'object' ? m.picks : {};
+  Object.keys(p).forEach(function(k){ if (k.indexOf(pre) === 0 && Number.isInteger(p[k])){ out[Number(k.slice(pre.length))] = p[k]; } });
+  return out;
+}
+async function setPick(ad, lg, o){
+  var out = null;
+  await ad.transaction(async function(tx){
+    var mg = await tx.get(PATH.meta(lg));
+    if (!mg.exists) throw CloudError('missing', 'This league does not exist in the cloud.');
+    var m = mg.data;
+    if (m.commish !== o.uid) throw CloudError('denied', 'Only the commissioner can do this.');
+    if (staleMeta(m, o.expect)) throw CloudError('stale', STALE_TEXT);
+    var key = pickKey(m.season, o.wkNo, o.gi), pre = m.season + '-' + o.wkNo + '-', picks = {};
+    Object.keys(m.picks || {}).forEach(function(k){ if (k.indexOf(pre) === 0 && k !== key) picks[k] = m.picks[k]; });
+    if (o.team != null) picks[key] = o.team;
+    if (Object.keys(picks).length > 20) throw CloudError('bad', 'At most 20 scores can be chosen.');
+    var nm = Object.assign({}, m, { picks: picks, updatedAt: nextStamp(m.updatedAt) });
+    if (!Object.keys(picks).length) delete nm.picks;
     tx.set(PATH.meta(lg), nm); out = nm;
   });
   return out;
@@ -3291,6 +3471,8 @@ async function runOffseason(ad, lg, o){
     if (STD.nextGames(L).kind !== 'done') throw CloudError('bad', 'The season is not over yet: the playoffs must finish before the offseason.');
     var season = m.season, hg = await g.get(PATH.hist(lg, season));
     if (hg.exists) throw CloudError('stale', STALE_TEXT);
+    var snaps = {};
+    if (layoutOf(m) === 2) L.teams.forEach(function(t, i){ if (parts.slots[String(i)]) snaps[i] = snapOf(t); });
     var res = STD.offseason(L, STD.newCtx());
     var now = nextStamp(m.updatedAt), row = L.hist[L.hist.length - 1], writes, nm;
     if (layoutOf(m) === 2){
@@ -3298,12 +3480,18 @@ async function runOffseason(ad, lg, o){
       var ts = {}, hum = parts.slots, nh = 0;
       L.teams.forEach(function(t, i){
         var k = String(i);
-        if (hum[k]){ tx.set(PATH.team(lg, i), encTeam(t, [], null, L.rules)); nh++; }
+        if (hum[k]){
+          var nd = encTeam(t, [], null, L.rules), od = parts.teamDocs[i] || {}, ys = yourSet(snaps[i], t, season);
+          ['pb', 'stx'].forEach(function(f){ if (od[f] != null) nd[f] = jcopy(od[f]); });      /* the owner's own extras stay */
+          nd.yp = encYp(ys.yp); nd.pv = ys.pv;
+          tx.set(PATH.team(lg, i), nd); nh++;
+        }
         else ts[k] = encTeamLite(t);
       });
       parts.tidy.del.forEach(function(k){ tx.del(PATH.team(lg, k)); nh++; });
       tx.set(PATH.hist(lg, season), histDocOf(row, now));
       nm = Object.assign({}, m, { season: L.ssn, wk: 0, ph: 'reg', hold: false, ovr: [], updatedAt: now, ts: ts, rtd: rtdStrings(L.rtd) });
+      if (L.inj) nm.hurt = {};                                                                       /* injuries do not carry into the next season */
       tx.set(PATH.meta(lg), nm);
       writes = nh + 2;
     } else {
@@ -3566,6 +3754,7 @@ async function applyMeta(cl, meta){
   cl.meta = meta; cl.slots = parts.slots; cl.teamDocs = parts.teamDocs; cl.L = L; cl.loadedAt = ENV.now(); cl.err = null;
   cl.role = roleOf(meta);
   var m = buildStd(L, {from:'a linked league', warn:null, save:null}); m.linked = true;
+  m.teams.forEach(function(t, i){ if (parts.slots[String(i)]) t.x = humanExtras(parts.teamDocs[i]); });      /* 0.13: his playbook, YOUR PLAYERS, options */
   var mi = myTeamIx(parts.slots);                        /* HQ 0.8: the team this account owns (a league made on the phone has the commissioner's own slot) */
   if (mi >= 0){ m.meIdx = mi; m.teams[mi].mine = true; m.myTeamName = m.teams[mi].name; }
   if (state.cl === cl){ var keepTeam = state.selTeam; state.m = m; state.selTeam = (keepTeam != null && m.teams[keepTeam]) ? keepTeam : null; if (state.selTeam == null) state.selPlayer = null; }
@@ -3593,7 +3782,7 @@ async function refreshLeague(cl, meta){
 }
 async function openByCode(codeText){
   var rec = await readCode(FB.ad, codeText);
-  if (!rec) throw CloudError('missing', 'No league has the code ' + normCode(codeText) + '. Check the code with the commissioner.');
+  if (!rec) throw CloudError('missing', 'No league with that code. Check the code and try again.');
   var cl = await openLeague(rec.lg, rec.code);
   state.selTeam = null; state.selPlayer = null; state.msg = null;
   openedView();
@@ -3640,48 +3829,50 @@ function fmtDate(t){ try { return new Date(t).toISOString().slice(0, 10); } catc
 /* ---------- menu and render ---------- */
 function viewOK(id){
   if (id === 'open') return true;
-  if (id === 'create') return state.auth.kind === 'google';
   if (id === 'cloud' || id === 'week' || id === 'audit' || id === 'champs' || id === 'about') return !!state.cl && !!state.m;
   return !!state.m;
 }
 var VIEWS = [
-  ['open', 'MY LEAGUES'], ['create', 'CREATE A LEAGUE'], ['cloud', 'CODE AND SLOTS'], ['week', 'THE WEEK'], ['audit', 'AUDIT'], ['champs', 'CHAMPIONS AND HISTORY'], ['about', 'ABOUT THIS LEAGUE'], ['league', 'LEAGUE'], ['standings', 'STANDINGS'], ['team', 'TEAM'],
+  ['open', 'MY LEAGUES'], ['cloud', 'CODE AND SLOTS'], ['week', 'THE WEEK'], ['audit', 'AUDIT'], ['champs', 'CHAMPIONS AND HISTORY'], ['about', 'ABOUT THIS LEAGUE'], ['league', 'LEAGUE'], ['standings', 'STANDINGS'], ['team', 'TEAM'],
   ['player', 'PLAYER'], ['schedule', 'SCHEDULE AND RESULTS'], ['stats', 'MY STATS'], ['playbook', 'PLAYBOOK']
 ];
 function go(v){ state.view = v; render(); window.scrollTo(0, 0); }
 /* HQ 0.9: the menu leads with what people look at. MY LEAGUES (home), then, with a league open, STANDINGS, TEAM, SCHEDULE, PLAYER, MY STATS, LEAGUE;
    the code, the slots, the week and the other commissioner pages sit together under their own small heading at the bottom. */
-var MENU_TOP = ['open', 'create'], MENU_LEAGUE = ['standings', 'team', 'schedule', 'player', 'stats', 'playbook', 'league'], MENU_ADMIN = ['cloud', 'week', 'audit', 'champs', 'about'];
+var MENU_TOP = ['open'], MENU_LEAGUE = ['standings', 'team', 'schedule', 'player', 'stats', 'playbook', 'league'], MENU_ADMIN = ['cloud', 'week', 'audit', 'champs', 'about'];
 function renderMenu(){
   var nav = document.getElementById('menu'); nav.textContent = '';
-  nav.appendChild(el('div', {class:'brand'}, 'PIXEL PIGSKIN HQ'));
+  /* HQ 0.12: the top line (the name of the app and of the open league) and, under it, the buttons in one box: a column on a wide screen, ONE row that scrolls sideways on a phone */
+  var top = el('div', {class:'mtop'}, el('div', {class:'brand'}, 'PIXEL PIGSKIN HQ')), box = el('div', {class:'mbtns', role:'group', 'aria-label':'Pages'});
+  nav.appendChild(top); nav.appendChild(box);
   var label = {}; VIEWS.forEach(function(v){ label[v[0]] = v[1]; });
   function btn(id){
     var dis = !viewOK(id);
-    if (dis && (id === 'create' || MENU_ADMIN.indexOf(id) >= 0 || MENU_LEAGUE.indexOf(id) >= 0)) return false;      /* an entry only appears when it can be used */
-    nav.appendChild(el('button', {type:'button', class:state.view === id ? 'on' : '', disabled:dis, 'data-view':id,
+    if (dis && (MENU_ADMIN.indexOf(id) >= 0 || MENU_LEAGUE.indexOf(id) >= 0)) return false;      /* an entry only appears when it can be used */
+    box.appendChild(el('button', {type:'button', class:state.view === id ? 'on' : '', disabled:dis, 'data-view':id,
       'aria-current':state.view === id ? 'page' : null, onclick:function(){ go(id); }}, label[id]));
     return true;
   }
+  if (state.m) top.appendChild(el('div', {class:'lgname top'}, [el('b', null, state.m.name), el('span', null, state.m.linked ? 'Linked Standard league' : (state.m.depth + ' league' + (state.m.std ? (state.m.save ? ' (game save)' : ' (file)') : '')))]));
   MENU_TOP.forEach(btn);
-  if (state.m) nav.appendChild(el('div', {class:'lgname top'}, [state.m.name, el('br'), state.m.linked ? 'Linked Standard league' : (state.m.depth + ' league' + (state.m.std ? (state.m.save ? ' (game save)' : ' (file)') : ''))]));
   MENU_LEAGUE.forEach(btn);
   var adm = MENU_ADMIN.filter(function(id){ return viewOK(id); });
-  if (adm.length){ nav.appendChild(el('div', {class:'grp'}, 'CODE AND ADMIN')); MENU_ADMIN.forEach(btn); }
+  if (adm.length){ box.appendChild(el('div', {class:'grp'}, 'CODE AND ADMIN')); MENU_ADMIN.forEach(btn); }
   if (state.auth.kind !== 'none'){
     var a = state.auth, who = a.kind === 'google' ? (a.email || a.name || 'Google account') : (a.kind === 'anon' ? 'watching (anonymous)' : 'signed in');
-    nav.appendChild(el('div', {class:'who', id:'whoBox'}, [el('span', null, a.kind === 'google' ? 'SIGNED IN AS' : 'SIGNED IN'), el('b', null, who)]));
-    nav.appendChild(el('button', {type:'button', id:'btnSignOutMenu', onclick:function(){ signOutNow(); }}, 'SIGN OUT'));
+    box.appendChild(el('div', {class:'who', id:'whoBox'}, [el('span', null, a.kind === 'google' ? 'SIGNED IN AS' : 'SIGNED IN'), el('b', null, who)]));
+    box.appendChild(el('button', {type:'button', id:'btnSignOutMenu', onclick:function(){ signOutNow(); }}, 'SIGN OUT'));
   }
+  /* on a phone the row scrolls: bring the current page's button into view */
+  try { var cur = box.querySelector('button.on'); if (cur && box.scrollWidth > box.clientWidth && cur.offsetLeft + cur.offsetWidth > box.clientWidth) box.scrollLeft = Math.max(0, cur.offsetLeft - 40); } catch (e){}
 }
 function render(){
   renderMenu();
   var main = document.getElementById('main'); main.textContent = '';
-  var fn = {open:vOpen, create:vCreate, cloud:vCloud, week:vWeek, audit:vAudit, champs:vChamps, about:vAbout, league:vLeague, standings:vStandings, team:vTeam, player:vPlayer, schedule:vSchedule, stats:vStats, playbook:vPlaybook}[state.view];
+  var fn = {open:vOpen, cloud:vCloud, week:vWeek, audit:vAudit, champs:vChamps, about:vAbout, league:vLeague, standings:vStandings, team:vTeam, player:vPlayer, schedule:vSchedule, stats:vStats, playbook:vPlaybook}[state.view];
   if (!viewOK(state.view)) fn = vOpen;
   fn(main);
-  document.getElementById('foot').textContent = 'Pixel Pigskin HQ v' + HQ_VERSION + '  |  ' + STD.version + '  |  ' +
-    (state.auth.kind === 'none' ? 'offline: no network connection is made until you sign in or watch a league.' : 'online (named app "' + APP_NAME + '"): the game\'s own sign-in is not touched.');
+  document.getElementById('foot').textContent = 'Pixel Pigskin HQ v' + HQ_VERSION;
 }
 
 /* ---------- start screen: panels C and D ---------- */
@@ -3699,7 +3890,8 @@ function cloudPanels(main){
       el('div', {class:'row'}, [codeBox(), el('button', {type:'button', class:'btn', id:'btnWatch', disabled:busy, onclick:function(){
         var code = normCode(state.codeInput);
         if (!CODE_RULE.test(code)){ setMsg('err', 'A league code has 6 letters and digits (for example K7M2QX).'); render(); return; }
-        runBusy('Opening the league...', async function(){ await signInAnon(); await openByCode(code); }); }}, 'WATCH A LEAGUE')])]);
+        runBusy('Opening the league...', async function(){ await signInAnon(); await openByCode(code); }); }}, 'WATCH A LEAGUE'),
+        el('button', {type:'button', class:'btn', id:'btnTrySample', disabled:busy, onclick:function(){ adopt(sampleStd(), {warn:null, from:'the built-in sample'}); }}, 'TRY THE SAMPLE LEAGUE')])]);
   } else {
     add(C, [el('p', null, [a.kind === 'google' ? 'Signed in as ' : 'Signed in without a name (read only). ', el('b', null, a.kind === 'google' ? (a.email || a.name || 'a Google account') : '')]),
       el('p', {class:'note'}, 'Open a league by its code (you see it as commissioner if it is yours, otherwise read only):'),
@@ -3713,7 +3905,7 @@ function cloudPanels(main){
   var rows = mineRows(), ms = state.mine.status, inAccount = {};
   (state.mine.rows || []).forEach(function(x){ inAccount[x.lg] = true; });
   var D = el('div', {class:'panel', id:'panelMine'}, [el('h2', null, 'MY LEAGUES'),
-    a.kind === 'google' ? el('div', {class:'row'}, el('button', {type:'button', class:'btn pri', id:'btnCreateGo', disabled:busy, onclick:function(){ go('create'); }}, 'CREATE A LEAGUE')) : null,
+    el('p', {class:'note', id:'phoneNote'}, 'Create and run leagues in the game on your phone.'),
     el('p', {class:'note'}, 'Every league in your Google account, made here or on the phone (tag IN YOUR ACCOUNT), and the leagues this browser opened (SIGN OUT clears that list). OPEN shows the standings.')]);
   if (ms === 'refused') D.appendChild(el('p', {class:'note', id:'mineNote'}, 'The cloud list of your leagues needs the new rules, which are not published yet: only the leagues this browser opened are shown.'));
   else if (ms === 'net') D.appendChild(el('p', {class:'note', id:'mineNote'}, 'The cloud list of your leagues could not be read (connection): only the leagues this browser opened are shown. Sign in again to retry.'));
@@ -3722,46 +3914,12 @@ function cloudPanels(main){
     {h:'LEAGUE', v:function(r){ return [r.nm, r.pending ? tag('NOT FINISHED', 'rt') : null, (r.cloud || inAccount[r.lg]) ? tag('IN YOUR ACCOUNT', 'me') : null]; }},
     {h:'ROLE', v:function(r){ return r.role === 'commissioner' ? 'COMMISSIONER' : 'WATCHING'; }}, {h:'LAST OPENED', v:function(r){ return r.t ? fmtDate(r.t) : '-'; }},
     {h:'', v:function(r){ return el('span', null, [
-      el('button', {type:'button', class:'btn pri', 'data-lg':r.lg, disabled:busy, onclick:function(){ runBusy(r.pending ? 'Finishing the league...' : (state.auth.kind === 'none' ? 'Signing in...' : 'Opening the league...'), async function(){ await openListed(r); }); }}, r.pending ? 'FINISH' : 'OPEN'),
+      el('button', {type:'button', class:'btn', 'data-lg':r.lg, disabled:busy, onclick:function(){ runBusy(r.pending ? 'Finishing the league...' : (state.auth.kind === 'none' ? 'Signing in...' : 'Opening the league...'), async function(){ await openListed(r); }); }}, r.pending ? 'FINISH' : 'OPEN'),
       ' ', r.cloud ? null : el('button', {type:'button', class:'btn', 'data-rm':r.lg, disabled:busy, onclick:function(){ listRemove(r.lg); render(); }}, 'REMOVE')]); }}
   ], rows));
   /* HQ 0.9: the home screen. Signed out: sign in first (and the leagues this browser remembers, if any). Signed in: MY LEAGUES first, the account box under it. */
   if (a.kind === 'none') main.appendChild(el('div', {class:'panels'}, rows.length ? [C, D] : [C]));
   else main.appendChild(el('div', {class:'panels'}, [D, C]));
-}
-
-/* ---------- CREATE A LEAGUE ---------- */
-function vCreate(main){
-  add(main, [el('h1', null, 'CREATE A LEAGUE'), el('p', {class:'sub'}, 'A new Standard league in the cloud: 8 teams, 32 teams (NFL) or 60 teams (COLLEGE). You become its commissioner. Friends join with the code.')]);
-  if (state.msg) main.appendChild(el('div', {class:'msg ' + state.msg.kind, role:'alert'}, state.msg.text));
-  var cr = state.create, busy = !!state.busy;
-  if (cr && cr.error){
-    var e = cr.error, wrote = e.wrote === 'nothing' ? 'The creation is one all-or-nothing batch, and nothing was written.' : 'HQ cannot tell whether the write went through (the answer was lost).';
-    main.appendChild(el('div', {class:'msg err', id:'createFail', role:'alert'}, [el('b', null, 'THE LEAGUE ' + cr.plan.name + ' IS NOT FINISHED. '), e.message + ' ' + wrote + ' Press RESUME to finish this same league: HQ looks at what is already in the cloud and writes only what is missing, so it is safe to press more than once.']));
-    main.appendChild(el('div', {class:'row'}, [
-      el('button', {type:'button', class:'btn pri', id:'btnResume', disabled:busy, onclick:function(){ runBusy('Finishing the league...', async function(){
-        try { var r = await resumeCreate(FB.ad, cr.plan); await finishCreate(cr.plan, r); } catch (err){ cr.error = err.plan ? err : failed(cr.plan, err, 'unknown'); setMsg(null, null); } }); }}, 'RESUME'),
-      el('button', {type:'button', class:'btn', id:'btnStartOver', disabled:busy, onclick:function(){ state.create = null; listRemove(cr.plan.lg); render(); }}, 'START OVER')]));
-    if (state.busy) main.appendChild(el('div', {class:'msg warn', role:'status'}, state.busy));
-    return;
-  }
-  var sizeSel = el('select', {id:'sizeSel', class:'name-in', 'aria-label':'League size', onchange:function(e){ state.sizeInput = e.target.value; }},
-    [['8', '8 TEAMS'], ['NFL', '32 TEAMS (NFL)'], ['COLLEGE', '60 TEAMS (COLLEGE)']].map(function(o){ return el('option', {value:o[0], selected:(state.sizeInput || '8') === o[0]}, o[1]); }));
-  var box = el('input', {type:'text', id:'nameBox', class:'name-in', maxlength:'40', placeholder:'LEAGUE NAME', 'aria-label':'League name', value:state.nameInput || '', oninput:function(e){ state.nameInput = e.target.value; }});
-  main.appendChild(el('div', {class:'panel'}, [el('h2', null, 'NAME THE LEAGUE'), el('div', {class:'row'}, [box, sizeSel,
-    el('button', {type:'button', class:'btn pri', id:'btnCreate', disabled:busy, onclick:function(){
-      var nm; try { nm = cleanName(box.value); } catch (e){ setMsg('err', e.message); render(); return; }
-      runBusy('Building the league (about a second) and writing it to the cloud...', async function(){
-        await new Promise(function(r){ setTimeout(r, 30); });
-        var plan = planCreate(nm, state.auth.uid, (state.sizeInput && state.sizeInput !== '8') ? state.sizeInput : null);
-        state.create = {plan:plan, error:null};
-        listTouch({lg:plan.lg, nm:plan.name, code:null, role:'commissioner', pending:true});
-        try { await createLeague(FB.ad, plan); }
-        catch (err){ state.create.error = err.plan ? err : failed(plan, err, 'unknown'); if (plan.code) listTouch({lg:plan.lg, nm:plan.name, code:plan.code, role:'commissioner', pending:true}); return; }
-        await finishCreate(plan, null);
-      }); }}, 'CREATE LEAGUE')]),
-    el('p', {class:'note'}, 'HQ draws a random league seed, makes the league with the same code the game uses, and writes it in ONE batch of 2 documents: the LEAGUE DOCUMENT (the league record and every computer-run team) and the league code. A team gets its own document only when a person takes it. Then HQ shows the code. If a write fails, nothing is half done: you get a RESUME button. A 32 or 60 team league takes a few seconds to build. HQ 0.7 creates, advances and rolls these leagues over; its standings and playoff pictures for them are still the 8-team ones (fixed in a later HQ).')]));
-  if (state.busy) main.appendChild(el('div', {class:'msg warn', id:'busyMsg', role:'status'}, state.busy));
 }
 
 /* ---------- CODE AND SLOTS (a linked league) ---------- */
@@ -3828,29 +3986,16 @@ async function doWeekAction(text, fn){
     catch (e){ if (e && e.kind === 'stale'){ reloadWeek(); try { await refreshLeague(cl, null); } catch (e2){} } throw e; }
   });
 }
-function doSim(cl, gi, on, wkNo){
-  return doWeekAction('Writing the SIM mark...', async function(){
-    var nm = await setSimMark(FB.ad, cl.lg, {uid:state.auth.uid, expect:expectNow(cl), gi:gi, wkNo:wkNo, on:on});
-    await refreshLeague(cl, nm); reloadWeek();
-  });
-}
 function doVoid(cl, team, wkNo){
   return doWeekAction('Voiding the result...', async function(){
     await voidSub(FB.ad, cl.lg, cl.meta.season, wkNo, team);
     reloadWeek(); setMsg('ok', 'The result was voided (the submission was deleted).');
   });
 }
-function doAdvance(cl, mode){
-  var text = mode === 'hold' ? 'Setting the league to WAIT...' : (mode === 'unhold' ? 'Clearing the wait...' : 'Advancing the week...');
-  return doWeekAction(text, async function(){
-    var w = state.wk, picks = w ? w.picks : {};
-    var r = await advanceWeek(FB.ad, cl.lg, {uid:state.auth.uid, expect:expectNow(cl), picks:picks, mode:mode, cache:cl.cache});
-    var names = cl.L.teams.map(function(t){ return t.nm; });
-    if (r.kind === 'advanced') state.wkReport = {kind:'advanced', names:names, label:roundName(r.plan, cl.L.shape), games:r.games, reads:r.reads, writes:r.writes, done:r.done, ch:r.ch, ru:r.ru, autoSim:r.autoSim};
-    else if (r.kind === 'held') state.wkReport = {kind:'held', names:names, missing:r.missing, reads:r.reads};
-    else state.wkReport = {kind:'unheld', reads:r.reads};
-    reloadWeek();
-    await refreshLeague(cl, r.meta);
+function doPick(cl, gi, team, wkNo){
+  return doWeekAction('Writing your choice...', async function(){
+    var nm = await setPick(FB.ad, cl.lg, {uid:state.auth.uid, expect:expectNow(cl), gi:gi, wkNo:wkNo, team:team});
+    await refreshLeague(cl, nm); reloadWeek();
   });
 }
 function scoreText(L, g, sc){ return teamName(L, g.h) + ' ' + sc[0] + ' - ' + sc[1] + ' ' + teamName(L, g.a); }
@@ -3864,42 +4009,20 @@ function statusTag(g){
 }
 function vWeek(main){
   var cl = state.cl, L = cl.L, isC = cl.role === 'commissioner', meta = cl.meta;
-  add(main, [el('h1', null, 'THE WEEK'), el('p', {class:'sub'}, isC ? 'You are the commissioner: you can mark games SIM, void a result and advance the league.' : 'You are watching: this screen is read only.')]);
+  add(main, [el('h1', null, 'THE WEEK'), el('p', {class:'sub'}, isC ? 'You are the commissioner: you can void a result and choose which score counts. Advancing the week is done in the game on your phone.' : 'You are watching: this screen is read only.')]);
   if (state.msg) main.appendChild(el('div', {class:'msg ' + state.msg.kind, role:'alert'}, state.msg.text));
   if (cl.err) main.appendChild(el('div', {class:'msg err', role:'alert'}, cl.err));
   if (!state.wk || state.wk.lg !== cl.lg || state.wk.stamp !== meta.updatedAt) loadWeek(cl);
   var w = state.wk, ctx = weekCtx(cl), plan = ctx.plan;
   main.appendChild(cards([['SEASON', String(meta.season)], ['NOW', roundName(plan, L.shape)], ['WAITING (HOLD)', meta.hold ? 'YES' : 'NO'], ['SIM MARKS', String((meta.ovr || []).length)]]));
   if (meta.hold) main.appendChild(el('div', {class:'msg warn', id:'holdNote'}, 'The league is WAITING: the games stay open until the commissioner advances. Advancing clears this.'));
-  if (state.offReport) main.appendChild(offseasonReport(state.offReport));
-  var rep = state.wkReport;
-  if (rep){
-    var box = el('div', {class:'panel', id:'weekReport'}, [el('h2', null, rep.kind === 'advanced' ? 'ADVANCED: ' + rep.label : (rep.kind === 'held' ? 'THE LEAGUE IS WAITING' : 'THE WAIT WAS CLEARED'))]);
-    if (rep.kind === 'advanced'){
-      box.appendChild(table([{h:'HOME', v:function(g){ return rep.names[g.h]; }}, {h:'', v:function(g){ return g.sc[0] + ' - ' + g.sc[1]; }, n:true}, {h:'AWAY', v:function(g){ return rep.names[g.a]; }},
-        {h:'RESULT FROM', v:function(g){ return g.src === 'sub' ? 'the players (sub)' : 'the engine (sim)'; }}], rep.games));
-      box.appendChild(el('p', {class:'note'}, 'Written in one commit: the week document and the new league record (2 writes). ' + rep.reads + ' documents were read inside the transaction.' +
-        (rep.autoSim && rep.autoSim.length ? ' ' + rep.autoSim.length + ' game(s) with a person had no result and were simulated.' : '') +
-        (rep.done ? ' THE SEASON IS OVER: champion ' + rep.names[rep.ch] + ', runner-up ' + rep.names[rep.ru] + '.' : '')));
-    } else if (rep.kind === 'held') box.appendChild(el('p', {class:'note'}, 'Still to play: ' + rep.missing.map(function(gi){ return 'game ' + (gi + 1); }).join(', ') + '. Nothing else changed.'));
-    box.appendChild(el('button', {type:'button', class:'btn', id:'btnReportOk', onclick:function(){ state.wkReport = null; render(); }}, 'OK'));
-    main.appendChild(box);
-  }
   if (plan.kind === 'done'){
-    main.appendChild(el('div', {class:'msg ok', id:'seasonOver'}, 'The season is over. Champion: ' + (L.po && L.po.ch != null ? teamName(L, L.po.ch) : '-') + (L.po && L.po.ru != null ? ', runner-up: ' + teamName(L, L.po.ru) : '') + '. The next step is the OFFSEASON.'));
-    if (isC){
-      var ob = el('div', {class:'panel', id:'offPanel'}, [el('h2', null, 'OFFSEASON'),
-        el('p', null, 'Every player gets a year older and may grow, some retire and are replaced by rookies, the season is saved to the history, and season ' + (meta.season + 1) + ' starts at week 1. This cannot be undone. ' + (layoutOf(meta) === 2 ? 'The league document (every computer team), the document of each team a person owns and the history entry are written together.' : 'All 8 team chunks, the league record and the history entry are written together (10 writes).'))]);
-      if (state.offConfirm) ob.appendChild(el('div', {class:'row'}, [el('button', {type:'button', class:'btn danger', id:'btnOffYes', disabled:!!state.busy, onclick:function(){ state.offConfirm = false; doOffseason(cl); }}, 'YES, RUN THE OFFSEASON'),
-        el('button', {type:'button', class:'btn', onclick:function(){ state.offConfirm = false; render(); }}, 'NOT YET')]));
-      else ob.appendChild(el('div', {class:'row'}, el('button', {type:'button', class:'btn pri', id:'btnOffseason', disabled:!!state.busy, onclick:function(){ state.offConfirm = true; render(); }}, 'OFFSEASON')));
-      main.appendChild(ob);
-    }
+    main.appendChild(el('div', {class:'msg ok', id:'seasonOver'}, 'The season is over. Champion: ' + (L.po && L.po.ch != null ? teamName(L, L.po.ch) : '-') + (L.po && L.po.ru != null ? ', runner-up: ' + teamName(L, L.po.ru) : '') + '. The commissioner runs the OFFSEASON in the game on the phone. Create and run leagues in the game on your phone.'));
     return;
   }
   if (!w || w.loading){ main.appendChild(el('p', {class:'note', id:'weekLoading'}, 'Reading the submissions...')); return; }
   if (w.err) main.appendChild(el('div', {class:'msg err', role:'alert'}, w.err));
-  var humans = humansOf(cl.slots), sit = weekSituation(L, plan, w.subs, humans, meta.ovr, meta.season, ctx.wkNo, w.picks);
+  var humans = humansOf(cl.slots), sit = weekSituation(L, plan, w.subs, humans, meta.ovr, meta.season, ctx.wkNo, picksFromMeta(meta, meta.season, ctx.wkNo));
   main.appendChild(el('h2', null, roundName(plan, L.shape) + ': THE GAMES'));
   main.appendChild(el('p', {class:'note'}, 'A person is a team with a claimed slot. A result sent by a player is a submission. Scores are home - away. Honor system: HQ cannot check a score.'));
   function subLine(g, x){
@@ -3908,7 +4031,7 @@ function vWeek(main){
     var parts = [el('span', {class:ign ? 'strike' : ''}, nm + ' (' + teamName(L, x.team) + '): ' + x.sc[0] + ' - ' + x.sc[1] + ' at ' + hhmm(x.t)), g.valid.length > 1 && g.valid[0] === x ? tag('EARLIER', 'bk') : null,
       g.sim ? tag('IGNORED: SIM', 'bk') : (!x.okGi ? tag('IGNORED: WRONG GAME', 'bk') : null), picked && g.status === 'picked' ? tag('CHOSEN', 'st') : null];
     if (isC && !state.busy){
-      if (g.status === 'conflict' || g.status === 'picked') parts.push(el('button', {type:'button', class:'btn', 'data-use':g.gi + ':' + x.team, disabled:g.status === 'picked' && picked, onclick:function(){ w.picks[g.gi] = x.team; render(); }}, 'USE THIS ONE'));
+      if (layoutOf(meta) === 2 && (g.status === 'conflict' || g.status === 'picked')) parts.push(el('button', {type:'button', class:'btn', 'data-use':g.gi + ':' + x.team, disabled:g.status === 'picked' && picked, onclick:function(){ doPick(cl, g.gi, x.team, ctx.wkNo); }}, 'USE THIS ONE'));
       var k = 'void:' + x.team;
       if (w.confirm === k) parts.push(el('button', {type:'button', class:'btn danger', 'data-void-yes':String(x.team), onclick:function(){ doVoid(cl, x.team, ctx.wkNo); }}, 'YES, VOID IT'), el('button', {type:'button', class:'btn', onclick:function(){ w.confirm = null; render(); }}, 'KEEP'));
       else parts.push(el('button', {type:'button', class:'btn', 'data-void':String(x.team), onclick:function(){ w.confirm = k; render(); }}, 'VOID'));
@@ -3923,33 +4046,22 @@ function vWeek(main){
     {h:'SUBMISSIONS', v:function(g){ return g.subs.length ? g.subs.map(function(x){ return subLine(g, x); }) : (g.status === 'ai' ? '-' : 'none yet'); }},
     {h:'SIM', v:function(g){
       if (g.status === 'ai') return '-';
-      if (!isC) return g.sim ? 'MARKED' : '-';
-      return el('button', {type:'button', class:'btn', 'data-sim':String(g.gi), disabled:!!state.busy, onclick:function(){ doSim(cl, g.gi, !g.sim, ctx.wkNo); }}, g.sim ? 'CLEAR SIM' : 'MARK SIM'); }}
+      return g.sim ? 'MARKED' : '-'; }}
   ], sit.games));
   if (sit.strays.length) main.appendChild(el('p', {class:'note'}, 'Submissions that match no game of this round (ignored): from ' + sit.strays.map(function(t){ return teamName(L, t); }).join(', ') + '.'));
-  /* ADVANCE */
+  /* HQ 0.13: look-only. The week is advanced (and the offseason run) in the game on the phone; HQ keeps VOID and USE THIS ONE. */
   var pend = STD.pendingGames(L, sit.hum, {humans:humans}).filter(function(p){ return sit.games[p.gi].status !== 'sim' && sit.games[p.gi].status !== 'conflict'; });
-  var adv = el('div', {class:'panel', id:'advancePanel'}, [el('h2', null, 'ADVANCE')]);
+  var adv = el('div', {class:'panel', id:'advancePanel'}, [el('h2', null, 'WAITING FOR')]);
   if (pend.length){
     adv.appendChild(el('p', null, 'NOT PLAYED YET (' + pend.length + '):'));
     adv.appendChild(el('ul', {id:'pendingList'}, pend.map(function(p){ return el('li', null, teamName(L, p.h) + ' v ' + teamName(L, p.a) + ' (' + [who(cl, p.h), who(cl, p.a)].filter(Boolean).join(' and ') + ')'); })));
   } else adv.appendChild(el('p', {id:'nothingPending'}, 'Every game with a person is played or marked SIM.'));
   var block = null;
-  if (sit.conflicts.length) block = 'Two players sent different scores for ' + sit.conflicts.map(function(gi){ return 'game ' + (gi + 1); }).join(', ') + '. Press USE THIS ONE on the result that counts (or VOID one) before advancing.';
+  if (sit.conflicts.length) block = 'Two players sent different scores for ' + sit.conflicts.map(function(gi){ return 'game ' + (gi + 1); }).join(', ') + '. ' + (layoutOf(meta) === 2 ? 'Press USE THIS ONE on the result that counts (or VOID one)' : 'VOID one of the results (this older league cannot keep a chosen score)') + ' before the commissioner advances.';
   else if (sit.ties.length) block = 'A playoff game cannot end in a tie: ' + scoreText(L, sit.games[sit.ties[0]], sit.games[sit.ties[0]].use.sc) + '. VOID that result and ask the players to check the score.';
   if (block) adv.appendChild(el('div', {class:'msg warn', id:'advBlock'}, block));
-  if (isC){
-    var off = !!state.busy || !!block, btns = [];
-    if (!pend.length) btns.push(el('button', {type:'button', class:'btn pri', id:'btnAdvance', disabled:off, onclick:function(){ doAdvance(cl, 'sim'); }}, 'ADVANCE'));
-    else {
-      btns.push(el('button', {type:'button', class:'btn pri', id:'btnAdvanceSim', disabled:off, onclick:function(){ doAdvance(cl, 'sim'); }}, 'ADVANCE AND SIM THE MISSING GAMES'));
-      if (!meta.hold) btns.push(el('button', {type:'button', class:'btn', id:'btnWait', disabled:off, onclick:function(){ doAdvance(cl, 'hold'); }}, 'WAIT'));
-    }
-    if (meta.hold && !pend.length) btns.push(el('button', {type:'button', class:'btn', id:'btnUnhold', disabled:!!state.busy, onclick:function(){ doAdvance(cl, 'unhold'); }}, 'CLEAR THE WAIT'));
-    btns.push(el('button', {type:'button', class:'btn', id:'btnWeekRefresh', disabled:!!state.busy, onclick:function(){ reloadWeek(); refreshLeague(cl, null); }}, 'REFRESH THE WEEK'));
-    adv.appendChild(el('div', {class:'row'}, btns));
-    adv.appendChild(el('p', {class:'note'}, (layoutOf(meta) === 2 ? 'Pressing ADVANCE reads the league document and the documents of the teams people own again (friends spend credits between weeks), plays the week once and writes the week and the new league document together. If another window advanced first, nothing is written.' : 'Pressing ADVANCE reads all 8 team chunks again (friends spend credits between weeks), plays the week once and writes the week and the new league record together. If another window advanced first, nothing is written.')));
-  }
+  adv.appendChild(el('div', {class:'row'}, el('button', {type:'button', class:'btn', id:'btnWeekRefresh', disabled:!!state.busy, onclick:function(){ reloadWeek(); refreshLeague(cl, null); }}, 'REFRESH THE WEEK')));
+  adv.appendChild(el('p', {class:'note', id:'phoneNote'}, 'Create and run leagues in the game on your phone. The commissioner advances the week and runs the offseason there; this page only shows the games and keeps VOID and USE THIS ONE.'));
   main.appendChild(adv);
 }
 
@@ -3992,26 +4104,6 @@ function vAudit(main){
 /* ===================================================================================================================
    MILESTONE 3 screens: OFFSEASON, the people, CHAMPIONS AND HISTORY, ABOUT THIS LEAGUE
    =================================================================================================================== */
-function doOffseason(cl){
-  return doWeekAction('Running the offseason...', async function(){
-    var names = cl.L.teams.map(function(t){ return t.nm; });
-    var r = await runOffseason(FB.ad, cl.lg, {uid:state.auth.uid, expect:expectNow(cl), cache:cl.cache});
-    state.offReport = {names:names, season:r.season, report:r.report, retired:r.retired, row:r.row, reads:r.reads, writes:r.writes};
-    state.wkReport = null; reloadWeek();
-    await refreshLeague(cl, r.meta);
-  });
-}
-function offseasonReport(o){
-  var box = el('div', {class:'panel', id:'offReport'}, [el('h2', null, 'OFFSEASON DONE: SEASON ' + o.season + ' IS IN THE HISTORY')]);
-  box.appendChild(el('p', null, 'Champion: ' + o.names[o.row.ch] + '. Runner-up: ' + o.names[o.row.ru] + '. ' + o.retired + ' players retired and were replaced by rookies. Season ' + (o.season + 1) + ' starts now.'));
-  box.appendChild(table([{h:'TEAM', v:function(r){ return o.names[r.team]; }},
-    {h:'RETIRED', v:function(r){ return r.retired.length ? r.retired.map(function(p){ return p.ps + ' ' + p.nm + ' (' + p.ag + ')'; }).join(', ') : '-'; }},
-    {h:'ROOKIES', v:function(r){ return r.rookies.length ? r.rookies.map(function(p){ return p.ps + ' ' + p.nm + ' (' + p.ag + ')'; }).join(', ') : '-'; }}], o.report));
-  box.appendChild(el('p', {class:'note'}, 'Written in one commit: ' + o.writes + ' documents (' + (layoutOf(o.meta) === 2 ? 'the league document, the teams people own with a fresh baseline, the history entry' : '8 team chunks with a fresh baseline, the league record, the history entry') + '). ' + o.reads + ' documents were read inside the transaction.'));
-  box.appendChild(el('button', {type:'button', class:'btn', id:'btnOffOk', onclick:function(){ state.offReport = null; render(); }}, 'OK'));
-  return box;
-}
-
 /* ---------- the people: slots ---------- */
 function slotButtons(cl, k){
   var s = cl.slots[String(k)], ed = state.slotEdit;
@@ -4086,9 +4178,9 @@ function vAbout(main){
   if (navigator.clipboard) main.appendChild(el('button', {type:'button', class:'btn', id:'btnCopyAbout', onclick:function(){ try { navigator.clipboard.writeText(txt); } catch (e){} }}, 'COPY THIS TEXT'));
 }
 
-/* ---------- HQ 0.9: UNIFORMS. The phone's way: pick PRIMARY and SECONDARY, the game builds HOME, AWAY and (when neither color is white) WHITE.
-   The figures are drawn with the same shapes as the game's players (side view, "ready" and "3-point" stances). The cloud keeps the two colors and the team name
-   (lk.c, lk.d, nm); the piece-by-piece wardrobe of the phone is not stored in a cloud league yet. ---------- */
+/* ---------- HQ 0.9 UNIFORMS, HQ 0.13 look-only. The phone's way: PRIMARY and SECONDARY build HOME, AWAY and (when neither color is white) WHITE; a team may also carry a
+   wardrobe of its own (piece by piece, sleeves, uniforms of your own). The figures are drawn with the same shapes as the game's players (side view, "ready" and "3-point" stances).
+   HQ shows every uniform a team has; it changes none (the phone edits them). ---------- */
 var UF = (function(){
   function shade(h, k){ var n = parseInt(h.slice(1), 16), f = function(v){ return Math.max(0, Math.min(255, Math.round(v * k))); };
     return '#' + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(f).map(function(v){ return v.toString(16).padStart(2, '0'); }).join(''); }
@@ -4100,10 +4192,10 @@ var UF = (function(){
   function mk(base, trim, stripe){ return {helmet:{shell:base, stripe:stripe, mask:'#cfd6e4', logo:stripe}, jersey:{main:base, trim:trim, number:numCol(base, trim), sleeve:null},
     pants:{main:base, stripe:stripe}, socks:{main:base, stripe:stripe}, gloves:'#ffffff', shoes:'#15151a'}; }
   function mkHome(P, S){ return mk(P, S, S); }
-  function mkAway(P, S){ var B = contrast(P, S) < 1.6 ? '#ffffff' : S; return mk(B, P, P); }
+  function mkAway(P, S){ return mk(S, P, P); }                      /* v2.52 of the game: AWAY is always the mirror (no white fallback) */
   function mkWhite(P){ return mk('#ffffff', P, P); }
   function isWhite(h){ return lum(h) >= .75; }
-  function needWhite(P, S){ return !(isWhite(P) || isWhite(S) || isWhite(mkAway(P, S).jersey.main)); }
+  function needWhite(P, S){ return !(isWhite(P) || isWhite(S)); }  /* WHITE whenever neither color is white-ish */
   /* the set a team gets from its two colors */
   function build(c, d){ c = full(c); d = full(d); return {home:mkHome(c, d), away:mkAway(c, d), white:needWhite(c, d) ? mkWhite(c) : null, close:contrast(c, d)}; }
 
@@ -4208,79 +4300,99 @@ var UF = (function(){
   return {build:build, full:full, paint:paint, contrast:contrast, lum:lum, PAL:PAL};
 })();
 
-/* ---------- the UNIFORMS card on the team page (editable for the commissioner) ---------- */
-function lookDraft(m, t){
-  var cl = state.cl, key = (cl ? cl.lg : 'file') + ':' + t.idx, L = state.look;
-  if (!L || L.key !== key){ L = state.look = {key:key, idx:t.idx, nm:t.name, c:UF.full(t.col.c), d:UF.full(t.col.d), open:null, hex:'', base:{nm:t.name, c:UF.full(t.col.c), d:UF.full(t.col.d)}}; }
-  return L;
+/* ---------- the team's personality, as the phone's scouting line (the phone's SCOUT_T, the same thresholds and order) ---------- */
+var SCOUT = (function(){
+  function num(x, d){ return typeof x === 'number' && x === x && isFinite(x) ? x : d; }
+  function cl(v, a, b){ return v < a ? a : v > b ? b : v; }
+  function norm(r){
+    if (r == null || typeof r !== 'object' || Array.isArray(r)) return null;
+    var tn = typeof r.tend === 'number' && isFinite(r.tend) ? cl(r.tend, .1, .9) : 'hash';
+    return {v:1, pass:cl(num(r.pass, 0), -.4, .4), tend:tn, depth:cl(num(r.depth, 0), -1, 1), aggr:cl(num(r.aggr, .5), 0, 1), two:cl(num(r.two, 0), 0, 1), tempo:cl(num(r.tempo, 1), .5, 1.5), hurry:cl(num(r.hurry, 0), 0, 1), blitz:cl(num(r.blitz, 0), -1, 1)};
+  }
+  var DEF = JSON.stringify(norm({}));
+  var T = [
+    ['PASSES A LOT', function(r){ return r.pass >= .05 || (typeof r.tend === 'number' && r.tend >= .7); }],
+    ['RUNS A LOT', function(r){ return r.pass <= -.05 || (typeof r.tend === 'number' && r.tend <= .3); }],
+    ['GOES FOR TWO', function(r){ return r.two >= .3; }],
+    ['BLITZES A LOT', function(r){ return r.blitz >= .3; }],
+    ['GOES FOR IT ON 4TH', function(r){ return r.aggr >= .55; }],
+    ['THROWS DEEP', function(r){ return r.depth >= .15; }],
+    ['THROWS SHORT', function(r){ return r.depth <= -.15; }],
+    ['FAST OFFENSE', function(r){ return r.tempo <= .92; }],
+    ['SLOW OFFENSE', function(r){ return r.tempo >= 1.08; }],
+    ['PLAYS IT SAFE ON 4TH', function(r){ return r.aggr <= .42; }],
+    ['PLAYS SOFT COVERAGE', function(r){ return r.blitz <= -.15; }]];
+  /* [] = no personality (the default); otherwise the two phrases that win, or BALANCED OFFENSE */
+  function phrases(rec){
+    var r = rec ? norm(rec) : null; if (!r || JSON.stringify(r) === DEF) return [];
+    var o = []; for (var i = 0; i < T.length; i++){ if (T[i][1](r)){ o.push(T[i][0]); if (o.length === 2) break; } }
+    return o.length ? o : ['BALANCED OFFENSE'];
+  }
+  return {phrases:phrases, norm:norm};
+})();
+
+/* ---------- the uniforms of a team: the wardrobe it carries (lo.wd), else HOME / AWAY / WHITE built from its two colors ---------- */
+function lookSets(t){
+  var wd = t.wd, out = [], c = UF.build(t.col.c, t.col.d);
+  var hex = function(h, d){ return UF.full(typeof h === 'string' ? h : d); };
+  function piece(k, i){ var a = wd[k]; if (!Array.isArray(a) || !a.length) return null; return a[Math.min(i, a.length - 1)] || null; }
+  if (wd && typeof wd === 'object' && ['helmet', 'jersey', 'pants', 'socks'].every(function(k){ return Array.isArray(wd[k]) && wd[k].length; })){
+    var N = Math.max.apply(null, ['helmet', 'jersey', 'pants', 'socks'].map(function(k){ return wd[k].length; })), sel = wd.sel || {};
+    for (var i = 0; i < N; i++){
+      var h = piece('helmet', i) || {}, j = piece('jersey', i) || {}, p = piece('pants', i) || {}, so = piece('socks', i) || {}, name = '', own = false, worn = [];
+      [j, h, p, so].forEach(function(x){ if (!name && x.n) name = String(x.n); if (x.o) own = true; });
+      ['helmet', 'jersey', 'pants', 'socks'].forEach(function(k){ if ((sel[k] | 0) === i) worn.push(k.toUpperCase()); });
+      var u = {helmet:{shell:hex(h.shell, '#777777'), stripe:hex(h.stripe, '#ffffff'), mask:hex(h.mask, '#cfd6e4'), logo:hex(h.logo || h.stripe, '#ffffff')},
+        jersey:{main:hex(j.main, '#777777'), trim:hex(j.trim, '#ffffff'), number:hex(j.number, '#ffffff'), sleeve:typeof j.sleeve === 'string' ? hex(j.sleeve) : null},
+        pants:{main:hex(p.main, '#777777'), stripe:hex(p.stripe, '#ffffff')}, socks:{main:hex(so.main, '#777777'), stripe:hex(so.stripe, '#ffffff')},
+        gloves:hex(wd.gloves, '#ffffff'), shoes:hex(wd.shoes, '#15151a')};
+      out.push({n:name || String(i + 1), own:own, worn:worn, u:u, from:'wardrobe'});
+    }
+    return out;
+  }
+  [['HOME', c.home], ['AWAY', c.away]].concat(c.white ? [['WHITE', c.white]] : []).forEach(function(r){ out.push({n:r[0], own:false, worn:[], u:r[1], from:'colors'}); });
+  return out;
 }
-function lookDirty(L){ return L.nm !== L.base.nm || L.c !== L.base.c || L.d !== L.base.d; }
-async function saveLook(idx, look){
-  var cl = state.cl, uid = state.auth && state.auth.uid, k = String(idx), nm = cleanName(look.nm), lk = {c:UF.full(look.c), d:UF.full(look.d)};
-  if (!cl || !uid) throw CloudError('denied', 'Sign in with Google as the commissioner of this league first.');
-  await FB.ad.transaction(async function(tx){
-    var mg = await tx.get(PATH.meta(cl.lg));
-    if (!mg.exists) throw CloudError('missing', 'This league does not exist in the cloud.');
-    var meta = mg.data;
-    if (meta.commish !== uid) throw CloudError('denied', 'Only the commissioner can change a team\'s name and colors.');
-    var tg = await tx.get(PATH.team(cl.lg, idx));        /* a team a person owns has its own document (the truth); a computer team lives in the league document */
-    if (tg.exists){
-      tx.set(PATH.team(cl.lg, idx), Object.assign({}, tg.data, {nm:nm, lk:lk}));
-    } else if (layoutOf(meta) === 2 && meta.ts && meta.ts[k]){
-      var ts = Object.assign({}, meta.ts); ts[k] = Object.assign({}, ts[k], {nm:nm, lk:lk});
-      tx.set(PATH.meta(cl.lg), Object.assign({}, meta, {ts:ts, updatedAt:nextStamp(meta.updatedAt)}));
-    } else throw CloudError('missing', 'Team ' + (idx + 1) + ' is not in the cloud.');
-  });
+function lookPieces(u){
+  var sw = function(h){ return h; };
+  return [['HELMET', 'shell ' + sw(u.helmet.shell) + ', stripe ' + sw(u.helmet.stripe) + ', mask ' + sw(u.helmet.mask) + ', logo ' + sw(u.helmet.logo)],
+    ['JERSEY', 'main ' + sw(u.jersey.main) + ', trim ' + sw(u.jersey.trim) + ', number ' + sw(u.jersey.number) + ', sleeves ' + (u.jersey.sleeve ? sw(u.jersey.sleeve) : 'same as jersey')],
+    ['PANTS', 'main ' + sw(u.pants.main) + ', stripe ' + sw(u.pants.stripe)], ['SOCKS', 'main ' + sw(u.socks.main) + ', stripe ' + sw(u.socks.stripe)],
+    ['GLOVES', sw(u.gloves)], ['SHOES', sw(u.shoes)]];
 }
-function lookSwatchBtn(label, which, L, busy){
-  var hex = L[which];
-  return el('button', {type:'button', class:'btn swb' + (L.open === which ? ' on' : ''), 'data-pal':which, disabled:busy, 'aria-label':label + ' ' + hex, onclick:function(){ L.open = (L.open === which) ? null : which; L.hex = ''; render(); }},
-    [el('span', {class:'swbox', style:'background:' + hex}), el('span', null, [label, el('br'), el('small', null, hex.toUpperCase())])]);
-}
-function lookPalette(L, busy){
-  var which = L.open, cur = L[which], box = el('div', {class:'pal', id:'lookPal'});
-  box.appendChild(el('b', null, 'PICK A COLOR: ' + (which === 'c' ? 'PRIMARY' : 'SECONDARY')));
-  var g = el('div', {class:'palg'});
-  UF.PAL.forEach(function(h){ g.appendChild(el('button', {type:'button', class:'pk', 'data-hex':h, 'aria-label':h, style:'background:' + h + ';color:' + (UF.lum(h) > .4 ? '#000' : '#fff'), disabled:busy,
-    onclick:function(){ L[which] = h; render(); }}, cur === h ? '✓' : ''));
-  });
-  box.appendChild(g);
-  var hexIn = el('input', {type:'text', id:'lookHex', class:'name-in', maxlength:'7', placeholder:'#RRGGBB', 'aria-label':'Hex color', value:L.hex || '', oninput:function(e){ L.hex = e.target.value; }});
-  var native = el('input', {type:'color', id:'lookNative', value:cur, style:'position:absolute;opacity:0;width:1px;height:1px', onchange:function(e){ L[which] = UF.full(e.target.value); render(); }});
-  box.appendChild(el('div', {class:'row'}, [hexIn,
-    el('button', {type:'button', class:'btn', id:'lookHexOk', onclick:function(){ var v = String(L.hex || '').trim(); if (v[0] !== '#') v = '#' + v; if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)){ L[which] = UF.full(v); L.hex = ''; render(); } }}, 'USE HEX'),
-    el('label', {class:'btn'}, ['ANY COLOR', native]),
-    el('button', {type:'button', class:'btn', onclick:function(){ L.open = null; render(); }}, 'DONE')]));
-  return box;
-}
+/* the UNIFORMS card on the team page: read only, every uniform the team has */
 function lookCard(main, m, t){
   if (!t || !t.col) return;
-  var cl = state.cl, mine = !!(cl && cl.role === 'commissioner' && m.linked), busy = !!state.busy, L = lookDraft(m, t);
-  var set = UF.build(mine ? L.c : t.col.c, mine ? L.d : t.col.d);
-  var card = el('div', {class:'panel', id:'lookCard'}, [el('h2', null, 'UNIFORMS')]);
-  var rows = [['HOME', set.home], ['AWAY', set.away]]; if (set.white) rows.push(['WHITE', set.white]);
-  rows.forEach(function(r){ var cv = el('canvas', {class:'uni', 'data-uni':r[0], 'aria-label':r[0] + ' uniform of ' + t.name}); card.appendChild(el('div', {class:'pvrow'}, [el('b', null, r[0]), cv])); setTimeout(function(){ UF.paint(cv, r[1], 5); }, 0); });
-  card.appendChild(el('p', {class:'note', id:'lookNote'}, 'HOME is the primary color with secondary stripes; AWAY is the reverse' + (set.white ? '; neither color is white, so a third WHITE uniform is added, with the primary color as its trim.' : '.') + ' The phone builds the same three from the same two colors.'));
-  if (!mine){
-    card.appendChild(el('p', {class:'note', id:'lookRO'}, m.linked ? 'Only the commissioner can change a team\'s name and colors for now.' : 'A file or backup is read only here: the colors are shown, not changed.'));
-    main.appendChild(card); return;
-  }
-  var nameIn = el('input', {type:'text', id:'lookName', class:'name-in', maxlength:'40', 'aria-label':'Team name', value:L.nm, disabled:busy, oninput:function(e){ L.nm = e.target.value; var b = document.getElementById('btnLookSave'); if (b) b.disabled = !!state.busy || !lookDirty(L) || !String(L.nm).trim(); }});
-  card.appendChild(el('div', {class:'row'}, [el('span', {class:'note'}, 'TEAM NAME'), nameIn]));
-  card.appendChild(el('div', {class:'row'}, [lookSwatchBtn('PRIMARY', 'c', L, busy), lookSwatchBtn('SECONDARY', 'd', L, busy),
-    el('button', {type:'button', class:'btn', id:'btnLookRandom', disabled:busy, onclick:function(){
-      var a, b, n = 0, r = ENV.ints(2 * 60); do { a = UF.PAL[r[2 * n] % UF.PAL.length]; b = UF.PAL[r[2 * n + 1] % UF.PAL.length]; n++; } while ((UF.contrast(a, b) < 2 || a === b) && n < 59);
-      L.c = a; L.d = b; render(); }}, 'RANDOM COLORS')]));
-  if (L.open) card.appendChild(lookPalette(L, busy));
-  var cr = UF.contrast(L.c, L.d);
-  if (cr < 1.6) card.appendChild(el('div', {class:'msg warn', id:'lookWarn'}, 'PRIMARY and SECONDARY are almost the same color, so the stripes will not show and AWAY falls back to a white uniform.'));
-  else if (cr < 3) card.appendChild(el('div', {class:'msg warn', id:'lookWarn'}, 'PRIMARY and SECONDARY are close: the stripes will be faint.'));
-  card.appendChild(el('div', {class:'row'}, [
-    el('button', {type:'button', class:'btn pri', id:'btnLookSave', disabled:busy || !lookDirty(L) || !String(L.nm).trim(), onclick:function(){
-      runBusy('Saving the look...', async function(){ await saveLook(L.idx, L); var cl2 = state.cl; state.look = null; await refreshLeague(cl2, null); setMsg('ok', 'Saved: ' + cleanName(L.nm) + '.'); }); }}, 'SAVE'),
-    el('button', {type:'button', class:'btn', id:'btnLookReset', disabled:busy || !lookDirty(L), onclick:function(){ L.nm = L.base.nm; L.c = L.base.c; L.d = L.base.d; L.open = null; render(); }}, 'UNDO')]));
-  card.appendChild(el('p', {class:'note'}, 'SAVE writes the name and the two colors to the league in the cloud; friends and the phone see them at their next refresh. The piece-by-piece wardrobe of the phone (single helmets, jerseys, pants, socks, your own extra uniforms) is not kept in a cloud league yet.'));
+  var sets = lookSets(t), card = el('div', {class:'panel', id:'lookCard'}, [el('h2', null, 'UNIFORMS')]);
+  sets.forEach(function(r){
+    var cv = el('canvas', {class:'uni', 'data-uni':r.n, 'aria-label':r.n + ' uniform of ' + t.name});
+    card.appendChild(el('div', {class:'pvrow', 'data-uniform':r.n}, [el('b', null, r.n + (r.own ? ' (YOURS)' : '')), cv,
+      el('div', {class:'note unip'}, lookPieces(r.u).map(function(x){ return el('div', null, [el('b', null, x[0] + ' '), x[1]]); }).concat(r.worn.length ? [el('div', {class:'unow'}, 'WORN: ' + r.worn.join(', '))] : []))]));
+    setTimeout(function(){ UF.paint(cv, r.u, 5); }, 0);
+  });
+  var set = UF.build(t.col.c, t.col.d);
+  card.appendChild(el('p', {class:'note', id:'lookNote'}, sets[0] && sets[0].from === 'wardrobe'
+    ? 'This team has its own wardrobe, piece by piece, as the phone saved it.' + (sets.some(function(r){ return r.own; }) ? ' YOURS marks an uniform made by hand on the phone.' : '')
+    : 'HOME is the primary color with secondary stripes; AWAY is the reverse' + (set.white ? '; neither color is white, so a third WHITE uniform is added, with the primary color as its trim.' : '.')));
+  card.appendChild(el('p', {class:'note', id:'lookRO'}, 'HQ only shows the uniforms. Change the colors, the wardrobe and your own uniforms in the game on your phone.'));
   main.appendChild(card);
+}
+/* the rest of what the phone knows about a team: the personality line and, for a team a person owns, YOUR PLAYERS */
+function teamExtrasCard(main, m, t){
+  if (!t) return;
+  var ph = SCOUT.phrases(t.sty);
+  main.appendChild(el('p', {class:'note', id:'persLine'}, [el('b', null, 'PERSONALITY: '), ph.length ? ph.join(', ') : 'NO SPECIAL HABITS (THE DEFAULT)']));
+  var y = t.x && t.x.yp;
+  if (y && y.s < m.season){
+    var cap = function(a, f){ return a.slice(0, 6).map(f).join(', ') + (a.length > 6 ? ' AND ' + (a.length - 6) + ' MORE' : ''); };
+    var row = function(h, a, f){ return a.length ? el('div', {class:'rry'}, [el('b', {class:'rryh'}, h + ' '), cap(a, f)]) : null; };
+    var nm = function(x){ return x[0] + ' ' + x[1]; };
+    var kids = [el('h3', null, 'YOUR PLAYERS: WHAT THE OFFSEASON DID'), row('BETTER', y.up, function(x){ return nm(x) + ' +' + x[2].toFixed(1); }), row('WORSE', y.dn, function(x){ return nm(x) + ' -' + (-x[2]).toFixed(1); }),
+      row('RETIRED', y.rt, function(x){ return nm(x) + ' (' + x[2] + ')'; }), row('ROOKIES', y.rk, function(x){ return nm(x) + ' ' + x[2] + '/5'; })].filter(Boolean);
+    if (kids.length === 1) kids.push(el('p', {class:'note'}, 'NOBODY CHANGED MUCH THIS OFFSEASON.'));
+    kids.push(el('p', {class:'note'}, 'SEASON ' + (y.s + 1) + '. The roster below has everyone.'));
+    main.appendChild(el('div', {class:'panel', id:'yourPlayers'}, kids));
+  }
 }
 
 /* ---------- HQ 0.10: PLAYBOOK. View only for now. The routes are drawn exactly the way the phone game works them out (the route tree and routePath are copied from the game's
@@ -4371,12 +4483,14 @@ var PB = (function(){
     if (!save || !Array.isArray(save.plays)) return [];
     var r = []; save.plays.forEach(function(q){ var c = cleanPlay(q); if (c) r.push(c); }); return r;
   }
-  /* grouped by the deepest route (HQ's own grouping): QUICK 6 yards or less, MEDIUM 7 to 14, DEEP 15 and up; SCREEN: blockers and a short throw.
-     A flat does not count: its depth is how far it runs sideways. */
-  function deepest(p){ return p.p.reduce(function(a, s){ return (s.t === 'block' || s.t === 'flat') ? a : Math.max(a, s.d); }, 0); }
+  /* HQ 0.12: grouped by the depth most of the routes reach (the median route depth): QUICK up to 6 yards, MEDIUM up to 14, DEEP beyond; SCREEN: blockers and a short throw.
+     Blockers and the running back (the 4th spot) do not count. A flat run by a receiver counts as a 2 yard route: its stored depth is how far it runs sideways, not how deep it goes. */
+  function routeDepths(p){ var r = []; p.p.forEach(function(s, i){ if (s.t === 'block' || i === 3) return; r.push(s.t === 'flat' ? 2 : s.d); }); return r.sort(function(a, b){ return a - b; }); }
+  function deepest(p){ var r = routeDepths(p); return r.length ? r[r.length - 1] : 0; }
+  function reach(p){ var r = routeDepths(p); if (!r.length) return 0; var h = r.length >> 1; return r.length % 2 ? r[h] : (r[h - 1] + r[h]) / 2; }
   function kind(p){
     if (/SCREEN/.test(p.name) || p.p.filter(function(s){ return s.t === 'block'; }).length >= 2) return 'SCREEN';
-    var d = deepest(p); return d <= 6 ? 'QUICK' : (d <= 14 ? 'MEDIUM' : 'DEEP');
+    var d = reach(p); return d <= 6 ? 'QUICK' : (d <= 14 ? 'MEDIUM' : 'DEEP');
   }
   function sv(tag, attrs, kids){
     var n = document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -4411,12 +4525,14 @@ var PB = (function(){
     return svg;
   }
   return {RT:RT, RTD:RTD, PL:PL, RC:RC, BASE:BASE, routePath:routePath, mkPlay:mkPlay, lib:NFLC, seed:function(){ return [mkPlay('QUICK SLANTS', ['slant', 'slant', 'slant', 'flat', 'hitch']), mkPlay('FOUR GOS', ['go', 'go', 'go', 'flat', 'go']), mkPlay('CURL FLAT', ['curl', 'curl', 'out', 'flat', 'flat']), mkPlay('DEEP SHOTS', ['post', 'corner', 'go', 'hitch', 'curl'])]; },
-    savePlays:savePlays, kind:kind, deepest:deepest, diagram:diagram};
+    savePlays:savePlays, kind:kind, deepest:deepest, reach:reach, diagram:diagram};
 })();
 
 var PBKINDS = ['ALL', 'QUICK', 'MEDIUM', 'DEEP', 'SCREEN'];
 function pbSources(){
   var m = state.m, own = m ? PB.savePlays(m.save) : [], src = [];
+  /* HQ 0.13: a cloud league carries the playbook of every team a person owns (team document, pb) */
+  if (m && m.linked) m.teams.forEach(function(t){ if (t.x && t.x.plays){ var pl = PB.savePlays({plays:t.x.plays}); if (pl.length) src.push({id:'lg' + t.idx, label:'THIS LEAGUE\'S PLAYBOOK: ' + t.name, plays:pl}); } });
   if (own.length) src.push({id:'save', label:'THIS SAVE\'S PLAYBOOK', plays:own});
   src.push({id:'lib', label:'STANDARD LIBRARY', plays:PB.lib});
   return src;
@@ -4430,18 +4546,18 @@ function vPlaybook(main){
   if (pb.sel >= plays.length) pb.sel = -1;
   add(main, el('h1', null, 'PLAYBOOK'));
   var sr = el('div', {class:'row', id:'pbSide'});
-  [['OFF', 'OFFENSE'], ['DEF', 'DEFENSE']].forEach(function(o){ sr.appendChild(el('button', {type:'button', class:'btn' + ((pb.side || 'OFF') === o[0] ? ' pri' : ''), 'data-side':o[0], 'aria-pressed':(pb.side || 'OFF') === o[0], onclick:function(){ pb.side = o[0]; render(); }}, o[1])); });
+  [['OFF', 'OFFENSE'], ['DEF', 'DEFENSE']].forEach(function(o){ sr.appendChild(el('button', {type:'button', class:'btn', 'data-side':o[0], 'aria-pressed':(pb.side || 'OFF') === o[0] ? 'true' : 'false', onclick:function(){ pb.side = o[0]; render(); }}, o[1])); });
   add(main, sr);
   if (pb.side === 'DEF'){ vDefenseBook(main, pb); return; }
   add(main, el('p', {class:'note'}, 'The plays the phone game calls, drawn the way it draws them. Receivers 1 to 5 are WR 1, WR 2, WR 3, the running back and the tight end; the blue line is the line of scrimmage and the offense moves to the right. A bar across the end of a route means the receiver stops there; an arrow means the route keeps going. Viewing only for now.'));
   if (src.length > 1){
     var row = el('div', {class:'row', id:'pbSrc'});
-    src.forEach(function(s){ row.appendChild(el('button', {type:'button', class:'btn' + (s.id === cur.id ? ' pri' : ''), 'data-src':s.id, onclick:function(){ pb.src = s.id; pb.sel = -1; render(); }}, s.label + ' (' + s.plays.length + ')')); });
+    src.forEach(function(s){ row.appendChild(el('button', {type:'button', class:'btn', 'aria-pressed':s.id === cur.id ? 'true' : 'false', 'data-src':s.id, onclick:function(){ pb.src = s.id; pb.sel = -1; render(); }}, s.label + ' (' + s.plays.length + ')')); });
     add(main, row);
-  } else add(main, el('p', {class:'note', id:'pbSrcNote'}, (state.m && state.m.save ? 'This save has no playbook of its own, so this is the game\'s standard library' : 'A cloud league does not carry a playbook, so this is the game\'s standard library') + ' (' + plays.length + ' plays).'));
+  } else add(main, el('p', {class:'note', id:'pbSrcNote'}, (state.m && state.m.save ? 'This save has no playbook of its own, so this is the game\'s standard library' : 'No team in this league has saved a playbook yet (the phone writes it when a player opens his BOOK), so this is the game\'s standard library') + ' (' + plays.length + ' plays).'));
   var kr = el('div', {class:'row', id:'pbKinds'});
   PBKINDS.forEach(function(k){ var n = k === 'ALL' ? plays.length : plays.filter(function(p){ return PB.kind(p) === k; }).length;
-    kr.appendChild(el('button', {type:'button', class:'btn' + (pb.kind === k ? ' pri' : ''), 'data-kind':k, onclick:function(){ pb.kind = k; render(); }}, k + ' (' + n + ')')); });
+    kr.appendChild(el('button', {type:'button', class:'btn', 'aria-pressed':pb.kind === k ? 'true' : 'false', 'data-kind':k, onclick:function(){ pb.kind = k; render(); }}, k + ' (' + n + ')')); });
   add(main, kr);
   if (pb.sel >= 0){
     var p = plays[pb.sel], at = shown.map(function(r){ return r.i; }).indexOf(pb.sel);
@@ -4474,7 +4590,7 @@ function vPlaybook(main){
 }
 
 /* ---------- HQ 0.11: PLAYBOOK, DEFENSE. The game's own defense cards, ported: the scheme table DEFD (14 schemes), the families and the BEST VS / WEAK VS text (dcTags), and the card
-   drawing (ddLayout, drawDefCard, the pixel shapes), all copied from the game (index.html, v2.30) without changes and compared with it in tests/hq-v011-defense.test.mjs.
+   drawing (ddLayout, drawDefCard, the pixel shapes), all copied from the game (index.html, v2.52) without changes and compared with it in tests/hq-v011-defense.test.mjs.
    Square = lineman, circle = linebacker, triangle = back; ring = zone; dashed line and box = man; arrow = extra rusher; red with a gold outline = defense,
    white square = offense, yellow = QB. A linebacker may still pick up the RB or the TE at the snap, and before the snap the game may show another look (disguise). ---------- */
 var DF = (function(){
@@ -4491,9 +4607,25 @@ const DC_F={
  B:{PASS:[1.07,1,1],RUN:[.85,1,1.20]}};
 const DC_C4RUN=[1.18,1,1]; /* COVER 4 has a light box */
 const DC_PV_LATE=[.60,1.40,.90],DC_PV_EARLY=[1.30,1.10,.80];
+const DC_T={
+ c3:{PASS:[.76,1.46,1],RUN:[1.22,1.3,1.01]},
+ c2:{PASS:[.8,1.52,1.03],RUN:[1.16,1.34,1]},
+ t2:{PASS:[.68,1.5,1.02],RUN:[1.3,1.3,1]},
+ c4:{PASS:[.64,1.5,.98],RUN:[1.35,1.28,.97]},
+ c6:{PASS:[.72,1.48,.99],RUN:[1.26,1.32,1]},
+ c1:{PASS:[.94,.97,1.19],RUN:[1.07,1,.97]},
+ c2m:{PASS:[.86,1.03,1.11],RUN:[1.13,1,.93]},
+ c0:{PASS:[1.17,.84,1.62],RUN:[.83,.97,1.21]},
+ b1:{PASS:[1.04,.91,1.42],RUN:[.94,1,1.15]},
+ fz:{PASS:[1.09,.95,1.34],RUN:[.88,1.01,1.11]},
+ six:{PASS:[1.13,.88,1.52],RUN:[.85,1,1.17]},
+ sb:{PASS:[1.07,.92,1.35],RUN:[.9,1.02,1.11]},
+ bear:{PASS:[1.07,1,1],RUN:[.85,1,1.2]}};
+let DC_TILT_V2=true; /* false = the v2.33 family table, exactly (the proof switch; tests flip it through __pp.tiltV2) */
 function dcFactors(id,style,lateLead){
  const f=DC_FAM[id];if(!f)return[1,1,1];
  if(f==='V')return lateLead?DC_PV_LATE:DC_PV_EARLY;
+ if(DC_TILT_V2){const s=DC_T[id];if(s)return s[style]||s.PASS}
  if(id==='c4'&&style==='RUN')return DC_C4RUN;
  return(DC_F[f][style]||DC_F[f].PASS)}
 function dcTags(id){
@@ -4508,11 +4640,9 @@ function ddBase(c){c.imageSmoothingEnabled=false;ddR(c,0,0,DD_W,DD_H,PAL.turf0);
  for(let k=0;k<8;k++){if(k&1)ddR(c,0,ddX(5*k)-15,DD_W,15,PAL.turf1)}
  for(let x=5;x<=30;x+=5)ddR(c,0,ddX(x),DD_W,1,'rgba(255,255,255,.5)');
  ddR(c,0,ddX(0),DD_W,2,PAL.los)}
-function ddZone(c,cx,cy,r){
- for(let y=Math.max(0,cy-r-2);y<=Math.min(DD_H-1,cy+r+2);y++)for(let x=Math.max(0,cx-r-2);x<=Math.min(DD_W-1,cx+r+2);x++){
-  const d=Math.hypot(x-cx,y-cy);let col=null;
-  if(d<=r-2.5)col='rgba(255,255,255,.16)';else if(d<=r-1.5)col=PAL.dark;else if(d<=r+.5)col=PAL.red;else if(d<=r+1.5)col=PAL.dark;
-  if(col){c.fillStyle=col;c.fillRect(x,y,1,1)}}}
+function ddZone(c,cx,cy,r){ /* v2.48: a zone is a soft filled area (about 18% white), no ring; where two zones overlap the area is a little lighter */
+ c.fillStyle='rgba(255,255,255,.18)';
+ for(let y=Math.max(0,cy-r);y<=Math.min(DD_H-1,cy+r);y++){const w=Math.floor(Math.sqrt(Math.max(0,r*r-(y-cy)*(y-cy))));const x0=Math.max(0,cx-w),x1=Math.min(DD_W-1,cx+w);if(x1>=x0)c.fillRect(x0,y,x1-x0+1,1)}}
 const DD_SH={sq:['#####','#####','#####','#####','#####'],ci:['.###.','#####','#####','#####','.###.'],tr:['..#..','.###.','.###.','#####','#####']};
 function ddDef(c,x,y,kind){const bm=DD_SH[kind],px=x-2,py=y-2,on=(i,j)=>j>=0&&j<5&&i>=0&&i<5&&bm[j][i]==='#';
  for(let j=-1;j<=5;j++)for(let i=-1;i<=5;i++){let near=false;for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)if(on(i+di,j+dj))near=true;if(near&&!on(i,j)){c.fillStyle=PAL.gold;c.fillRect(px+i,py+j,1,1)}}
@@ -4539,9 +4669,9 @@ function ddLayout(def){
  return{R,dl,mv,zones,men,arrows,all:[...dl,...mv]}}
 function drawDefCard(c,def){const L=ddLayout(def);ddBase(c);
  L.zones.forEach(z=>ddZone(c,z.cx,z.cy,z.r));
- L.zones.forEach(z=>{const o=z.o;if(Math.hypot(z.cx-o.x,z.cy-o.y)>8){ddLine(c,o.x,o.y,z.cx,z.cy,'rgba(11,15,26,.7)',3,[2,2]);ddLine(c,o.x,o.y,z.cx,z.cy,PAL.redHi,1,[2,2])}});
+ L.zones.forEach(z=>{const o=z.o;if(Math.hypot(z.cx-o.x,z.cy-o.y)>8)ddLine(c,o.x,o.y,z.cx,z.cy,PAL.redHi,1,[2,3])});
  FM.ol.forEach(y=>ddOff(c,ddY(y),ddX(FM.olx)));L.R.forEach(q=>ddOff(c,ddY(q.y),ddX(q.x)));ddOff(c,ddY(FM.qb[1]),ddX(FM.qb[0]),PAL.man);
- L.men.forEach(m=>{const o=m.o;ddLine(c,o.x,o.y,m.tx,m.ty,PAL.dark,4);ddLine(c,o.x,o.y,m.tx,m.ty,PAL.man,2,[4,2]);
+ L.men.forEach(m=>{const o=m.o;ddLine(c,o.x,o.y,m.tx,m.ty,PAL.man,2,[4,3]);
   ddR(c,m.tx-5,m.ty-5,11,1,PAL.man);ddR(c,m.tx-5,m.ty+5,11,1,PAL.man);ddR(c,m.tx-5,m.ty-5,1,11,PAL.man);ddR(c,m.tx+5,m.ty-5,1,11,PAL.man)});
  L.all.forEach(o=>ddDef(c,o.x,o.y,o.k));
  L.arrows.forEach(o=>ddArrow(c,o.x,o.y,ddY(FM.qb[1]),ddX(FM.qb[0]+1.5),3));
