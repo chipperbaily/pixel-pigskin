@@ -858,7 +858,7 @@ html.lt #app:not(.gm) .fsim .fsh{color:var(--L-ink)}
 <script>
 (function(){
 'use strict';
-const APP_VERSION="2.54"; /* v2.54: THE WHOLE LEAGUE IN THE CLOUD (lg-cloud 1.1 from HQ 0.13: personalities, injuries, names, wardrobes, my playbook and options go up; YOUR PLAYERS and who is out come from the cloud).  v2.53: THE MENUS (HOME is the permanent title screen, MY LEAGUES are team-color cards, the team-color header card, a seven-item league menu, SETTINGS in four tabs, one playbook per player).  v2.52: AWAY is always the mirror, WHITE whenever neither color is white-ish, a plainer close-colors warning, random team colors at least 3:1 and delta E 25 apart.  v2.51: TIPS removed (HOW TO PLAY cards cover it), the title screen's QUICK GAME is the one quick start and no EXHIBITION pulse runs behind the title.  v2.50: SHARE GAME STATS row, TIPS cards, first-launch QUICK START.  v2.49: HOW TO PLAY cards (one shared function), title band, motion, SOUND and BUZZ rows, crowd roar, TD confetti, TITLE SCREEN.  v2.46: owner UX audit: bottom action bars, one-tap locker room, kick pull 90 px, pass cancel zone, RESUME snapshots, sentence case, CONTROLS first, yellow = act only, BACKUPS AND CODES.  v2.45: ROSTER screen for Standard leagues (TEAM > ROSTER: age, rating, potential stars, XP, change since last season, a player card with his career), YOUR PLAYERS after the offseason, INJURIES OFF / LOW / NORMAL on NEW LEAGUE (a hurt starter is out 1 to 4 games, a weaker stand-in plays for him in the sim and in your hand-played games), lg-std 1.4 and lg-full 1.2. v2.44: the commissioner of a league in the account moves it on from the phone: ADVANCE WEEK, ADVANCE PLAYOFFS, OFFSEASON with the same checks as HQ (lk.js, no new files). v2.43: v2.43: ACCOUNT (Google sign-in in SETTINGS), SAVE TO MY ACCOUNT on NEW LEAGUE, MY LEAGUES lists the account's leagues too, the cloud layer is HQ's lg-cloud.js embedded unchanged (every league size). v2.42: LEAGUE SHAPES (Standard NFL, COLLEGE, 8 TEAMS and CUSTOM leagues, NEW LEAGUE rows LEAGUE and PLAYERS, team sets and CUSTOMIZE for Standard, RENAME on MY LEAGUES). v2.41: OPPONENT DRIVES NEW / CLASSIC (NEW by default for new games, leagues and installs), the opponent PERSONALITY pick, the SCOUTING line, their blitz on your snaps. v2.40: timeouts (3 a half each, MENU and a chip by the clock), a white flash and a small shake on a tackle (HIT EFFECTS), REMATCH on the exhibition final screen. v2.39: front-view figures (the kick screen) and the new side figure in the play designer instead of the old 12x18 pixel players. v2.38: a more natural body for the smooth players, HOME/AWAY/WHITE from two colors, a sleeves color, your own uniforms. v2.37: lg-drive 1.4 (tune + zone cards) embedded as it is (switch still OFF); the five zone cards get the new touchdown / field-goal rows and six card texts; a result of 8 points (a try for two) and its text; team personalities (sty); a level linked playoff game is decided by the engine's 3-point rule before it is sent. v2.36: lg-drive 1.2 (round 3) embedded as it is (it carries the CALL YOUR DEFENSE tilt itself; switch still OFF); a linked league whose commissioner closed joining shows JOINING IS CLOSED instead of making a slot. v2.35: CALL YOUR DEFENSE: every one of the 14 cards is a real call of its own (DC_T, per-card factors), a short text on each card; lg-drive 1.1 (switch still OFF); a tied playoff game no longer knocks you out; AUTO calls by the rules table. v2.34: the game screen: MENU button (upper left, hidden from the snap), RB box yellow, routes 3 px, no tips after the snap, installed app fullscreen / black-translucent. v2.33: LINKED LEAGUES, the player side (src/lk.js): join a commissioner's league by its code, pull it, play and send games. v2.32: no game change (tests only: drvoff pinned to the .611 speed, hlp over http). Helmet logo, jersey trim and number are still drawn in the play designer and the kick scene, so their LOOK rows stay. */ /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
+const APP_VERSION="2.59"; /* v2.59: lg-drive 1.5 (late game + stronger styles) embedded unchanged: TWO-MINUTE DRILL, MILKING THE CLOCK, KNEEL, GO FOR IT, spike on the drive banner and the play-by-play; the engine string is "lg-drive 1.5".  v2.58: EXHIBITION > PLAY: DEFENSE ONLY (TEST): you only defend, the computer's offense is brain.js 1.3 (embedded unchanged), one defender can be steered with a finger (dfo.js).  v2.57: lg-std 1.5 (colors) embedded unchanged: NEW shaped leagues get team colors at least 3:1 and delta E 25 apart.  v2.56: THE DEFENSE NOTICES HOW YOU PLAY (my last 8 snaps lean the defense pick, a hint line when it is strong).  v2.55: A NEW LEAGUE NEVER STARTS WITH A QUARTERBACK BELOW 3 OF 10 (ARM, ACCURACY).  v2.54: THE WHOLE LEAGUE IN THE CLOUD (lg-cloud 1.1 from HQ 0.13: personalities, injuries, names, wardrobes, my playbook and options go up; YOUR PLAYERS and who is out come from the cloud).  v2.53: THE MENUS (HOME is the permanent title screen, MY LEAGUES are team-color cards, the team-color header card, a seven-item league menu, SETTINGS in four tabs, one playbook per player).  v2.52: AWAY is always the mirror, WHITE whenever neither color is white-ish, a plainer close-colors warning, random team colors at least 3:1 and delta E 25 apart.  v2.51: TIPS removed (HOW TO PLAY cards cover it), the title screen's QUICK GAME is the one quick start and no EXHIBITION pulse runs behind the title.  v2.50: SHARE GAME STATS row, TIPS cards, first-launch QUICK START.  v2.49: HOW TO PLAY cards (one shared function), title band, motion, SOUND and BUZZ rows, crowd roar, TD confetti, TITLE SCREEN.  v2.46: owner UX audit: bottom action bars, one-tap locker room, kick pull 90 px, pass cancel zone, RESUME snapshots, sentence case, CONTROLS first, yellow = act only, BACKUPS AND CODES.  v2.45: ROSTER screen for Standard leagues (TEAM > ROSTER: age, rating, potential stars, XP, change since last season, a player card with his career), YOUR PLAYERS after the offseason, INJURIES OFF / LOW / NORMAL on NEW LEAGUE (a hurt starter is out 1 to 4 games, a weaker stand-in plays for him in the sim and in your hand-played games), lg-std 1.4 and lg-full 1.2. v2.44: the commissioner of a league in the account moves it on from the phone: ADVANCE WEEK, ADVANCE PLAYOFFS, OFFSEASON with the same checks as HQ (lk.js, no new files). v2.43: v2.43: ACCOUNT (Google sign-in in SETTINGS), SAVE TO MY ACCOUNT on NEW LEAGUE, MY LEAGUES lists the account's leagues too, the cloud layer is HQ's lg-cloud.js embedded unchanged (every league size). v2.42: LEAGUE SHAPES (Standard NFL, COLLEGE, 8 TEAMS and CUSTOM leagues, NEW LEAGUE rows LEAGUE and PLAYERS, team sets and CUSTOMIZE for Standard, RENAME on MY LEAGUES). v2.41: OPPONENT DRIVES NEW / CLASSIC (NEW by default for new games, leagues and installs), the opponent PERSONALITY pick, the SCOUTING line, their blitz on your snaps. v2.40: timeouts (3 a half each, MENU and a chip by the clock), a white flash and a small shake on a tackle (HIT EFFECTS), REMATCH on the exhibition final screen. v2.39: front-view figures (the kick screen) and the new side figure in the play designer instead of the old 12x18 pixel players. v2.38: a more natural body for the smooth players, HOME/AWAY/WHITE from two colors, a sleeves color, your own uniforms. v2.37: lg-drive 1.4 (tune + zone cards) embedded as it is (switch still OFF); the five zone cards get the new touchdown / field-goal rows and six card texts; a result of 8 points (a try for two) and its text; team personalities (sty); a level linked playoff game is decided by the engine's 3-point rule before it is sent. v2.36: lg-drive 1.2 (round 3) embedded as it is (it carries the CALL YOUR DEFENSE tilt itself; switch still OFF); a linked league whose commissioner closed joining shows JOINING IS CLOSED instead of making a slot. v2.35: CALL YOUR DEFENSE: every one of the 14 cards is a real call of its own (DC_T, per-card factors), a short text on each card; lg-drive 1.1 (switch still OFF); a tied playoff game no longer knocks you out; AUTO calls by the rules table. v2.34: the game screen: MENU button (upper left, hidden from the snap), RB box yellow, routes 3 px, no tips after the snap, installed app fullscreen / black-translucent. v2.33: LINKED LEAGUES, the player side (src/lk.js): join a commissioner's league by its code, pull it, play and send games. v2.32: no game change (tests only: drvoff pinned to the .611 speed, hlp over http). Helmet logo, jersey trim and number are still drawn in the play designer and the kick scene, so their LOOK rows stay. */ /* v1.75: THE app version. Bump this one string for every release; the update check on GitHub Pages reads it from the live index.html */
 /* =====================================================================================================
    v1.78 CLOUD SAVE settings (the only place to edit them). The Firebase web config is a public identifier,
    not a secret: the Firestore rules (firestore.rules) protect the data. NEVER put a service-account or admin key here.
@@ -922,7 +922,7 @@ const RK=['rb','ol','def'],RL={qb:'QB ARM',wr:'RECEIVERS',rb:'RUNNING BK',ol:'O-
 /* v1.46: individual players. S.ro holds the QB (arm, acc), the three WRs and the TE (spd, cat) and the kicker (acc, rng); built from the old unit ratings the first time it is needed */
 function ensureRo(){const r=S.r;if(!S.ro)S.ro={qb:{arm:r.qb,acc:r.qb},wr:[0,1,2].map(()=>({spd:r.wr,cat:r.wr})),te:{spd:r.wr,cat:r.wr},k:{acc:r.k,rng:r.k}};
  if(!S.names)S.names={};if(!S.names.te)S.names.te=nmMore();if(!S.names.k)S.names.k=nmMore();return S.ro}
-const RO=()=>S.ro||ensureRo();
+const RO=()=>(G&&G.dfo)?G.dfo.ro:(S.ro||ensureRo()); /* v2.58: DEFENSE ONLY (TEST) plays the opponent's offense with a flat roster of its OFF number */
 /* saves: every league or season is its own slot, with a small index for the home page (v1.40) */
 const IDX='pixelPigskin.idx',SLOT='pixelPigskin.s.',OLDKEY='pixelPigskin.v1';
 let S=null,G=null,ci=0,FLIP=false;
@@ -1238,7 +1238,7 @@ function lgSimRestPo(L,season,rt,hum){while(L.po.round<=3)lgPoRound(L,season,rt,
 return{LGF,cfg:lgCfg,n:lgN,mulberry32:lgMulberry32,seedFor:lgSeedFor,leagueSeed:lgLeagueSeed,gauss:lgGauss,sim:lgSim,game:lgGame,recGame:lgRecGame,pct:lgPct,cp:lgCP,order:lgOrder,divIds:lgDivIds,playWeek:lgPlayWeek,seedPO:lgSeedPO,poGames:lgPoGames,poRound:lgPoRound,simRestPo:lgSimRestPo}})();
 if(typeof module!=='undefined'&&module.exports)module.exports=LGE;   /* Node, the league tool and HQ load this same text; inside the game's IIFE `module` does not exist and this line does nothing */
 // =============================================================================
-// lg-std.js  -  the rules of the STANDARD league, in one file.   (1.4: INJURIES, a setting OFF / LOW / NORMAL, default OFF = byte for byte as before; 1.3: any league shape)
+// lg-std.js  -  the rules of the STANDARD league, in one file.   (1.5: TEAM COLORS far apart; 1.4: INJURIES, a setting OFF / LOW / NORMAL, default OFF = byte for byte as before; 1.3: any league shape)
 //
 // What is in here: the league maker (with its 10 hidden burn-in seasons), a
 // team's strength worked out from its starters (the game's lgRt formula) plus
@@ -1262,7 +1262,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=LGE;   /* Node, th
 //               STD.playSeason(L); STD.offseason(L, STD.newCtx());
 // =============================================================================
 const LGSTD = (function () {
-  const VERSION = 'lg-std 1.4 (injuries)';
+  const VERSION = 'lg-std 1.5 (colors)';
 
   // ------------------------------------------------------------ small helpers
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -1501,9 +1501,41 @@ const LGSTD = (function () {
       if (nm.length > 15 || seen.has(nm)) continue;
       seen.add(nm);
       const h = Math.round((out.length * 137.508 + rng() * 20) % 360);
-      out.push([nm, hsl(h, 62, 42), hsl((h + 180) % 360, 25, 88)]);
+      const cc = shapeCol(h); out.push([nm, cc[0], cc[1]]);
     }
     return out;
+  }
+  // 1.5: a new league's PRIMARY and SECONDARY are far apart: at least 3:1 (contrast ratio) AND delta E 25 or more in normal, deuteranopia and
+  // protanopia vision. The same rule and the same helpers as the game's lgCol / cRat / jClose (v2.52). The first try is the old pair (62/42 and
+  // the opposite hue 25/88), so a hue that already passed gives the same colors as before. When it fails, up to 60 pairs come from a tiny
+  // generator seeded by the hue ALONE: it never touches the league's streams, so a seed makes exactly the same league (names, players, games) as before.
+  const hx6 = (h) => (typeof h === 'string' && /^#[0-9a-fA-F]{6}$/.test(h) ? h : '#808080');
+  const rgbOf = (h) => [1, 3, 5].map((i) => parseInt(hx6(h).slice(i, i + 2), 16));
+  const lin1 = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  const rLum = (h) => { const [r, g, b] = rgbOf(h).map(lin1); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const cRat = (a, b) => { const x = rLum(a), y = rLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const lab76 = (h) => { const [r, g, b] = rgbOf(h).map(lin1), f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116),
+    X = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047), Y = f(0.2126 * r + 0.7152 * g + 0.0722 * b), Z = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
+    return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)]; };
+  const dE76 = (a, b) => { const p = lab76(a), q = lab76(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
+  // Machado 2009, severity 1.0, in linear RGB (same numbers as the game's cbSim)
+  const CB_M = { deutan: [[0.367322, 0.860646, -0.227968], [0.280085, 0.672501, 0.047413], [-0.011820, 0.042940, 0.968881]],
+    protan: [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]] };
+  const cbSim = (h, k) => { const l = rgbOf(h).map(lin1), g = (v) => { v = Math.max(0, Math.min(1, v)); return Math.round(255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055)); };
+    return '#' + CB_M[k].map((r) => g(r[0] * l[0] + r[1] * l[1] + r[2] * l[2]).toString(16).padStart(2, '0')).join(''); };
+  const jClose = (a, b) => { let m = dE76(a, b); for (const k of ['deutan', 'protan']) m = Math.min(m, dE76(cbSim(a, k), cbSim(b, k))); return m; };
+  const colOk = (c, d) => cRat(c, d) >= 3 && jClose(c, d) >= 25;
+  function shapeCol(h) {
+    const c0 = hsl(h, 62, 42), d0 = hsl((h + 180) % 360, 25, 88); if (colOk(c0, d0)) return [c0, d0];
+    let z = (Math.round(h * 1000) ^ 0x9e3779b9) >>> 0;
+    const r = () => { z = (z + 0x6D2B79F5) >>> 0; let t = z; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const OF = [0, 0, 180, 150, 210, 30, 330];
+    for (let i = 0; i < 60; i++) {
+      const c = hsl(h, 55 + r() * 35, 30 + r() * 22), o = OF[Math.floor(r() * OF.length)];
+      const d = r() < 0.5 ? hsl((h + o) % 360, 25 + r() * 60, 10 + r() * 18) : hsl((h + o) % 360, 25 + r() * 60, 78 + r() * 14);
+      if (colOk(c, d)) return [c, d];
+    }
+    const c = hsl(h, 62, 42); for (const d of ['#ffffff', '#10141f']) if (colOk(c, d)) return [c, d]; return [c, '#ffffff'];
   }
   function hsl(h, s, l) {
     s /= 100; l /= 100; const k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
@@ -2107,7 +2139,7 @@ const LGSTD = (function () {
   }
 
   // ROUND 5: the engine-free helpers the Full league (lg-full.js) reuses, handed out as they are (no code in them changed).
-  const parts = { K, checkInj, healAll, TEAM_DEFS, mintId, makeName, stochRound, drawPotential, rookieRatings, newRookie, makeSchedule, scheduleFor, shapeTeamDefs, teamOfId, checkShape, usedIds, tally };
+  const parts = { K, checkInj, healAll, TEAM_DEFS, mintId, makeName, stochRound, drawPotential, rookieRatings, newRookie, makeSchedule, scheduleFor, shapeTeamDefs, shapeCol, colOk, cRat, jClose, teamOfId, checkShape, usedIds, tally };
   return { make, shapeOf, roundName, PRESETS, shapeSchedule, derive, effective, overall, checkLeague, injured, newCtx, engineLeague, parts, INJ, STARTERS, version: VERSION };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = LGSTD;
@@ -2588,6 +2620,12 @@ const LGFULL = (function () {
   return { make, version: VERSION, KIND, RESERVED, STAGES, PHASES };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = LGFULL;
+/* ROUND 6 (1.5) CHANGES from 1.4: the same API, ctx and result shape; ADDITIVE result members only (`tag`, `tags`, `kneels`, and on a play `go` / the new play types 'spike' and 'kneel'). OUTSIDE the late-game cases below a drive draws exactly the same numbers in the same order as 1.4
+   (every new term acts only inside its own window; a style at its defaults is unchanged bit for bit). (1) TWO-MINUTE DRILL: trailing, in the last drWindow of a half (P.drHalfQ quarters) or, down by P.drBig or more, in the last P.drGameQ quarters of the game: faster plays (drTime), more passes (drPass), deeper and riskier
+   throws (drDepth, drInt), sideline catches that stop the clock (drSide), and a spike after a first down in the last P.spikeQ quarters (spikeP). (2) MILK THE CLOCK: leading in the last P.milkQ quarters of the game: fewer passes (milkPass) and a slower clock (milkT); and a KNEEL (a play of its own, ty 'kneel', -1 yard,
+   P.tKneel seconds, no draw) when the downs left cannot give the other side the ball back (each of the other side's timeouts, ctx.timeouts.def, takes seconds off what the kneels cover). (3) FOURTH DOWN AND KICKS BY THE SITUATION: trailing in the last P.goLateQ quarters the offense kicks a field goal that ties or takes the lead and otherwise goes for it
+   (any spot, distance up to goLateTg, moved by aggr); a field goal at the end of a half or when leading late; early in a game it takes the points instead of going for it unless aggr is P.earlyKickAggr or more; after a touchdown that leaves it down 2 late it tries for two (twoSmart). (4) STRONGER PERSONALITY: pass, depth and the tempo gap
+   are read P.styleAmp (1.5) times as far from neutral (the clamps of the record stay: only the drive reads it bigger); passComp refitted (.14 to .08) so the five examples still score within about 2% of neutral. */
 /* ROUND 5 (1.4) CHANGES from 1.3: the same API, ctx and result shape; NO member added or changed. (A) TUNE: the fit was redone against a clean reference (the v2.36 game's own old-roll drives, 360 games a cell, independent seeds): 66 fitted values (the 65 of 1.2/1.3 refitted, plus one new fitted
    term, stallS: the 3rd down of a drive's second series is stopped one yard short with that chance, so drives that make one first down punt on the sixth play more often, as the game's do), the targets of the round 5 prompt (points a drive, the 3-play share of punt drives, plays a drive by level, TD share by start group,
    late trailing plays, FG share of non-cut drives) and the late-game guards. (B) ZONE CARDS: the five zone rows of DC_T (c3, c2, t2, c4, c6) are the rows of def-tilt-v3.json (Design A, the table only); blitzBal re-balanced to .05 (blitzK stays .6). (C) PERSONALITY: one new SET term, passComp (yards of every play x (1 - passComp x pass),
@@ -2642,7 +2680,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LGFULL;
    Result members added in 1.3: on a touchdown `try` ('xp' or 'two') and `tryGood` (true when the try scored); pts is 6 + the try's points (7, 6, 8). */
 const LGD=(function(){
 'use strict';
-const VERSION='lg-drive 1.4 (tune + zone cards)';
+const VERSION='lg-drive 1.5 (late game + stronger styles)';
 
 /* ===================== PARAMETERS: every number the simulator uses is here ===================== */
 const P={
@@ -2715,7 +2753,16 @@ const P={
  blitzK:0.6,    /* blitz: at blitz +1 (-1) the touchdown, field-goal and turnover factors move by blitzK x (pressure family average - zone family average) toward the pressure (zone) side: 60 percent of the spread */
  blitzBal:0.05, /* blitz: added to the touchdown factor per unit of blitz (more big plays allowed when it rises). The family averages alone make blitz +1 a 5 percent better defense and -1 a 5 percent worse one (the pressure cards win turnovers and give the touchdown back only against the pass); .06 makes both sides score the same as neutral on average, so a blitz-heavy defense is a different defense, not a better one. 0 = the pure family recipe. */
  blitzPW:0.55,  /* blitz: with no drive style, the pass rows get this weight and the run rows 1 - blitzPW when the family averages are taken (the neutral pass chance) */
- passComp:0.14,   /* round 5 (1.4), SET by hand: the yards of every play are multiplied by (1 - passComp x style.pass), so a run-heavy team (pass < 0) gains a little a snap and a pass-heavy one (pass > 0) gives a little back; at pass 0 the factor is exactly 1 (neutral unchanged). Set so that the five examples and the pass pair score within +-2.5% of neutral. */
+ /* --- ROUND 6 (1.5): the late game and stronger personalities. SET by hand, checked by the quick run of claude/pixel-pigskin-lg-drive-15-note.md. Windows are in quarters (x qLen seconds): the game's quarter is 90 s of game time, so the real 2:00 of a half is about 0.5 quarter here. --- */
+ styleAmp:1.5, /* pass, depth and the tempo deviation are read this many times as far from neutral (a default style stays exactly neutral) */
+ drHalfQ:0.5, drGameQ:1.0, drBig:9, /* the two-minute drill: trailing in the last drHalfQ quarters of a half, or down by drBig or more in the last drGameQ quarters of the game */
+ drPass:0.12, drTime:0.88, drSide:0.25, drSideT:2.0, drDepth:0.2, drInt:1.25, drHurryShare:0.6, /* more passes, clock per play x drTime, a sideline catch (chance drSide) takes only drSideT seconds, deeper throws, interceptions x drInt */
+ spikeQ:0.22, spikeP:0.45, tSpike:1.4, /* a spike after a first down when at most spikeQ quarters are left in the half (chance spikeP), tSpike seconds, one down */
+ milkQ:1.0, milkPass:0.14, milkT:1.18, /* leading in the last milkQ quarters of the game: pass chance - milkPass, clock per play x milkT */
+ tKneel:4.6, kneelTO:3.0, /* a kneel takes tKneel seconds (x qLen/90); each timeout the other side has left takes kneelTO seconds off what the kneels can cover */
+ goLateQ:0.8, goLateTg:8, goLateAggr:8, eohQ:0.3, tieFgQ:0.3, earlyKickAggr:0.65, earlyKickDist:38, /* 4th down: trailing in the last goLateQ quarters: kick the tie or lead, else go for it up to goLateTg yards (+ goLateAggr x (aggr-.5) x 2); a field goal in the last eohQ quarters of a half; the tying field goal (down 3) only in the last tieFgQ quarters, so the late game does not end in a tie more often; early: kick unless aggr >= earlyKickAggr */
+ twoSmart:0.75, /* down 2 after a touchdown, late: the chance of the try for two is at least this */
+ passComp:0.08,   /* round 5 (1.4), SET by hand: the yards of every play are multiplied by (1 - passComp x style.pass), so a run-heavy team (pass < 0) gains a little a snap and a pass-heavy one (pass > 0) gives a little back; at pass 0 the factor is exactly 1 (neutral unchanged). Set so that the five examples and the pass pair score within +-2.5% of neutral. */
 };
 /* the parameters that were FITTED to the step 1 table (the rest are copied from the game or derived; see their comments) */
 const P_FITTED=["stallS", "callFgRange", "callTdEq", "desperate", "fgDistMax", "fgP0", "fgSlope", "fpYsHi", "fpYsLo", "fum0", "goSpotMin", "goTg", "homeEq", "inc0", "incE", "int0", "intDepth", "kEq", "lateTrailEq", "passLateLead", "passLateTrail", "passMix", "passYs", "runMix", "runYs", "sack0", "sackE", "shEq", "tComp", "tInc", "tInt", "tKick", "tRun", "tSack", "tempoLead", "tempoTrail", "toDeep", "toE", "toR0", "toRN", "fgDistE", "toSh", "toFarS", "toFarK", "cv3", "cv4", "passBase", "pass3rdLong", "passShortYd", "tJit", "ys0", "ysE", "fpYsCap", "toR1", "toR2", "toR3", "toFarP", "cvS", "cvCap", "goMaxSpot", "cvF", "fgStartK", "fgStartS", "toLoK", "cvTg", "toRet"];
@@ -2752,6 +2799,9 @@ function styleFor(team){const t=dcTend(team);return{pass:[.06,0,-.06][t],aggr:.5
 const NEUTRAL_IN=Object.freeze({pass:0,aggr:.5,tempo:1,blitz:0,two:0,depth:0,hurry:0}); /* what a drive reads when there is no style (NEUTRAL, the exported one, stays as 1.2 had it) */
 function normStyle(s){if(!s||typeof s!=='object')return NEUTRAL_IN;
  return{pass:clamp(num(s.pass,0),-.4,.4),aggr:clamp(num(s.aggr,.5),0,1),tempo:clamp(num(s.tempo,1),.5,1.5),blitz:clamp(num(s.blitz,0),-1,1),two:clamp(num(s.two,0),0,1),depth:clamp(num(s.depth,0),-1,1),hurry:clamp(num(s.hurry,0),0,1)}}
+/* 1.5: the drive reads pass, depth and the tempo gap P.styleAmp times as far from neutral (neutral stays exactly neutral) */
+function ampStyle(s){const A=P.styleAmp;if(A===1||(s.pass===0&&s.depth===0&&s.tempo===1))return s;
+ return{pass:clamp(s.pass*A,-.6,.6),aggr:s.aggr,tempo:clamp(1+(s.tempo-1)*A,.35,1.75),blitz:s.blitz,two:s.two,depth:clamp(s.depth*A,-1.5,1.5),hurry:s.hurry}}
 /* the team style RECORD of the spec (section 2): default, and fill + clamp + freeze */
 function styleDefault(){return{v:1,pass:0,tend:'hash',depth:0,aggr:.5,two:0,tempo:1,hurry:0,blitz:0}}
 function styleNormalize(r){
@@ -2787,7 +2837,7 @@ function simDrive(ctx,rng){
  const clockGame=Math.max(0,num(ctx.clockGame,4*qLen));
  let left=Infinity;if(!ot){const ch=num(ctx.clockHalf,NaN);left=Math.max(0,ch===ch?ch:(clockGame>2*qLen?clockGame-2*qLen:clockGame))}
  const diff=num(ctx.diff,0),home=sgn(ctx.home);
- const sty=normStyle(of.style),bl=df.style&&typeof df.style==='object'?clamp(num(df.style.blitz,0),-1,1):0; /* bl: the defense's blitz habit (read only when there is no call) */
+ const sty=ampStyle(normStyle(of.style)),bl=df.style&&typeof df.style==='object'?clamp(num(df.style.blitz,0),-1,1):0; /* bl: the defense's blitz habit (read only when there is no call) */
  const k=num(tl.k,0),sh=num(tl.sh!=null?tl.sh:tl.shift,0);
  const late=!ot&&clockGame<=P.lateQ*qLen,trail=diff<0,lead=diff>0;
  const dsty=(tl.call&&tl.call.style)||ctx.driveStyle||null;
@@ -2799,6 +2849,8 @@ function simDrive(ctx,rng){
  const hu=late&&trail?sty.hurry:0; /* the hurry-up only counts when trailing late */
  const sack=clamp(P.sack0+P.sackE*e+P.depthSack*sty.depth+P.hurrySack*hu,.01,.2),inc=clamp(P.inc0+P.incE*e+P.depthInc*sty.depth+P.hurryInc*hu,.08,.6),pint=clamp(P.int0*toM*(1+P.depthInt*sty.depth),0,.2),pfum=clamp(P.fum0*toM,0,.2);
  const dMix=sty.depth===0?P.passMix:depthMix(sty.depth),dYm=sty.depth===0?1:Math.exp(P.depthY*sty.depth);
+ /* 1.5: the same terms for a play in the two-minute drill (deeper, a full hurry, more interceptions) */
+ const lam=1-P.drHurryShare*hu,dDepth=clamp(sty.depth+P.drDepth*lam,-1.5,1.5),sackD=clamp(P.sack0+P.sackE*e+P.depthSack*dDepth+P.hurrySack*hu,.01,.2),incD=clamp(P.inc0+P.incE*e+P.depthInc*dDepth+P.hurryInc*hu,.08,.6),pintD=clamp(P.int0*toM*(1+P.depthInt*dDepth)*(1+(P.drInt-1)*lam),0,.25),tmD=1-(1-P.drTime)*lam,dMixD=depthMix(dDepth),dYmD=Math.exp(P.depthY*dDepth);
  const fgMax=P.fgDistMax+P.fgDistE*e+P.callFgRange*(fFG-1)+P.fgStartK*Math.max(0,start-P.fgStartS);
  const tempo=sty.tempo*(late&&lead?P.tempoLead:late&&trail?P.tempoTrail*(1-P.hurryT*sty.hurry):1),tScale=qs*tempo;
  const passOff=P.passBase+sty.pass+(dsty==='PASS'?P.passStyle:dsty==='RUN'?-P.passStyle:0)+(late&&trail?P.passLateTrail+P.hurryPass*sty.hurry:0)-(late&&lead?P.passLateLead:0);
@@ -2807,14 +2859,14 @@ function simDrive(ctx,rng){
  const keep=ctx.keepPlays!==false,plays=keep?[]:null;
  const tos=ctx.timeouts&&typeof ctx.timeouts==='object'?num(ctx.timeouts.off,0):0;let toLeft=tos>0?Math.floor(tos):0;
  let spot=start,down=clamp(Math.round(num(ctx.down,1)),1,4),tg=clamp(Math.round(num(ctx.toGo,Math.min(10,100-spot))),1,Math.max(1,100-spot)),t=0,np=0,yd0=start;
- let sub=null,pts=0,next=P.kickSpot,tryK=null,tryG=null;
+ let sub=null,pts=0,next=P.kickSpot,tryK=null,tryG=null,justFD=false,kneels=0,nDrill=0,nMilk=0,wentFor=0,fgWhy=null;
  const jit=()=>1+P.tJit*(2*rng()-1);
  if(left<=0){return finish('cut',0)}
- function secs(base){ /* the time a play takes: base x qLen/90 x tempo x jitter; the clock holds on the quarter lines (not the half line, which is the stop) */
-  let d=base*tScale*jit();
+ function secs(base,m){m=m||1; /* the time a play takes: base x qLen/90 x tempo x jitter; the clock holds on the quarter lines (not the half line, which is the stop) */
+  let d=base*tScale*m*jit();
   if(!ot){const g=clockGame-t;for(const L of[3*qLen,qLen]){if(g>L&&g-d<L){d=g-L;break}}}
   return d}
- function rec(dn,tg0,sp,ty,res,y,dt,fd,td){if(keep)plays.push({dn,tg:tg0,sp,ty,res,y,t:+dt.toFixed(2),fd:!!fd,td:!!td})}
+ function rec(dn,tg0,sp,ty,res,y,dt,fd,td){if(keep){const o={dn,tg:tg0,sp,ty,res,y,t:+dt.toFixed(2),fd:!!fd,td:!!td};if(dn===4&&(ty==='run'||ty==='pass'))o.go=true;plays.push(o)}}
  function finish(s){
   sub=s;const timeUsed=Math.min(t,left);
   const kind=s==='td'?'td':s==='fg'?'fg':s==='to'?'to':s==='cut'?'cut':'pt';
@@ -2822,16 +2874,30 @@ function simDrive(ctx,rng){
   const nx=s==='cut'?P.kickSpot:next;
   const out={plays:plays||[],result:s,kind,sub:s,pts,endSpot,endClock:Math.max(0,clockGame-timeUsed),nextSpot:nx,next:nx,time:timeUsed,
    stop:s==='cut'&&!ot?clockGame-left:null,cut:s==='cut'?1:0,stats:{plays:np,yd:Math.round(yd),time:timeUsed}};
-  if(tryK){out.try=tryK;out.tryGood=tryG}return out}
+  if(tryK){out.try=tryK;out.tryGood=tryG}
+  const tg_=[];if(kneels)tg_.push('KNEEL');if(nDrill)tg_.push('TWO-MINUTE DRILL');if(fgWhy)tg_.push(fgWhy);if(wentFor)tg_.push('GO FOR IT');if(nMilk)tg_.push('MILKING THE CLOCK');
+  if(tg_.length){out.tag=tg_[0];out.tags=tg_}if(kneels)out.kneels=kneels;
+  return out}
  for(;;){
   if(np>=P.maxPlays){ /* the 26-play cap: the drive ends as a punt from here (never seen in 100,000 drives) */
    const dt=secs(P.tKick);t+=dt;const land=spot+puntLen();next=land>=100?P.tbNext:clamp(100-land+Math.floor(rng()*(P.puntRet+1)),5,P.puntNextMax);rec(down,tg,spot,'punt','punt',0,dt,0,0);return finish('punt')}
+  /* 1.5: what the clock says at the start of this play (none of it exists in overtime) */
+  const gRem=ot?Infinity:clockGame-t,hRem=ot?Infinity:left-t;
+  const dr=!ot&&trail&&(hRem<=P.drHalfQ*qLen||(diff<=-P.drBig&&gRem<=P.drGameQ*qLen)),mk=!ot&&lead&&gRem<=P.milkQ*qLen;
   const toGo=Math.min(10,100-spot);
   if(down===4){
    const rem=100-spot,dist=rem+17,canFG=dist<=fgMax,desp=trail&&late&&(left-t)<=P.desperate;
    const shiftA=P.goTgAggr*(sty.aggr-.5)*2; /* round 5 (1.4): the aggr rule is graded. At aggr .5 (shiftA 0) it is the fitted rule, tg <= goTg, with no random draw; otherwise a 4th down one yard past the whole-yard limit is gone for with chance floor(goTg) + 1 + shiftA - tg (0..1), so aggr .3 and .35 differ and .6 is a little bolder than .5 */
    let goFor=false;
    if(spot>=P.goSpotMin&&spot<P.goMaxSpot){if(shiftA===0)goFor=tg<=P.goTg;else{const pg=Math.floor(P.goTg)+1+shiftA-tg;goFor=pg>=1?true:pg<=0?false:rng()<pg}}
+   /* 1.5: the situation (the end of the clock, the score) can overrule the plain rule */
+   if(!ot&&!desp){
+    if(trail&&gRem<=P.goLateQ*qLen){ /* trailing late: a field goal that ties or takes the lead, otherwise go for it */
+     if(canFG&&diff>=-3&&(diff>-3||gRem<=P.tieFgQ*qLen)){if(goFor)goFor=false;fgWhy=diff===-3?'FIELD GOAL TO TIE':'FIELD GOAL TO TAKE THE LEAD'}
+     else if(!goFor&&tg<=clamp(P.goLateTg+P.goLateAggr*(sty.aggr-.5)*2,2,14))goFor=true}
+    else if(canFG&&(hRem<=P.eohQ*qLen||(lead&&gRem<=P.milkQ*qLen)))goFor=false; /* take the points at the end of a half, or when leading late */
+    else if(goFor&&canFG&&tg>1&&dist<=P.earlyKickDist&&gRem>P.lateQ*qLen&&sty.aggr<P.earlyKickAggr)goFor=false; /* take the points early in a game: a short field goal is nearly sure */}
+   if(goFor)wentFor++;
    if(!goFor&&!desp){
     if(canFG){ /* field goal */
      const dt=secs(P.tKick);t+=dt;const made=rng()<clamp(P.fgP0-P.fgSlope*Math.max(0,dist-P.fgD0),P.fgMin,.99);
@@ -2841,20 +2907,30 @@ function simDrive(ctx,rng){
     const dt=secs(P.tKick);t+=dt;const land=spot+puntLen();
     next=land>=100?P.tbNext:clamp(100-land+Math.floor(rng()*(P.puntRet+1)),5,P.puntNextMax);rec(4,tg,spot,'punt','punt',0,dt,0,0);return finish('punt')}
   }
+  if(!ot&&lead&&down<=3&&clockGame<=2*qLen){ /* KNEEL: the downs left cannot give the other side the ball back */
+   const dTO=ctx.timeouts&&typeof ctx.timeouts==='object'?Math.max(0,Math.floor(num(ctx.timeouts.def,0))):0,tKn=P.tKneel*qs;
+   if(P.tKneel>0&&gRem<=(4-down)*tKn-dTO*P.kneelTO*qs){
+    t+=tKn;np++;kneels++;const yk=spot>1?-1:0;rec(down,tg,spot,'kneel','kneel',yk,tKn,0,0);spot+=yk;down++;tg-=yk;
+    if(t>=left)return finish('cut');continue}}
+  if(dr&&justFD&&down===1&&hRem<=P.spikeQ*qLen&&rng()<P.spikeP){ /* SPIKE: stop the clock after a first down */
+   const dt=secs(P.tSpike);t+=dt;np++;nDrill++;rec(1,tg,spot,'spike','spike',0,dt,0,0);down=2;justFD=false;
+   if(!ot&&t>=left)return finish('cut');continue}
   /* a scrimmage play */
-  let pp=passOff+(down>=3&&tg>=7?P.pass3rdLong:0)+(tg<=2?P.passShortYd:0);pp=clamp(pp,P.passMin,P.passMax);
-  const mS=Math.pow(Math.max(0,1-P.toFarK*Math.max(0,start-P.toFarS)),P.toFarP)*(1+P.toLoK*Math.max(0,25-start)/25),mY=mS*(P.toDeep>0?Math.exp(-P.toDeep*Math.max(0,spot-start)/30):1)*rampM(np),pint_=pint*mY,pfum_=pfum*mY;
+  let pp=passOff+(down>=3&&tg>=7?P.pass3rdLong:0)+(tg<=2?P.passShortYd:0);if(dr)pp+=P.drPass*lam;if(mk)pp-=P.milkPass;pp=clamp(pp,P.passMin,P.passMax);
+  const mS=Math.pow(Math.max(0,1-P.toFarK*Math.max(0,start-P.toFarS)),P.toFarP)*(1+P.toLoK*Math.max(0,25-start)/25),mY=mS*(P.toDeep>0?Math.exp(-P.toDeep*Math.max(0,spot-start)/30):1)*rampM(np),pint_=(dr?pintD:pint)*mY,pfum_=pfum*mY,sk=dr?sackD:sack,ic=dr?incD:inc,mixX=dr?dMixD:dMix,dYX=dr?dYmD:dYm,tm=dr?tmD:mk?P.milkT:1;
+  if(dr)nDrill++;else if(mk)nMilk++;
   const isPass=rng()<pp,dn=down,tg0=tg,sp0=spot;let y=0,res,ty=isPass?'pass':'run',dt,turn=0;
   if(isPass){
    const r=rng();
-   if(r<sack){y=-(3+Math.floor(rng()*7));res='sack';dt=secs(P.tSack);if(rng()<pfum_){turn=2}}
-   else if(r<sack+pint_){res='int';dt=secs(P.tInt);turn=1;y=P.intDepth[0]+Math.floor(rng()*(P.intDepth[1]-P.intDepth[0]+1))}
-   else if(r<sack+pint_+inc){res='inc';dt=secs(P.tInc)}
-   else{y=Math.max(1,Math.round(pickMix(dMix,rng)*ys*P.passYs*dYm));res='comp';dt=secs(P.tComp);if(y<100-spot&&rng()<pfum_)turn=2}
+   if(r<sk){y=-(3+Math.floor(rng()*7));res='sack';dt=secs(P.tSack,tm);if(rng()<pfum_){turn=2}}
+   else if(r<sk+pint_){res='int';dt=secs(P.tInt,tm);turn=1;y=P.intDepth[0]+Math.floor(rng()*(P.intDepth[1]-P.intDepth[0]+1))}
+   else if(r<sk+pint_+ic){res='inc';dt=secs(P.tInc,tm)}
+   else{y=Math.max(1,Math.round(pickMix(mixX,rng)*ys*P.passYs*dYX));res='comp';dt=secs(P.tComp,tm);if(y<100-spot&&rng()<pfum_)turn=2}
   }else{
-   y=pickMix(P.runMix,rng);if(y>0)y=Math.round(y*ys*P.runYs);res='run';dt=secs(P.tRun);if(rng()<pfum_)turn=2}
+   y=pickMix(P.runMix,rng);if(y>0)y=Math.round(y*ys*P.runYs);res='run';dt=secs(P.tRun,tm);if(rng()<pfum_)turn=2}
   if(!turn&&res!=='sack'&&y<tg&&(tg<=P.cvTg||(P.cvF>0&&np===2&&down===3))){let cv=(down===3?P.cv3:down===4?P.cv4:0)*cvM;if(P.cvF>0&&np===2&&down===3)cv=1-(1-cv)*(1-P.cvF);if(cv>0&&rng()<cv){y=tg;if(res==='inc')res='comp'}}
   if(P.stallS>0&&!turn&&np===5&&down===3&&y>=tg&&y<100-spot&&rng()<P.stallS){y=Math.max(0,tg-1)}
+  if(dr&&!turn&&res==='comp'&&rng()<P.drSide*lam)dt=secs(P.drSideT); /* a sideline catch stops the clock */
   if(spot+y<1)y=1-spot;
   t+=dt;np++;
   if(turn){ /* an interception or a lost fumble: the ball changes hands where the play ended (an interception: downfield) */
@@ -2865,13 +2941,14 @@ function simDrive(ctx,rng){
    if(tw>0&&rng()<tw){const g=rng()<P.twoP;pts=g?8:6;tryK='two';tryG=g}else{pts=rng()<P.xp?7:6;tryK='xp';tryG=pts===7}
    next=P.kickSpot;return finish('td')}
   const fd=y>=tg;spot+=y;rec(dn,tg0,sp0,ty,res,y,dt,fd,0);
-  if(fd){down=1;tg=Math.min(10,100-spot)}else{down++;tg-=y;if(down>4){next=clamp(100-spot,P.toNextMin,P.downsNextMax);return finish('to')}}
+  justFD=fd&&res!=='inc';if(fd){down=1;tg=Math.min(10,100-spot)}else{down++;tg-=y;if(down>4){next=clamp(100-spot,P.toNextMin,P.downsNextMax);return finish('to')}}
   if(toLeft>0&&trail&&late&&res!=='inc'&&rng()<P.toUse){toLeft--;t-=P.timeoutSave*tScale}
   if(!ot&&t>=left)return finish('cut')
  }
  function puntLen(){return P.puntLo+Math.floor(rng()*(P.puntHi-P.puntLo+1))}
  /* the chance of a try for two after a touchdown: two x the situation chart (0 leading big, twoLate trailing late, 1 otherwise), capped at 1. 0 draws nothing. */
- function twoChance(two,dAfter,clockNow){if(!(two>0)||dAfter>=P.twoBig)return 0;const c=!ot&&dAfter<0&&clockNow<=P.lateQ*qLen?P.twoLate:1;return Math.min(1,two*c)}
+ function twoChance(two,dAfter,clockNow){if(dAfter===-2&&!ot&&clockNow<=P.lateQ*qLen)return Math.max(Math.min(1,two*P.twoLate),P.twoSmart); /* 1.5: down 2 late, the extra point leaves it behind, two ties */
+ if(!(two>0)||dAfter>=P.twoBig)return 0;const c=!ot&&dAfter<0&&clockNow<=P.lateQ*qLen?P.twoLate:1;return Math.min(1,two*c)}
  /* the pass completion bands moved by depth (weights x exp(depthB x depth), put back to a sum of 1) */
  function depthMix(d){const m=P.passMix,w=[0,0,0];let sm=0;for(let i=0;i<3;i++){w[i]=m[i][0]*Math.exp(P.depthB[i]*d);sm+=w[i]}return[[w[0]/sm,m[0][1],m[0][2]],[w[1]/sm,m[1][1],m[1][2]],[w[2]/sm,m[2][1],m[2][2]]]}
 }
@@ -2886,9 +2963,9 @@ function simGame(A,B,ctx,rng){
  const run=(p,start,clk,ot)=>{
   const c={offense:T[p],defense:T[1-p],start,qLen,clockGame:clk,diff:score[p]-score[1-p],home:p===0?hA:-hA,ot,tilt:ctx.tilt,keepPlays:keep,
    timeouts:ctx.timeouts,driveStyle:null};
-  const d=simDrive(c,rng);score[p]+=d.pts;const s=st[p];s.dr++;s.pl+=d.stats.plays;s.yd+=d.stats.yd;s.time+=d.time;
+  const dif0=c.diff,d=simDrive(c,rng);score[p]+=d.pts;const s=st[p];s.dr++;s.pl+=d.stats.plays;s.yd+=d.stats.yd;s.time+=d.time;
   if(d.sub==='td')s.td++;else if(d.sub==='fg')s.fg++;else if(d.sub==='to')s.to++;else if(d.sub==='cut')s.cut++;else s.pt++;
-  if(drives)drives.push({team:p,start,sub:d.sub,pts:d.pts,plays:d.stats.plays,yd:d.stats.yd,time:d.time,plays_list:d.plays});
+  if(drives){const r={team:p,start,sub:d.sub,pts:d.pts,plays:d.stats.plays,yd:d.stats.yd,time:d.time,plays_list:d.plays,clk,diff:dif0};if(d.tags){r.tag=d.tag;r.tags=d.tags}if(d.kneels)r.kneels=d.kneels;drives.push(r)}
   return d};
  while(clock>0&&n++<400){
   const half1=clock>2*qLen,d=run(poss,spot,clock,false);
@@ -2904,6 +2981,274 @@ function simGame(A,B,ctx,rng){
 
 return{version:VERSION,P,fitted:P_FITTED,simDrive,simGame,styleFor,dcHash,dcTend,neutralStyle:NEUTRAL,callFactors,tiltV2:on=>{DC_TILT_V2=!!on},tiltTable:()=>DC_T,styleDefault,styleNormalize}})();
 if(typeof module!=='undefined'&&module.exports)module.exports=LGD;   /* Node, the league tool and HQ load this same text; inside the game's IIFE `module` does not exist and this line does nothing */
+/* v2.58: brain.js 1.3 (BOTS chat A) embedded UNCHANGED between this line and the next wrapper line; the wrapper only keeps its top-level names private */
+const BRAIN=(function(){
+'use strict';
+const BRAIN_VERSION='brain 1.3 (Nov 24 2026: obs.runs + call.runPlay pass-through, STEERCAP, RUNS off, EDGEPEN, preset real; lab dodges; 1.2 = obs.field.oob, HOLE_GAIN, mid preset; 1.1 = obs.field, obs.run, gameStats, lab preset)';
+/* brain.js (BOTS chat A, Nov 23 2026). Pixel Pigskin offense brain: plain JavaScript, no jsdom, no window, no game code.
+   Observation in, action out. Extracted from bot10.js (the decisions only); everything the bot did through the game's internals
+   (reading G, calling pp.snap / pp.throwAt / pp.doKick ...) now happens in an ADAPTER that builds `obs` and applies the returned action.
+   Interface: claude/pixel-pigskin-brain-interface.md (units: yards, seconds; the offense moves toward +x; x = yards from the offense's own goal line (0..100), y = 0..40 across).
+
+     const brain = makeBrain({skill, seed, params})   // skill: casual | default | strong | bomber | tester | mid | lab | real ; seed: number (its OWN mulberry32 stream) or pass rng: () => [0,1)
+     brain.offense(obs)  -> {type, play, go4?}         // before the snap. type: pass | run | fg | punt | xp | two ; play: a concept name from obs.playbook or null (the game picks)
+     brain.tick(obs)     -> {throw:{x,y,bullet}} | {steer, juke} | {kick:{aim,power}} | null      // after the snap, once per frame the adapter chooses (the bot used every game step of 0.033 s)
+     brain.defense(obs)  -> null   // defense belongs to BOTS chat B (def-*.js): not here
+     brain.reseed(n)               // restart the brain's own random stream (adapters do it at the start of a game and after each opponent drive, to replay a game)
+     brain.stats()                 // counters the harness prints (throws, throw-aways, 4th-down tries ...): not decisions
+     brain.gameStats()             // the same counters for THIS game only (since newGame()); stats() / T1 / CNT / CALLS stay live totals
+   v1.1 (Nov 23 2026) adds OPTIONAL inputs, all off unless the observation carries them (no field = exactly the phone brain of v1.0, proved game for game):
+     obs.field = {h, y0?, w?}   sidelines at y0 and y0+h (default 0 and 40; the phone's own {h:40} counts as no field). Moves the sideline steering edge, the out-of-bounds guard, the throw-away targets and the route clamp; clamps aimed throws into the field
+     obs.run = {hole:{x,y}}     phase 'run' only: steer to the play's hole while it is ahead and the nearest defender is not in the way, else the old rule (any skill; the phone never sends it)
+     skill 'lab'                a preset for the PC lab (holds the ball to about 1.4 s); the other presets are unchanged
+
+   v1.2 (Nov 24 2026) adds, again OPTIONAL (no new input = exactly brain 1.1, proved game for game):
+     obs.field.oob = yards          width of the strip along each sideline that the LAB counts as out of bounds (the lab: 1.0). The route clamp, the OBPEN guard and the aimed-throw clamp move in by that much (+ param OOBPAD, default 0; `lab` and `mid` set .5, because the sim scatters every throw about +-.5 yd). The throw-away still aims .3 yd from the sideline, so it still lands out.
+     param HOLE_GAIN (default 1)    scales the hole-following steer (measured: lower is not better, see the lab report 2); RUNS:'steer' (dodging) is the run gain: strong and mid have it, lab and tester do not
+     skill 'mid'                    preset between tester and lab (first release about 1.0 s, depth weight +.06, dodging runner); the other presets are unchanged
+   v1.3 (Nov 24 2026) adds, again OPTIONAL (no new input and a phone preset = exactly brain 1.2, proved game for game):
+     obs.runs = [{id, hole:{x,y}}]  presnap only: the run plays the game offers, each with its hole. Answer: call.runPlay = id (param RUNPLAY names the one to ask for; '' = never ask). Without obs.runs the answer is exactly as before.
+     param RUNPLAY (default '')     the run play to ask for ('outside' in lab, mid, real: measured the best fixed play on 200 games a cell, no situation rule beat it)
+     param STEERCAP (default 1)     largest steer magnitude of the hole-follow and of the dodge (lab, mid, real: .7; with it the adapter's brake flag is not needed)
+     param RUNS 'off'               switches dodging off even when the preset has it
+     params EDGEPEN, EDGEW (0, 3)   receiver score loses EDGEPEN per yard inside EDGEW yards of a sideline (needs obs.field; real: 2 and 5)
+     skill 'lab' now dodges (RUNS steer, STEERCAP .7); skill 'mid' STEERCAP .7; skill 'real' is new; casual, default, strong, bomber and tester are unchanged
+   The brain never sees the defensive scheme id, the rush assignments, the sack clock or who is in man or zone: those are `truth`, kept by the adapter for logs.
+   Decisions use only what the offense could see: positions and velocities, its own routes as drawn, down, distance, clock, score, its own ratings. */
+const _mb=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const PRESETS={
+ default:{},
+ casual:{AIMERR:1.2,OPEN:1.5,MINWAIT:.55,NOADJ:1,NORP:1,RANDCALL:1,RT:'0.25,0.45',RUNSHARE:.40},
+ strong:{MINWAIT:1.4,RUNS:'steer'},
+ bomber:{RUNSHARE:.08,YARDW:.30,Z_YARDW:.30,M_YARDW:.30,OPEN:1.2,MAXWAIT:3.0,MINWAIT:.9,PICKTOP:4,NORP:1,DEEPCALL:1},
+ /* tester: fitted Nov 20 2026 to the first real games (cp 61%, 12.3 yds/att, 27 att, ~25 points): bomber style, aim error 3.3, depth preference .12 */
+ tester:{RUNSHARE:.08,YARDW:.12,Z_YARDW:.12,M_YARDW:.12,OPEN:1.2,MAXWAIT:3.0,MINWAIT:.9,PICKTOP:4,NORP:1,DEEPCALL:1,AIMERR:3.3,PAT:'chart',GO4:'short'},
+ /* lab: OPTIONAL preset for the PC lab (Nov 23 2026); NOT for the phone game. Tester's style, but it holds the ball to about 1.4 s before the first release: the lab's sack clock is about 1.6 s and at 0.9 s every receiver
+    is 6 to 10 yd clear, so the OPEN test alone never says wait. Depth preference .06 lower than the tester's .12 -> -.1 (a deep throw spends 1.5 s in the air; 11% of 15 to 25 yd throws were intercepted at 1 s).
+    Fitted on 200 lab games a cell WITH obs.field and obs.run on (the lab adapter should send both; see claude/pixel-pigskin-bots-brain-lab-report.md). */
+ lab:{RUNSHARE:.08,YARDW:-.1,Z_YARDW:-.1,M_YARDW:-.1,OPEN:1.2,MAXWAIT:3.0,MINWAIT:1.4,PICKTOP:4,NORP:1,AIMERR:3.3,PAT:'chart',GO4:'short',OOBPAD:.5,RUNS:'steer',STEERCAP:.7,RUNPLAY:'outside'},   /* 1.3: lab now dodges (RUNS steer), caps the steer at .7 and, when the adapter sends obs.runs, asks for the outside run */
+ /* mid (v1.2): between tester and lab. Depth preference +.06 (flats no longer win ties), first release at about 1.0 s, with obs.field.oob the aimed throw stays .5 yd further in. See the lab report 2 for the table. */
+ mid:{RUNS:'steer',RUNSHARE:.08,YARDW:.06,Z_YARDW:.06,M_YARDW:.06,OPEN:1.2,MAXWAIT:3.0,MINWAIT:1.0,PICKTOP:4,NORP:1,AIMERR:3.3,PAT:'chart',GO4:'short',OOBPAD:.5,STEERCAP:.7,RUNPLAY:'outside'},   /* 1.3: STEERCAP .7 (the brake flag is not needed), outside run when obs.runs is sent */
+ /* real (v1.3): between mid and lab, fitted on 200 lab games a cell for the four realism targets (sacks .5-1.5, interceptions 1.0-1.5, completion 55-65 %, yd/att 9-12). EDGEPEN keeps throws off the sidelines. See claude/pixel-pigskin-bots-run-choice-report.md. */
+ real:{RUNS:'steer',RUNSHARE:.08,YARDW:.06,Z_YARDW:.06,M_YARDW:.06,OPEN:7,PRESS:1.0,MAXWAIT:3.0,MINWAIT:1.0,PICKTOP:4,NORP:1,AIMERR:3.4,PAT:'chart',GO4:'short',OOBPAD:.5,STEERCAP:.7,RUNPLAY:'outside',EDGEPEN:2,EDGEW:5}};
+const DEFAULTS={OPEN:2.2,MINWAIT:.55,PRESS:3.0,MAXWAIT:2.6,DEAD:.8,AIMERR:.4,TICK:.05,PREDH:.5,ARMPEN:.5,YARDW:.06,OBPEN:3,TAX:4,TREAD:.45,TMAN:.8,READWAIT:1,ROTYW:.08,RUSHK:1.3,RUSHCL:.8,ZDROP:1,MANDROP:2,
+ ROTMV:1.2,DEEPD:8,MLDIST:3,MLN:2,BLITZN:5,B_MINWAIT:.45,B_PRESS:1.5,B_OPEN:1.5,B_SHORT:.15,B_NEAR:.03,M_YARDW:0,Z_YARDW:.16,PICKTOP:8,SHORTYD:3,LONGYD:8,RZ:10,TWOFR:.3,
+ LONG3:7,SHORT3:3,RUNSHORT:1.6,RUN3SHORT:1.8,SHARE_K:.5,NOADJ:0,NORP:0,RANDCALL:0,DEEPCALL:0,ST_LOOK:.7,ST_RANGE:14,ST_CLOSE:9,ST_JUKE:2.0,ST_JCD:.8,ST_EDGE:5,ST_GAIN:1,RUNSHARE:.35,OOBPAD:0,HOLE_GAIN:1,STEERCAP:1,HOLE_AHEAD:.5,HOLE_NEAR:3.5,HOLE_LAT:2.5,HOLE_K:2,EDGEPEN:0,EDGEW:3};
+const CALLW0={base:{quick:.5,med:1,deep:.5},short:{quick:3,med:0,deep:-2},long:{quick:-1.5,med:1.5,deep:1.5},rz:{gl:1.2,deep:-3,quick:.5},twomin:{side:4},hi2:{deep:-.8,med:.5},hi1:{deep:.8},manlook:{quick:.4,med:.3}};
+const SIDE=new Set(['out','corner','flat','comeback']);
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),clampv=(x,a,b)=>Math.max(a,Math.min(b,x));
+/* OPTIONAL obs.field = {h, y0?, w?, oob?}: the sidelines are at y = y0 and y = y0+h (y0 default 0; the phone is h 40, y0 0). w (length) is carried for the adapter, the brain does not use it.
+   oob (yards, brain 1.2): the width of the strip along each sideline in which the GAME calls a ball out (the PC lab: 1.0). With oob > 0 the three margins that keep a ball or a receiver in play
+   (aimed-throw clamp .3, receiver clamp .5, out-of-bounds guard .8) start at the edge of that strip: edge + oob + margin. The throw-away target keeps its own margin from the SIDELINE (y0+.3), because it must still land out.
+   No oob (or 0): every number is what brain 1.1 used. Without a field F0 holds the phone's literal numbers (so nothing moves by even a rounding step). */
+const F0={on:false,lo:0,hi:40,mid:20,clLo:.5,clHi:39.5,obLo:.8,obHi:39.2,taLo:.3,taHi:39.7,amLo:.3,amHi:39.7};
+let _fKey=null,_fVal=F0;
+function fieldOf(o,pad){const f=o&&o.field;if(!f||!(f.h>0)||!isFinite(f.h))return F0;const y0=isFinite(f.y0)?+f.y0:0,oob=(f.oob>0&&isFinite(f.oob))?+f.oob+(pad>0?+pad:0):0;if(f.h===40&&y0===0&&!oob)return F0;   /* the phone's own field = no field at all: nothing moves, not even the aimed-throw clamp */
+ if(_fKey&&_fKey.h===f.h&&_fKey.y0===y0&&_fKey.oob===oob)return _fVal;const lo=y0,hi=y0+f.h;_fKey={h:f.h,y0,oob};
+ _fVal={on:true,lo,hi,mid:(lo+hi)/2,clLo:lo+oob+.5,clHi:hi-oob-.5,obLo:lo+oob+.8,obHi:hi-oob-.8,taLo:lo+.3,taHi:hi-.3,amLo:lo+oob+.3,amHi:hi-oob-.3};return _fVal}
+
+function makeBrain(opts){
+ opts=opts||{};
+ const skill=String(opts.skill||'default').toLowerCase();
+ if(!PRESETS[skill])throw new Error('unknown skill '+skill);
+ const PR=PRESETS[skill],OV=opts.params||{};
+ const has=n=>OV[n]!=null&&OV[n]!=='';
+ const K=(n,d)=>has(n)?+OV[n]:(n in PR?+PR[n]:d),KS=(n,d)=>has(n)?String(OV[n]):(n in PR?String(PR[n]):d);
+ const C={};for(const n in DEFAULTS)C[n]=K(n,DEFAULTS[n]);
+ const RUNSMODE=(r=>r==='off'?'':r)(KS('RUNS','')),RUNPLAYP=KS('RUNPLAY',''),PATP=KS('PAT','coin'),GO4P=KS('GO4','none');
+ let RTLO=.1,RTHI=.25;{const s=KS('RT','');if(s){const a=s.split(',').map(Number);RTLO=a[0];RTHI=a.length>1?a[1]:a[0]}}
+ const CALLW=JSON.parse(JSON.stringify(CALLW0));
+ if(C.DEEPCALL){CALLW.base={quick:-1,med:.5,deep:2.5};CALLW.short={quick:1,med:0,deep:-.5};CALLW.hi2={deep:0,med:.5}}
+ const FORCEPLAY=opts.forceCall||null;   /* a concept name every pass snap (the harness's CALL switch); 'random' = no call, the game picks */
+ let FORCE=FORCEPLAY==='random'?'random':FORCEPLAY;
+ if(!FORCE&&C.RANDCALL)FORCE='random';
+ let rng=typeof opts.rng==='function'?opts.rng:_mb((opts.seed|0));
+ const rnd=(a,b)=>a+rng()*(b-a),gauss=()=>{let u=0,v=0;while(!u)u=rng();while(!v)v=rng();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+ /* ---------- memory across plays ---------- */
+ const mem={callcnt:{run:0,pass:0},lastJuke:-9};
+ const T1={n:0,tsum:0,OPEN:0,PRESS:0,MAXWAIT:0,away:0,lost:0};
+ const CNT={go4:0,two:0,pat:0,carries:0,jukes:0};
+ const CALLS={};
+ let P=null;          /* state of the current play */
+ const snap=()=>({T1:Object.assign({},T1),CNT:Object.assign({},CNT),calls:Object.assign({},CALLS),callcnt:Object.assign({},mem.callcnt)});
+ let G0={T1:{},CNT:{},calls:{},callcnt:{}};   /* totals at the start of this game (zero until newGame()) */
+ let FEAT=null,PBREF=null;
+ /* ---------- playbook features (obs.playbook: [{name, routes:[{t,d,end:{x,y}}]}], blockers already left out) ---------- */
+ function buildFeat(pb){
+  PBREF=pb;
+  FEAT=pb.filter(q=>q.name!=='HAIL MARY').map(q=>{const rs=q.routes;const n=rs.length||1;const ends=rs.map(s=>s.end||{x:(s.d||0),y:s.y||20});
+   return{q,n,rs,ends,quick:rs.filter(s=>(s.d||0)<=9).length/n,med:rs.filter(s=>(s.d||0)>=10&&(s.d||0)<=15).length/n,deep:rs.filter(s=>(s.d||0)>=16).length/n,side:rs.filter(s=>SIDE.has(s.t)&&(s.d||0)>=6).length/5}})}
+ const glFeat=(f,gd)=>{const e=f.rs.map(s=>(s.d||0));let c=0;e.forEach(d=>{if(d>=gd-2&&d<=gd+8)c++});
+  let pr=0;for(let i=0;i<f.rs.length;i++)for(let j=i+1;j<f.rs.length;j++){const a=e[i],b=e[j];if(a>=gd-2&&b>=gd-2&&a<=gd+8&&b<=gd+8&&Math.abs(f.ends[i].y-f.ends[j].y)<=5)pr++}
+  return c+.25*pr};
+ /* ---------- helpers on obs ---------- */
+ const dist1=o=>Math.max(.5,Math.min(o.fd,100)-o.los);
+ function preRead(o){const los=o.los;let deep=0,man=0;
+  for(const d of o.defenders)if(d.x-los>=C.DEEPD)deep++;
+  const eligible=o.receivers.filter(r=>r.route!=='block');
+  for(const r of eligible){for(const d of o.defenders){if(d.k==='DL')continue;if(Math.abs(d.y-r.y)<=2.2&&d.x-los>=0&&d.x-los<=C.MLDIST){man++;break}}}
+  return{deep,man,manLook:man>=C.MLN}}
+ /* ---------- before the snap ---------- */
+ function pickConcept(o,pre){
+  const d1=dist1(o),gd=100-o.los;
+  const half1End=o.clock>o.qLen*2&&o.clock<=o.qLen*2+o.qLen*C.TWOFR,gameEnd=o.clock<=o.qLen*C.TWOFR;
+  const sit=['base'];if(d1<=C.SHORTYD)sit.push('short');if(d1>=C.LONGYD)sit.push('long');if(gd<=C.RZ)sit.push('rz');
+  if((half1End||(gameEnd&&o.score.me<=o.score.op))&&!o.pat)sit.push('twomin');
+  if(pre.deep>=2)sit.push('hi2');else sit.push('hi1');if(pre.manLook)sit.push('manlook');
+  const sc=FEAT.map(f=>{let s=0;for(const k of sit){const w=CALLW[k];for(const n in w){s+=w[n]*(n==='gl'?glFeat(f,gd):f[n])}}return{f,s:s+rng()*.01}}).sort((a,b)=>b.s-a.s);
+  const top=sc.slice(0,Math.max(1,C.PICKTOP)),pk=top[Math.floor(rng()*top.length)];
+  return pk.f.q.name}
+ function runOrPass(o,run){
+  if(C.NORP)return rng()<run?'run':'pass';
+  const d1=dist1(o),tot=mem.callcnt.run+mem.callcnt.pass,share=tot?mem.callcnt.run/tot:run;
+  let p=Math.min(.9,Math.max(.05,run+C.SHARE_K*(run-share)));
+  if(o.down===3&&d1>=C.LONG3)p=0;else if(o.down===3&&d1<=C.SHORT3)p=Math.min(.9,p*C.RUN3SHORT);else if(d1<=C.SHORTYD)p=Math.min(.9,p*C.RUNSHORT);
+  return rng()<p?'run':'pass'}
+ /* 4th down: none = kick or punt; short = go for it on 4th and 2 or less from the 45 on, and when trailing in the last half quarter from the 40 on */
+ function goFor(o){if(GO4P!=='short')return false;const togo=dist1(o);
+  if((togo<=2&&o.los>=45&&o.los<100)||(o.clock<=o.qLen*.5&&o.score.me<o.score.op&&o.los>=40)){CNT.go4++;return true}return false}
+ /* extra point: coin = 50/50; kick = always kick; chart = a late-game chart (mine, not official): in the 4th quarter go for two when the lead after the touchdown is -2, -5 or +5, else kick */
+ function patTwo(o){if(PATP==='kick'){CNT.pat++;return false}let t;if(PATP==='chart'){const d=o.score.me-o.score.op;t=o.clock<=o.qLen&&(d===-2||d===-5||d===5)}else t=rng()<.5;if(t)CNT.two++;CNT.pat++;return t}
+ function pickRun(o){for(const r of o.runs)if(r&&r.id===RUNPLAYP)return r.id;return null}
+ function offense(o){
+  P=null;
+  if(o.mode==='patchoice'){ /* the game is asking: extra point or two */
+   return{type:patTwo(o)?'two':'xp'}}
+  if(o.down===4&&!goFor(o)){return{type:o.los>=55?'fg':'punt'}}
+  if(!FEAT||PBREF!==o.playbook)buildFeat(o.playbook);
+  const pre=preRead(o);
+  const type=runOrPass(o,C.RUNSHARE);mem.callcnt[type]++;
+  if(type==='run')CNT.carries++;
+  let play=null;
+  if(type==='pass'){if(FORCE&&FORCE!=='random')play=FORCE;else if(!FORCE)play=pickConcept(o,pre);if(play)CALLS[play]=(CALLS[play]||0)+1}
+  P={pre,next:0,pending:null,read:null,cover:null,rushSet:new Set(),blitz:false,man:false,zone:false,rot:false,rt:null,type};
+  if(type==='run'&&RUNPLAYP&&Array.isArray(o.runs)){const rp=pickRun(o);if(rp)return{type,play,go4:o.down===4,runPlay:rp}}   /* 1.3: only when the adapter lists its run plays (obs.runs) and the param RUNPLAY names one */
+  return{type,play,go4:o.down===4}}
+ /* ---------- after the snap: predicting a receiver, scoring him ---------- */
+ const airSpd=(o,x)=>{const fl=o.bullet?0:clampv((x-o.los-10)/15,0,1);return o.ballSpeed*(1-.18*fl)};
+ function predictRec(r,t,F){
+  F=F||F0;let x=r.x,y=r.y,i=0,left=r.spd*t;const path=r.path;
+  for(let g=0;g<20&&left>0;g++){
+   const pt=path[i];
+   if(!pt){if(r.cont){const a=r.lastLeg[1],b=r.lastLeg[0];const ux=a.x-b.x,uy=a.y-b.y,L=Math.hypot(ux,uy)||1;x+=ux/L*left;y+=uy/L*left}break}
+   const d=Math.hypot(pt.x-x,pt.y-y);
+   if(d<=left){x=pt.x;y=pt.y;left-=d;i++}else{x+=(pt.x-x)/d*left;y+=(pt.y-y)/d*left;left=0}}
+  return{x,y:clampv(y,F.clLo,F.clHi)}}   /* a route that leaves the field is held at the sideline band (phone: 0.5..39.5) */
+ const maxThrow=o=>(28+3*o.qb.arm)*(o.bullet?.7:1);
+ function lead(o,r,extra){const q=o.qb,F=fieldOf(o,C.OOBPAD);let p={x:r.x,y:r.y},tf=dist(q,r)/airSpd(o,r.x);
+  for(let i=0;i<4;i++){p=predictRec(r,extra+tf,F);tf=Math.max(.3,dist(q,p)/airSpd(o,p.x))}
+  return{p,tf}}
+ function scoreRec(o,r,ctx){
+  const F=fieldOf(o,C.OOBPAD),q=o.qb,{p,tf}=lead(o,r,ctx.rtMean),arr=ctx.rtMean+tf,h=Math.min(arr,C.PREDH);let sep=12;
+  for(const d of o.defenders){const dx=d.x+d.vx*h,dy=d.y+d.vy*h;const s=Math.hypot(dx-p.x,dy-p.y);if(s<sep)sep=s}
+  const over=Math.max(0,dist(q,p)-maxThrow(o));
+  let s=sep-C.ARMPEN*over+ctx.yardw*(p.x-o.los)-((p.y<=F.obLo||p.y>=F.obHi)?C.OBPEN:0);
+  if(C.EDGEPEN&&F.on){const ed=Math.min(p.y-F.lo,F.hi-p.y);if(ed<C.EDGEW)s-=C.EDGEPEN*(C.EDGEW-Math.max(0,ed))}   /* 1.3: sideline habit, default 0 = off */
+  if(ctx.blitz)s+=C.B_NEAR*Math.max(0,12-(p.x-o.los))-C.B_SHORT*Math.max(0,p.x-o.los-6);
+  return{r,s,sep,p}}
+ function throwAway(o){const F=fieldOf(o,C.OOBPAD);let best=null,bd=-1;for(const y of[F.taLo,F.taHi]){const x=o.los+C.TAX;let m=99;for(const d of o.defenders)m=Math.min(m,Math.hypot(d.x-x,d.y-y));if(m>bd){bd=m;best=({x,y})}}
+  return{throw:{x:best.x,y:best.y,bullet:false}}}
+ /* reading the defense from how it MOVES (the observation the offense really has) */
+ function readRush(o){const t=o.t,q=o.qb;let rush=0;const set=new Set();
+  o.defenders.forEach((d,i)=>{const p0=o.preSnap.defenders[i],disp=Math.hypot(d.x-p0.x,d.y-p0.y),cl=dist(p0,q)-dist(d,q);
+   if(disp<C.RUSHK*t&&cl>=C.RUSHCL*disp){rush++;set.add(i)}});
+  return{rush,set}}
+ function readCover(o){let drop=0,rot=0,cov=0;
+  o.defenders.forEach((d,i)=>{if(P.rushSet.has(i))return;cov++;const p0=o.preSnap.defenders[i],dx=d.x-p0.x;
+   if(p0.x-o.los>=C.DEEPD&&dx<=-C.ROTMV)rot++;
+   if(dx>=C.ZDROP)drop++});
+  return{mir:cov-drop,drop,rot,cov,man:drop<=C.MANDROP}}
+ function fire(o){
+  const why=P.pending.why;let r=o.receivers.find(x=>x.id===P.pending.rid),away=false;   /* the receiver as he is NOW (the game's object moves between the decision and the release) */
+  if(why!=='OPEN'){
+   const ctx={rtMean:0,blitz:!!P.blitz,yardw:(P.man?C.M_YARDW:P.zone?C.Z_YARDW:C.YARDW)+(P.rot?C.ROTYW:0)};let best=null;
+   for(const x of o.receivers){if(x.route==='block')continue;const sr=scoreRec(o,x,ctx);if(!best||sr.s>best.s)best=sr}
+   if(!best||best.sep<C.DEAD)away=true;else r=best.r}
+  const t=o.t;T1.n++;T1.tsum+=t;P.why=why;P.tt=t;
+  if(away){P.away=1;T1.away++;T1[why]++;return throwAway(o)}
+  T1[why]++;
+  const {p}=lead(o,r,0);
+  const tx=p.x+gauss()*C.AIMERR;let ty=p.y+gauss()*C.AIMERR;
+  const F=fieldOf(o,C.OOBPAD);if(F.on)ty=clampv(ty,F.amLo,F.amHi);   /* only when the adapter sent a field: an aimed throw never leaves it (the phone path is untouched) */
+  return{throw:{x:tx,y:ty,bullet:false}}}
+ function passTick(o){
+  const t=o.t;
+  if(!P.rt)P.rt=rnd(RTLO,RTHI);
+  const STEP2=true;
+  if(STEP2&&!P.read&&t>=C.TREAD){const r=readRush(o);P.read=r;P.rushSet=r.set;P.blitz=r.rush>=C.BLITZN&&!C.NOADJ;P.readInfo={rush:r.rush}}
+  if(STEP2&&P.read&&!P.cover&&t>=C.TMAN){const c=readCover(o);P.cover=c;P.man=c.man&&!C.NOADJ;P.zone=!c.man&&!C.NOADJ;P.rot=c.rot>0&&!C.NOADJ;P.readInfo=Object.assign(P.readInfo||{},{man:c.man,mir:c.mir,rot:c.rot,cov:c.cov})}
+  if(P.pending){if(t>=P.pending.at)return fire(o);return null}
+  if(t<P.next)return null;P.next=t+C.TICK;
+  const blitz=!!P.blitz,minwait=blitz?C.B_MINWAIT:(STEP2&&C.READWAIT&&!C.NOADJ?Math.max(C.MINWAIT,C.TMAN):C.MINWAIT),open=blitz?C.B_OPEN:C.OPEN,press=C.PRESS*(blitz?C.B_PRESS:1);
+  if(t<minwait)return null;
+  const ctx={rtMean:(RTLO+RTHI)/2,blitz,yardw:(P.man?C.M_YARDW:P.zone?C.Z_YARDW:C.YARDW)+(P.rot?C.ROTYW:0)};
+  let best=null;for(const r of o.receivers){if(r.route==='block')continue;const sr=scoreRec(o,r,ctx);if(!best||sr.s>best.s)best=sr}
+  if(!best)return null;
+  const q=o.qb;let dq=99;for(const d of o.defenders){const s=dist(d,q);if(s<dq)dq=s}
+  let why=null;if(best.s>=open)why='OPEN';else if(dq<=press)why='PRESS';else if(t>=C.MAXWAIT)why='MAXWAIT';
+  if(why)P.pending={at:t+P.rt,why,rid:best.r.id};
+  return null}
+ /* ---------- steering the ball carrier (skill strong: RUNS=steer) ---------- */
+ /* OPTIONAL obs.run = {hole:{x,y}} (the play's designed hole, same axes as the rest). Follow it while it is ahead of the carrier and the nearest defender is not in the way;
+    otherwise return null and the caller falls back to today's rule. Never asks for the lab's "brake" (the action has one steer number, -1..1 across the field). */
+ function holeSteer(o,F){
+  const r=o.runner,h=o.run&&o.run.hole;if(!r||!h||!isFinite(h.x)||!isFinite(h.y))return null;
+  if(!(h.x-r.x>C.HOLE_AHEAD))return null;
+  const dy=h.y-r.y,sg=Math.sign(dy);let nd=null,nn=99;
+  for(const d of o.defenders){const dx=d.x-r.x;if(dx<-1)continue;const dd=Math.hypot(dx,d.y-r.y);if(dd<nn){nn=dd;nd=d}}
+  if(nd&&nn<=C.HOLE_NEAR&&sg!==0&&Math.sign(nd.y-r.y)===sg&&Math.abs(nd.y-r.y)<=Math.abs(dy)+.5&&Math.abs(nd.y-r.y)<C.HOLE_LAT)return null;   /* he stands between me and the hole */
+  let sv=clampv(dy/C.HOLE_K,-1,1);
+  const E=C.ST_EDGE;if(r.y<F.lo+E)sv=Math.max(sv,(F.lo+E-r.y)/E);if(r.y>F.hi-E)sv=Math.min(sv,-(r.y-(F.hi-E))/E);
+  return{steer:clampv(sv*C.ST_GAIN*C.HOLE_GAIN,-C.STEERCAP,C.STEERCAP)}}
+ function steerTick(o){
+  const r=o.runner;if(!r)return null;
+  if(RUNSMODE==='steerrun'&&o.type!=='run')return null;
+  const F=fieldOf(o,C.OOBPAD);
+  const th=[];
+  for(const d of o.defenders){const dx=d.x-r.x,dy=d.y-r.y;if(dx<-2)continue;const dd=Math.hypot(dx,dy);if(dd>C.ST_RANGE)continue;th.push({d,dd})}
+  th.sort((a,b)=>a.dd-b.dd);
+  let sv=0;
+  if(th.length){
+   const n=th[0],t=Math.min(C.ST_LOOK,n.dd/Math.max(6,r.spd||9));
+   const lat=x=>(x.d.y+x.d.vy*t)-(r.y+r.vy*t);
+   const py=lat(n),s=Math.abs(py)<.4?(r.y<F.mid?1:-1):Math.sign(py);
+   const same=th.length>1&&Math.sign(lat(th[1]))===s;
+   const closeness=clampv(1.3-n.dd/C.ST_CLOSE,.25,1);
+   if(!same)sv=-s*closeness;else if(Math.abs(py)<2.5)sv=-s*closeness*.6;else sv=0}
+  const E=C.ST_EDGE;if(r.y<F.lo+E)sv=Math.max(sv,(F.lo+E-r.y)/E);if(r.y>F.hi-E)sv=Math.min(sv,-(r.y-(F.hi-E))/E);
+  const act={steer:clampv(sv*C.ST_GAIN,-C.STEERCAP,C.STEERCAP)};
+  const t=o.t;
+  if(!(r.jcd>0)&&t-mem.lastJuke>=C.ST_JCD){
+   for(const d of o.defenders){const dd=dist(d,r);if(dd<C.ST_JUKE&&((d.x-r.x)*(d.vx-r.vx)+(d.y-r.y)*(d.vy-r.vy))<0){act.juke=true;mem.lastJuke=t;CNT.jukes++;break}}}
+  return act}
+ /* ---------- kicks: aim for the wind, power for the distance (obs.kick = {dist, maxR, wind}) ---------- */
+ function kickTick(o){const a=o.kick;const pw=Math.min(1,a.dist/a.maxR*1.04);const ao=-a.wind*a.dist*.014;return{kick:{aim:-ao*10,power:140*pw}}}
+ function tick(o){
+  if(o.phase==='kickaim')return kickTick(o);
+  if(!P)return null;
+  if(o.phase==='back'&&o.type==='pass')return passTick(o);
+  if(o.phase==='run'){
+   if(o.run){const a=holeSteer(o,fieldOf(o,C.OOBPAD));if(a)return a}   /* obs.run only: any skill follows the hole while it is clear */
+   if(RUNSMODE)return steerTick(o)}
+  return null}
+ return{
+  skill,params:C,offense,tick,version:BRAIN_VERSION,
+  T1,CNT,CALLS,callcnt:mem.callcnt,cur(){return P},setForce(f){FORCE=f||null;if(!FORCE&&C.RANDCALL)FORCE='random'},   /* live counters (the harness reads them), the current play's state, a switch for the matrix harness */
+  defense(obs){return null},   /* BOTS chat B writes the defensive brain (def-*.js); nothing here */
+  reseed(n){rng=_mb(n|0)},
+  setRng(f){rng=f},
+  newGame(){P=null;G0=snap()},   /* also restarts gameStats() */
+  gameStats(){const n=snap(),d=(a,b)=>{const r={};for(const k in a)r[k]=typeof a[k]==='number'?a[k]-(b&&b[k]||0):a[k];return r};
+   const T=d(n.T1,G0.T1),calls=d(n.calls,G0.calls),cc=d(n.callcnt,G0.callcnt);
+   return{throws:T.n,releaseSum:T.tsum,releaseMean:T.n?T.tsum/T.n:0,why:{OPEN:T.OPEN,PRESS:T.PRESS,MAXWAIT:T.MAXWAIT,away:T.away},lost:T.lost,
+    runCalls:cc.run,passCalls:cc.pass,concepts:calls,carries:d(n.CNT,G0.CNT).carries,jukes:d(n.CNT,G0.CNT).jukes,goForIt:d(n.CNT,G0.CNT).go4,two:d(n.CNT,G0.CNT).two,pat:d(n.CNT,G0.CNT).pat}},   /* this game only (since newGame(); a brain that never had newGame() counts from creation) */
+  stats(){return{T1:Object.assign({},T1),CNT:Object.assign({},CNT),calls:Object.assign({},CALLS),callcnt:Object.assign({},mem.callcnt)}},
+  lastRead(){return P&&P.readInfo?Object.assign({},P.readInfo):null},   /* what the brain thought it saw (for a log; compare with the adapter's truth) */
+  runsMode:RUNSMODE,runShare:C.RUNSHARE
+ }}
+if(typeof module!=='undefined'&&module.exports)module.exports={makeBrain,PRESETS,_mb,BRAIN_VERSION};
+
+return{makeBrain,PRESETS,BRAIN_VERSION}})();
 
 /* ---------- NFL-format leagues (v1.40) ----------
    A league (S.lg) has 32 teams, 2 conferences and 8 divisions (4 teams each), a 17-game season, and
@@ -3346,8 +3691,11 @@ function stdLookBack(std,L){
  else if(L.conf[0]!==STD_CFG.conf[0]||L.div.join('|')!==STD_CFG.div.join('|'))std.cx={cn:L.conf.slice(0,1),dn:L.div.slice(0,2)};else delete std.cx}
 
 /* ----- creating a league: ONE Math.random draw (the league's rs); everything else comes from it ----- */
+/* v2.55: a new league never starts with a very weak quarterback (owner, Nov 25, 2026: it does not play well). Every QB below 3 out of 10 in ARM or ACCURACY is raised to 3.0 (potential at least 3.0 too). Only at the start; nothing else about the league changes. */
+const STD_QB_MIN=3;
+function stdQbFloor(std){let n=0;for(const t of std.teams)for(const p of t.ro){if(p.ps!=='QB')continue;let c=false;for(const k of STD_RULES.ratingKeys.QB)if(p.rt[k]<STD_QB_MIN){p.rt[k]=STD_QB_MIN;c=true}if(p.pt<STD_QB_MIN){p.pt=STD_QB_MIN;c=true}if(c)n++}return n}
 function stdDraft(name,spec){
- const rs=(Math.random()*4294967296)>>>0,std=STD.makeLeague(rs,STD_RULES,undefined,spec);std.nm=name||'PIXEL LEAGUE';   /* v2.42: spec = 'NFL', 'COLLEGE', a custom {teams,conferences,divisions,games,playoff} or nothing (8 teams); STD.shapeOf(spec) says first whether it can be made */
+ const rs=(Math.random()*4294967296)>>>0,std=STD.makeLeague(rs,STD_RULES,undefined,spec);stdQbFloor(std);std.nm=name||'PIXEL LEAGUE';   /* v2.42: spec = 'NFL', 'COLLEGE', a custom {teams,conferences,divisions,games,playoff} or nothing (8 teams); STD.shapeOf(spec) says first whether it can be made */
  const v=stdView({std,stm:0});Object.defineProperty(v,'_std',{value:std});return v}
 function stdNew(L,me){
  const std=L._std;stdLookBack(std,L);std.nm=L.name||'PIXEL LEAGUE';
@@ -5750,7 +6098,7 @@ document.addEventListener('click',e=>{try{const b=e.target.closest&&e.target.clo
  if(a==='open')rpOpen();else if(a==='close')rpClose();else if(a==='copy')rpCopy();else if(a==='share')rpShare()}catch(x){}});
 /* ----- mid-game resume (v1.77). A device-only snapshot of the game is written each time a play is about to be called (pre-snap) and
    removed when the game ends, the league is deleted, a different game starts or the player abandons it. Not part of backup codes. ----- */
-const GSK='pixelPigskin.g.',GS_PLAIN=['opp','oc','label','exh','home','qLen','clock','me','op','los','down','fd','ot','t','poss','st','qs','pl','ost','half','first','pat','hold','rev','bullet','bp','dcStyles','dcLast','dseed','dsim','to','drv','psty','sn'];
+const GSK='pixelPigskin.g.',GS_PLAIN=['opp','oc','label','exh','home','qLen','clock','me','op','los','down','fd','ot','t','poss','st','qs','pl','ost','half','first','pat','hold','rev','bullet','bp','dcStyles','dcLast','dseed','dsim','to','drv','psty','sn','mem'];
 const gsRound=()=>S.lg?((S.lg.po&&S.lg.po.round)||0):(S.round||0);
 const gsGames=()=>(+S.w||0)+(+S.l||0)+(+S.t||0);
 const gsNum=v=>typeof v==='number'&&isFinite(v);
@@ -6061,7 +6409,7 @@ function sqDetail(rec,x){
  lg.rec_op=LGo?rc(oi):null;
  lg.games_hand=null;lg.games_sim=null;lg.eng=null;lg.rules_v=null;
  if(!spdLoaded)spdLoad();lg.speed_n=spdN; /* v2.30: the exact slider number 1..10 (g.speed_step stays the nearest old step 0..4) */
- if(G.dsim)lg.drv=String(LGD.version||'').replace(/ \(prototype\)$/,'').slice(0,40); /* v2.29: the opponent's drives came from the new drive simulator in this game (key absent otherwise) */
+ if(G.dsim)lg.drv=String(LGD.version||'').replace(/ \(.*\)$/,'').slice(0,40); /* v2.29: the opponent's drives came from the new drive simulator in this game (key absent otherwise) */
  {const so=G.exh?null:styOpp();if(so){const r2=v=>typeof v==='number'?Math.round(v*100)/100:v;lg.opp_sty={v:1,pass:r2(so.pass),tend:r2(so.tend),depth:r2(so.depth),aggr:r2(so.aggr),two:r2(so.two),tempo:r2(so.tempo),hurry:r2(so.hurry),blitz:r2(so.blitz)}}}   /* v2.37: the opponent's team style, ONLY when it is not the default (key absent otherwise); inside d, so the rules need no change */
  if(S.std&&S.std.teams){
   const L=S.std,me=S.stm|0,ed=i=>{const t=L.teams[i];if(!t)return null;const e=STD.effective(t,L.rules);return{ed:sqN(t.ed,3),eff_off:sqN(e.off,3),eff_def:sqN(e.def,3)}};
@@ -6136,10 +6484,11 @@ function hnBoxes(skip){const a=[],add=e=>{if(e&&e!==skip){const x=sx(e.x),y=sy(e
  try{const b=curBall();if(b&&b!==skip){const x=sx(b.x),y=sy(b.y);a.push([x-5,y-12-(b.z||0)*5,x+5,y+3])}}catch(e){}
  return a}
 function hnFree(r,skip){return!hnBoxes(skip).some(b=>r[0]<b[2]&&r[2]>b[0]&&r[1]<b[3]&&r[3]>b[1])}
+let HNX=[];   /* v2.56: the rectangles of the hint lines already drawn this frame, so the how-to tip never lands on the lean hint (reset at the top of drawOverlay) */
 /* draw tip text at the first free spot of cs = [[x,y,align],...] (y is the text baseline). Returns true when drawn; when every spot is taken the word is simply left out. */
 function hnText(s,size,col,str,cs,skip){
  if(!(str>0))return false;const w=s.length*size;
- for(const[x,y,al]of cs){const x0=al==='center'?x-w/2:al==='right'?x-w:x;if(hnFree([x0,y-size,x0+w,y+2],skip)){cx.globalAlpha=str;rstrip(s,x,y,size,al); /* v2.46: on a dark half-opaque strip */ txt(s,x,y,size,col,al);cx.globalAlpha=1;return true}}
+ for(const[x,y,al]of cs){const x0=al==='center'?x-w/2:al==='right'?x-w:x;const rr=[x0,y-size,x0+w,y+2];if(hnFree(rr,skip)&&!HNX.some(b=>rr[0]<b[2]&&rr[2]>b[0]&&rr[1]<b[3]&&rr[3]>b[1])){HNX.push(rr);cx.globalAlpha=str;rstrip(s,x,y,size,al); /* v2.46: on a dark half-opaque strip */ txt(s,x,y,size,col,al);cx.globalAlpha=1;return true}}
  return false}
 /* ----- GAME SPEED (v1.82; v2.30: a slider). A per-device preference in localStorage 'pixelPigskin.speed' = {v:2,n:1..10}.
    v1 stored {v:1,s:"slower"|"slow"|"medium"|"fast"|"faster"}: read as 1, 3, 5, 7, 10 (the new shape is written on the next change, never on read).
@@ -6308,7 +6657,7 @@ function hpClose(){if(!HP.on)return;HP.on=false;try{const e=$('hp');if(e){e.clas
 /* ----- EXIT GAME (v1.81). The panel opens at a pre-snap only (button in the corner, or Escape when nothing else is open).
    SAVE AND EXIT uses the v1.77 snapshot writer (gsWrite) and records nothing; ABANDON GAME uses gsClear. KEEP PLAYING touches no game data. ----- */
 const XP={on:false,v:'main'};
-function xpQ(g){return(g.ot?'OT':'Q'+clamp(Math.ceil((g.qLen*4-g.clock)/g.qLen+.0001),1,4))+' '+Math.floor(Math.ceil(g.clock)/60)+':'+String(Math.ceil(g.clock)%60).padStart(2,'0')}
+function xpQ(g){if(g.dfo)return'POSSESSION '+g.dfo.n+' OF '+g.dfo.N;return(g.ot?'OT':'Q'+clamp(Math.ceil((g.qLen*4-g.clock)/g.qLen+.0001),1,4))+' '+Math.floor(Math.ceil(g.clock)/60)+':'+String(Math.ceil(g.clock)%60).padStart(2,'0')}
 function xpPanel(){let e=$('xp');
  if(!e){e=document.createElement('div');e.id='xp';e.className='screen ovp';e.style.background='rgba(4,7,16,.9)';$('app').appendChild(e);
   for(const ev of['keydown','keyup'])e.addEventListener(ev,x=>{x.stopPropagation();if(ev==='keydown'&&x.key==='Escape'){x.preventDefault();xpEsc()}}); /* keys typed here never reach the game */
@@ -6611,8 +6960,8 @@ function dcPaint(){const e=$('dcs');if(!e)return;
  const sd=G.dcStyles||[];
  e.innerHTML=`<h1 class="mh">CALL YOUR DEFENSE</h1>
 <div class="sm">${sc(`${hmEsc(tn(S.name.slice(0,12)))} ${G.me} - ${G.op} ${hmEsc(tn(G.opp.name.slice(0,12)))} - ${xpQ(G)}`)}</div>
-<div class="sm" style="color:#ffd400">${sc(`${OL.on?hmEsc(olDown(OL.room.st)):'THEIR BALL AT OWN '+Math.round(DC.start)}`)}</div>
-<div class="sm">${sc(OL.on?'<span id="olcd">PICK IN '+OL_PICK+'</span> - NO PICK = THE HIGHLIGHTED ONE':'LAST DRIVES: '+(sd.length?sd.join(', '):'NONE YET'))}</div>
+<div class="sm" style="color:#ffd400">${sc(`${G.dfo?dfoLine():OL.on?hmEsc(olDown(OL.room.st)):'THEIR BALL AT OWN '+Math.round(DC.start)}`)}</div>
+<div class="sm">${sc(G.dfo?'CALL IT KEEPS THE HIGHLIGHTED ONE':OL.on?'<span id="olcd">PICK IN '+OL_PICK+'</span> - NO PICK = THE HIGHLIGHTED ONE':'LAST DRIVES: '+(sd.length?sd.join(', '):'NONE YET'))}</div>
 <div class="dckw"><button type="button" class="btn alt xs" data-dckey aria-expanded="false">KEY</button></div><div class="dckey" hidden>${dcKeyHtml()}</div>
 <div class="dcl"><div class="dcg"><button class="btn alt dcc${DC.sel==='auto'?' on':''}" data-dc="auto" aria-pressed="${DC.sel==='auto'}"><b>AUTO</b><span>THE GAME CALLS A TEXTBOOK DEFENSE FOR YOU</span></button></div>${
  DC_GRP.map(g=>{const L=DEFD.filter(d=>g[1].includes(DC_FAM[d.id]||'?'));return L.length?`<h4>${g[0]}</h4><div class="dcg dcgc">${L.map(dcCard).join('')}</div>`:''}).join('')}</div>
@@ -6639,6 +6988,7 @@ function dcAutoCall(start,g){
 function dcGo(){
  if(!DC.on)return;if(OL.on)return olPicked(); /* v1.99: online, the pick goes to the other phone */
  DC.on=false;const sel=DC.sel;show(null);
+ if(G.dfo)return dfoCalled(sel==='auto'?dcAutoCall(DC.start):sel,sel); /* v2.58: DEFENSE ONLY (TEST): the call goes to the brain's offense (dfo.js) */
  const style=dcPickStyle(),sch=sel==='auto'?dcAutoCall(DC.start):sel; /* v2.35: AUTO is the rules call (below), the same drive path as a player's pick */
  G.dcStyles=(G.dcStyles||[]).concat(style).slice(-3);G.dcLast=sel==='auto'?null:sel; /* dcLast stays null for AUTO, so the pick screen keeps AUTO highlighted; a call of the player's own is remembered as before */
  oppDrive(DC.start,{sch,style})}
@@ -6958,7 +7308,7 @@ $('book').onclick=e=>{const b=e.target.closest('button');if(!b)return;
    The game runs on a throwaway copy of the league (S.sbx=1): nothing is saved, no record, no credits, no game log, no saved-game snapshot, and your real leagues are not touched.
    Only the picker's own settings are remembered, under pixelPigskin.exh. The exhibition inside a league (EXHIBITION on the hub) is unchanged. ---------- */
 const XH_KEY='pixelPigskin.exh',DNM=['ROOKIE','ROOKIE','EASY','EASY','PRO','HARD','HARD','ALL-PRO','ALL-PRO','LEGEND'];
-const XH={src:null,me:null,opp:null,site:true,q:90,flip:true,diff:5,drafts:{},cache:{},prev:null,ul:{},more:false,on:false};   /* v2.53: ul = the uniforms picked on the EXHIBITION screen (in memory only, key 'league:team'); more / on = the settings card and the ONLINE card are open */
+const XH={src:null,me:null,opp:null,site:true,q:90,flip:true,diff:5,drafts:{},cache:{},prev:null,ul:{},more:false,on:false,play:'full',dfa:true};   /* v2.53: ul = the uniforms picked on the EXHIBITION screen (in memory only, key 'league:team'); more / on = the settings card and the ONLINE card are open */
 try{const o=JSON.parse(lsGet(XH_KEY)||'null');if(o&&o.v===1){if(typeof o.src==='string')XH.src=o.src;if(o.site===true||o.site===false||o.site===null)XH.site=o.site;if([60,90,150].includes(o.q))XH.q=o.q;XH.flip=o.flip!==false;if(o.diff>=1&&o.diff<=10)XH.diff=Math.round(o.diff)}}catch(e){}
 const xhSave=()=>lsSet(XH_KEY,JSON.stringify({v:1,src:XH.src,site:XH.site,q:XH.q,flip:XH.flip,diff:XH.diff}));
 /* the leagues you can pick from: saved leagues (not the old classic ones) and the two formats */
@@ -6996,6 +7346,8 @@ function hmExh(){
  return`<div class="row" style="width:100%;max-width:40em;justify-content:flex-start"><span class="sm">${sc(`LEAGUE`)}</span><select id="xhS" style="flex:1 1 14em;min-width:0;max-width:100%">${leagueOpts}</select>${sel.id?'':'<button class="btn xs alt" data-xh="reroll">NEW TEAMS</button>'}</div>
  <div class="sm" style="max-width:40em">${sc(`${hmEsc(sel.cf.info)}`)}</div>
  ${foHtmlArrows('exh',tm(x.me,0),tm(x.opp,1))}
+ <div class="row" style="width:100%;max-width:40em;justify-content:flex-start" role="group" aria-label="Play"><span class="sm">${sc(`PLAY:`)}</span><button class="btn xs ${x.play==='def'?'alt':'sel'}" data-xh="pf" aria-pressed="${x.play!=='def'}">FULL GAME</button><button class="btn xs ${x.play==='def'?'sel':'alt'}" data-xh="pd" aria-pressed="${x.play==='def'}">DEFENSE ONLY (TEST)</button></div>
+ ${x.play==='def'?`<div class="sm" style="max-width:40em">${sc(`You defend every snap. Test mode: no league, no stats.`)}</div><div class="row" style="width:100%;max-width:40em;justify-content:flex-start" role="group" aria-label="Auto switch"><span class="sm">${sc(`AUTO SWITCH:`)}</span><button class="btn xs ${x.dfa?'sel':'alt'}" data-xh="da1" aria-pressed="${x.dfa}">ON</button><button class="btn xs ${x.dfa?'alt':'sel'}" data-xh="da0" aria-pressed="${!x.dfa}">OFF</button><span class="sm">${sc(`AFTER THE THROW THE RING JUMPS TO THE NEAREST DEFENDER`)}</span></div>`:''}
  <div class="sm exnote" style="max-width:40em">${sc(`${note}`)}</div>
  <div class="row"><button class="btn xs alt" data-xh="more" aria-expanded="${x.more}">${x.more?'HIDE GAME SETTINGS AND TEAM LIST':'GAME SETTINGS AND TEAM LIST'}</button></div>${more}
  ${x.on||OL.pre?olCard():''}
@@ -7015,20 +7367,22 @@ function xhBuild(){
 const QS_KEY='pixelPigskin.qs';
 const xhQsDone=()=>{try{return lsGet(QS_KEY)==='1'}catch(e){return true}};
 const xhQsPulse=()=>{try{return !xhQsDone()&&rdIdx().length===0}catch(e){return false}}; /* a device with saves never pulses; v2.51: nor while the title screen is up (its QUICK GAME is the quick start there) */
-function xhQuick(){try{lsSet(QS_KEY,'1')}catch(e){}XH.me=null;XH.opp=null;xhGo()}
-function xhGo(){
+function xhQuick(){try{lsSet(QS_KEY,'1')}catch(e){}XH.me=null;XH.opp=null;xhGo(true)}
+function xhGo(full){
  let s;try{s=xhBuild()}catch(e){s=null}
  if(!s)return;
  const L=s.lg,o=L.teams[XH.opp];
  XH.prev=S;S=s;resetSprites();
  EXH={o:{name:o.name,off:o.off,def:o.def,col:o.col,uni:lgUni(o),id:o.id},home:XH.site,psty:persEx()};
- startGame()}
+ if(!full&&XH.play==='def')dfoStart(XH.dfa);else startGame()} /* v2.58: PLAY: DEFENSE ONLY (TEST) */
 /* back to the home screen's EXHIBITION tab with the real league (if any) loaded again */
 function xhLeave(){if(S&&S.sbx){S=XH.prev;XH.prev=null}ctrl.down=false;fx=[];G=null;EXH=null;HOME.tab='ex';HOME.del=null;XH.cache={};resetSprites();renderHome();show(UI.hm||!S?'menu':'xex')}
 $('menu').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-xh]');if(!b)return;const v=b.dataset.xh;
  if(v==='go'){xhGo();return}
  if(v==='pers'){persOpen('ex',renderHome);return}
  if(v==='ol')XH.on=!XH.on;
+ else if(v==='pf'||v==='pd')XH.play=v==='pd'?'def':'full';
+ else if(v==='da1'||v==='da0')XH.dfa=v==='da1';
  else if(v==='more')XH.more=!XH.more;
  else if(/^[ab]-?1$/.test(v)){const sel=xhLeague();xhTeams(sel);const n=sel.L.teams.length,k=v[0],st=+v.slice(1),o=k==='a'?'opp':'me',f=k==='a'?'me':'opp';let nv=(XH[f]+st+n)%n;if(nv===XH[o])nv=(nv+st+n)%n;XH[f]=nv}
  else if(v==='reroll'){XH.drafts[XH.src]=null;XH.ul={}}
@@ -7652,6 +8006,7 @@ const cam={x:0},ctrl={dir:0,ptr:false,ty:20};
 let fx=[];
 const pop=(t,x,y,c)=>fx.push({t,x,y,c:c||'#fff',life:1});
 function mk(k,x,y,ex){return Object.assign({k,x,y,x0:x,y0:y,vx:0,vy:0,stun:0,cool:0,wait:0,inv:0,stumble:0,ph:Math.random()*2},ex)}
+const RRT=()=>G&&G.dfo?G.dfo.r:S.r; /* v2.58: the ratings of the team with the ball (the opponent's in DEFENSE ONLY) */
 function startGame(){
  gsClear(); /* v1.77: a new game replaces any saved one */
  const ex=EXH;EXH=null;const o=ex?ex.o:nextOpp(),home=ex?ex.home:homeOf(o);
@@ -7675,7 +8030,7 @@ function formation(){
  G.dl=FM.dl.map(y=>mk('DL',cl(l+FM.dlx),y));
  G.lb=[11,20,26].map(y=>mk('LB',cl(l+4.5),y));
  G.db=[mk('DB',cl(l+6),6),mk('DB',cl(l+6),34),mk('DB',cl(l+6),30),mk('DB',cl(l+14),20)];
- G.ol.forEach((e,i)=>dress(e,'me',i));dress(G.qb,'me',0);G.recs.forEach((e,i)=>dress(e,'me',i));[G.dl,G.lb,G.db].forEach(a=>a.forEach((e,i)=>dress(e,'op',i)));
+ {const a=G.dfo?'op':'me',b=G.dfo?'me':'op';G.ol.forEach((e,i)=>dress(e,a,i));dress(G.qb,a,0);G.recs.forEach((e,i)=>dress(e,a,i));[G.dl,G.lb,G.db].forEach(x=>x.forEach((e,i)=>dress(e,b,i)))} /* v2.58: DEFENSE ONLY swaps the uniforms */
  G.defs=[...G.dl,...G.lb,...G.db];G.play=null;G.bp={x:l,y:20,z:0};G.def=pickDef();G.look=pickLook(G.def);alignDef()}
 const fgDist=()=>117-G.los;
 const fgPct=()=>clamp(.97-Math.max(0,fgDist()-28)*.022+((RO().k.acc+RO().k.rng)/2-5)*.02,.03,.98);
@@ -7710,8 +8065,8 @@ function mkRoute(r,i){
 function snap(type){
  if(!G||G.mode!=='presnap')return;
  G.sn=1; /* v2.46: the first snap has happened (the banner's down slot says KICKOFF until then) */
- hnSnap(type);
- const R=S.r,o=G.opp,l=G.los;
+ if(!G.dfo){hnSnap(type);memAdd(type)}G.lh=null; /* v2.56: remember this snap for the defense lean (df.js); the hint is gone at the snap */
+ const R=RRT(),o=G.opp,l=G.los;
  const ro=RO(),wrB=i=>7.6+.34*ro.wr[i].spd,teB=7.6+.34*ro.te.spd,wrS=(wrB(0)+wrB(1)+wrB(2)+teB)/4,pm=G.pat?.9:1,dsp=(8+o.def*.34)*DEF_BOOST*dSpd();G.wrS=wrS; /* v1.46: wrS is the average speed of the four receivers */
  G.recs.forEach((r,i)=>{r.cat=i===3?R.rb:i===4?ro.te.cat:ro.wr[i].cat;r.sr=i===3?R.rb:i===4?ro.te.spd:ro.wr[i].spd}); /* v1.45: defenders are 10% slower on the two-point try */
  for(const d of G.defs){d.skill=rnd(.95,1.04);d.delay=rnd(.12,.38)*dReact();d.spdFull=dsp*d.skill*pm;d.spd=d.spdFull}
@@ -7773,7 +8128,7 @@ function juke(){
  if(!G||G.mode!=='live'||!G.play||!G.play.runner)return;
  const r=G.play.runner;if(r.jcd>0)return;r.jcd=1.1;sfx('juke');
  let near=null;
- for(const d of G.defs){if(dst(d,r)<4&&d.stun<=0){if(!near||dst(d,r)<dst(near,r))near=d;if(Math.random()<.55+(S.r.rb-5)*.05)d.stun=.8}}
+ for(const d of G.defs){if(dst(d,r)<4&&d.stun<=0){if(!near||dst(d,r)<dst(near,r))near=d;if(Math.random()<.55+(RRT().rb-5)*.05)d.stun=.8}}
  r.inv=.4;if(near)r.y=clamp(r.y+(r.y>=near.y?1.5:-1.5),.5,39.5);pop('JUKE!',r.x,r.y-2,'#ffd400')}
 
 /* ---------- live play ---------- */
@@ -7872,9 +8227,9 @@ function retTackled(car){
   e.cool=1;e.stun=dd>=.95?.7:.45;car.stumble=dd>=.95?0:.4;e.miss=0;e.mdir=Math.sign(car.x-e.x)||-1;if(dd<.95)pop('BROKEN!',car.x,car.y-2,'#ff6b6b')}
  return false}
 function updateLive(dt){
- const p=G.play,R=S.r,o=G.opp,l=G.los;
+ const p=G.play,R=RRT(),o=G.opp,l=G.los;
  p.t+=dt;
- if(!G.pat&&!G.hold){ /* v1.61: the clock stops at the end of a quarter (not the last one) for the rest of the play; before, it ran into the next quarter */
+ if(!G.pat&&!G.hold&&!G.dfo){ /* v1.61: the clock stops at the end of a quarter (not the last one) for the rest of the play; before, it ran into the next quarter */
   const fl=G.ot?0:G.qLen*(Math.ceil(G.clock/G.qLen-1e-9)-1);let nc=G.clock-dt;
   if(fl>0&&nc<=fl){nc=fl;G.hold=true}
   G.clock=Math.max(0,nc)}
@@ -7905,7 +8260,7 @@ function updateLive(dt){
   const r=p.runner;
   if(p.type==='run'&&p.t<.3){G.qb.x=l-4.5}
   else runnerStep(dt,r);
-  for(const d of G.defs)pursue(d,r,dt);
+  for(const d of G.defs)if(!(G.dfo&&G.dfo.hold===d))pursue(d,r,dt); /* v2.58: the defender you steer is not moved by the game */
   if(r.x>=100){endPlay('td',r.x);return}
   if(r.y<=.4||r.y>=39.6){endPlay('oob',r.x);return}
   if(p.type==='run'&&p.t<.3)return;
@@ -7953,7 +8308,7 @@ function updateBall(dt){
  b.x=b.sx+(L.x-b.sx)*u;b.y=b.sy+(L.y-b.sy)*u;b.z=Math.sin(Math.PI*u)*(.1*b.d0+1)*(1+.9*(b.fl||0));
  if(u>=1)resolveCatch()}
 function resolveCatch(){
- const p=G.play,L=p.land,R=S.r,o=G.opp,b=p.ball,acc=RO().qb.acc;
+ const p=G.play,L=p.land,R=RRT(),o=G.opp,b=p.ball,acc=RO().qb.acc;
  let r=null,rd=catchR();for(const x of G.recs){const d=dst(x,L);if(d<rd){rd=d;r=x}}
  let dd2=99;for(const d of G.defs)dd2=Math.min(dd2,dst(d,L));
  const oob=L.y<=.8||L.y>=39.2;
@@ -8050,6 +8405,7 @@ function rcLines(c){
  return L.filter(s=>s&&!/UNDEFINED|NAN|NULL/i.test(s)).slice(0,3)}
 function endPlay(kind,x){
  const p=G.play;if(!p||p.phase==='done')return;
+ if(G.dfo)return dfoEnd(kind,x); /* v2.58: DEFENSE ONLY (TEST): the drive bookkeeping is dfo.js */
  if(OL.on)lkEndEv(); /* v2.12: tell the watching phone the play is over (a last frame, then END) */
  BN_PRE=(kind==='tackle'||kind==='sack'||kind==='fumble'||(kind==='int'&&p.ret))?.8:kind==='pick6'?.5:0;
  if(kind==='int'||kind==='pick6')G.st.ints++;if(kind==='sack')G.st.sacks++;
@@ -8155,19 +8511,22 @@ function odTry(o){
  push('fg','fg',0,{u:.3,dist:Math.max(18,Math.round(117-spot))});return{pl,spot,kind,sub,scr:sc}}
 /* v2.15: the plain-words description of one play for the play-by-play screen (sentence case, never undefined) */
 function odDesc(p,m){
+ if(p.ty==='spike')return 'Spike, clock stopped';if(p.ty==='kneel')return 'Kneel down '+p.y; /* v2.59: lg-drive 1.5 */
+ const go=p.go?'Go for it: ':'';
  if(p.ty==='punt')return m.land>=100?'Punt, touchback':'Punt '+m.pyd+' yds';
  if(p.ty==='fg')return 'Field goal '+p.dist+' yds, '+(m.fgok?'good':'no good');
- if(p.res==='int')return 'Pass intercepted';if(p.res==='fum')return 'Fumble, lost';if(p.res==='down')return 'Stopped on 4th down';
- if(p.res==='inc')return 'Pass incomplete';if(p.res==='sack')return 'Sack '+p.y;
- return (p.ty==='run'?'Run ':'Pass ')+(p.y>0?'+':'')+p.y}
+ if(p.res==='int')return go+'Pass intercepted';if(p.res==='fum')return go+'Fumble, lost';if(p.res==='down')return p.go?'Go for it: stopped':'Stopped on 4th down';
+ if(p.res==='inc')return go+'Pass incomplete';if(p.res==='sack')return go+'Sack '+p.y;
+ return go+(p.ty==='run'?'Run ':'Pass ')+(p.y>0?'+':'')+p.y}
 function odText(p,m){
  const h=p.dn+'&'+(100-p.sp<=p.tg?'GOAL':p.tg)+' '+odSpot(p.sp)+': ';
+ if(p.ty==='spike')return h+'SPIKE - CLOCK STOPPED';if(p.ty==='kneel')return h+'KNEEL DOWN '+p.y;
  if(p.ty==='punt')return h+'PUNT'+(m.land>=100?' - TOUCHBACK':' '+m.pyd+' YDS');
  if(p.ty==='fg')return h+'FIELD GOAL '+p.dist+' YDS - '+(m.fgok?'GOOD':'NO GOOD');
- if(p.res==='int')return h+'PASS INTERCEPTED';if(p.res==='fum')return h+'FUMBLE - LOST';if(p.res==='down')return h+'STOPPED ON 4TH DOWN';
- if(p.td)return h+(p.ty==='run'?'RUN':'PASS')+' '+p.y+' YDS - TOUCHDOWN';
+ if(p.res==='int')return h+'PASS INTERCEPTED';if(p.res==='fum')return h+'FUMBLE - LOST';if(p.res==='down')return h+(p.go?'GO FOR IT: ':'')+'STOPPED ON 4TH DOWN';
+ if(p.td)return h+(p.go?'GO FOR IT: ':'')+(p.ty==='run'?'RUN':'PASS')+' '+p.y+' YDS - TOUCHDOWN';
  if(p.res==='inc')return h+'PASS INCOMPLETE';if(p.res==='sack')return h+'SACK '+p.y;
- return h+(p.ty==='run'?'RUN ':'PASS ')+(p.y>0?'+':'')+p.y+(p.fd?' - 1ST DOWN':'')}
+ return h+(p.go?'GO FOR IT: ':'')+(p.ty==='run'?'RUN ':'PASS ')+(p.y>0?'+':'')+p.y+(p.fd?' - 1ST DOWN':'')}
 /* odApply(out,c): out is simOpp's result (out.sub = 'td' | 'fg' | 'fgm' | 'punt' | 'to'); c = {start,edge,k,late,trail,lead,style}. Rewrites out.plays, out.time, out.yd (drive yards) and adds out.log (one string per play) and out.plt (game seconds per play). */
 function odApply(out,c){
  const start=clamp(Math.round(c.start),1,99),sub=out.sub;
@@ -8269,12 +8628,13 @@ function drvCtx(start,call){
  return{offense:{off:G.opp.off,style:oSty},defense:{def:S.r.def,style:sd},  /* no-edge numbers of a hand-played game, as simOpp: edge = the opponent's off minus my def */
   start,qLen:G.qLen,clockGame:G.clock,clockHalf:G.ot?undefined:G.clock-line,diff:G.op-G.me,ot:!!G.ot,
   home:G.home===true?-1:G.home===false?1:0,                       /* home flag from the OPPONENT's side: simOpp's +.025 when G.home === false */
-  timeouts:{off:0,def:0},
+  timeouts:{off:0,def:(G.to&&toIsOn()&&!OL.on&&!G.online)?Math.max(0,G.to.me|0):0}, /* v2.59: lg-drive 1.5 reads MY timeouts (def) to decide whether the other side can kneel the game out */
   tilt:{k:DK(),sh:upShift(),call:call?{id:call.sch,family:DC_FAM[call.sch],style:call.style}:null},
   driveStyle:so&&call?call.style:null,keepPlays:true}}
 function simOppDrv(start,call){
  const ctx=drvCtx(start,call),d=LGD.simDrive(ctx,drvRng()),L=d.plays||[],sub=d.sub,n0=L.length;
  const out={pts:d.pts,next:d.next,kind:d.kind,sub:sub,time:d.time,drv:1};
+ if(d.tag){out.tag=d.tag;out.tags=d.tags}if(d.kneels)out.kneels=d.kneels; /* v2.59: lg-drive 1.5: TWO-MINUTE DRILL, KNEEL, GO FOR IT, FIELD GOAL TO TIE / TO TAKE THE LEAD, MILKING THE CLOCK */
  G.dsim=1;
  const last=L[n0-1],lostDowns=sub==='to'&&last&&last.res!=='int'&&last.res!=='fum';
  /* a punt's gross length is not returned by the simulator: it is inferred from where the ball goes to the other team (display text only; the result and the spot are the simulator's) */
@@ -8293,7 +8653,7 @@ function simOppDrv(start,call){
  const h=G.qLen*2,line=G.half||G.clock<=h?0:h,left=G.clock-line;
  if(d.cut){out.cut=1;out.endOf=line>0?'half':'game';out.stop=line;out.pts=0;out.kind='cut';out.sub='cut';out.next=25;out.time=left}
  else if(!G.ot&&left>0&&d.time>=left-1e-9){out.stop=line;out.time=left}
- if(d.cut)out.text=out.plays+(out.plays===1?' PLAY':' PLAYS')+' - TIME EXPIRES. THE '+(line>0?'HALF':'GAME')+' IS OVER.';
+ if(d.cut)out.text=out.plays+(out.plays===1?' PLAY':' PLAYS')+(d.kneels?' - KNEEL. ':' - ')+'TIME EXPIRES. THE '+(line>0?'HALF':'GAME')+' IS OVER.';
  else if(out.kind==='td'){
   if(d.try==='two'){out.try='two';out.tryGood=!!d.tryGood;out.text=out.plays+' PLAYS, '+out.yd+' YDS - TOUCHDOWN. TRY FOR TWO: '+(out.tryGood?'GOOD.':'NO GOOD.')+' (+'+out.pts+')'}   /* v2.37: lg-drive 1.4 can go for two: pts 8 (good) or 6 (no good) */
   else{if(d.try==='xp'){out.try='xp';out.tryGood=!!d.tryGood}out.text=out.plays+' PLAYS, '+out.yd+' YDS - TOUCHDOWN! (+'+out.pts+')'}}   /* the plain extra-point line exactly as before */
@@ -8301,6 +8661,7 @@ function simOppDrv(start,call){
  else if(sub==='fgm')out.text=out.plays+' PLAYS - FIELD GOAL MISSED!';
  else if(out.kind==='to')out.text=out.plays+' PLAYS - TURNOVER! YOUR D DELIVERED';
  else out.text=out.plays+' PLAYS - PUNT TO YOUR '+out.next+'. YOUR D HELD';
+ if(out.tags&&!d.cut)out.text+=' '+out.tags.slice(0,3).join(', ')+'.'; /* v2.59: the drive's situation, in the banner and the result bar */
  return out}
 function oppPossession(start){
  G.ro=0;G.sn=1;
@@ -8387,10 +8748,11 @@ function pbpBar(){
  const k=s.sub,t=pbpT(s.time),n=pbpPl(s.plays);let tag,col,line;
  if(k==='td'){tag='TOUCHDOWN +'+s.pts;col='g';line=n+', '+s.yd+' yds, drive time '+t+(s.try==='two'?(s.tryGood?'. Try for two: good':'. Try for two: no good'):'')}   /* v2.37: the try for two is told on the result bar */
  else if(k==='fg'){tag='FIELD GOAL +'+s.pts;col='g';line=n+', '+s.yd+' yds, drive time '+t}
- else if(k==='cut'){tag='TIME EXPIRES';col='a';line=n+', drive time '+t+'. '+(s.endOf==='half'?'The half is over.':'The game is over.')} /* v2.21: the drive ran out of clock; nothing scored */
+ else if(k==='cut'){tag=s.kneels?'KNEEL':'TIME EXPIRES';col='a';line=n+', drive time '+t+'. '+(s.endOf==='half'?'The half is over.':'The game is over.')} /* v2.21: the drive ran out of clock; nothing scored */
  else if(k==='fgm'){tag='NO GOOD';col='a';line=n+', kick missed, your ball at your '+s.next+', drive time '+t}
  else if(k==='punt'){tag='YOUR D HELD';col='a';line=n+', punt to your '+s.next+', drive time '+t}
  else{tag='TURNOVER';col='a';line=n+', ball to you at your '+s.next+', drive time '+t}
+if(s.tags&&s.tags.length&&!(k==='cut'&&s.kneels))line+='. '+s.tags.slice(0,3).join(', '); /* v2.59 */
  e.innerHTML=`<span class="tg ${col}">${tag}</span><span class="ln">${hmEsc(line)}</span><span class="scl">${hmEsc(abbr(S.name))} ${G.me}, ${hmEsc(abbr(G.opp.name))} ${G.op+s.pts}</span>`}
 function pbpLine(){
  if(!PBP.on||PBP.fin)return;const s=PBP.s,L=s.pl,i=PBP.i,l=$('pbL');if(!l)return;
@@ -9089,6 +9451,7 @@ function drawDesigner(){
    The call sticks from down to down. setRoutes() lines the receivers up and gives them their routes. */
 const PC={on:false},DEFA=[[-1,5],[-1,35],[-1.2,28],[-5,15.5],[-1,11]];
 function callPlay(){
+ if(G&&G.dfo)return G.dfo.cp||null; /* v2.58: DEFENSE ONLY: the brain's call (null = a random concept) */
  pbUse();   /* v2.53: the one playbook (pbk.js) */
  fixPlays();return S.call>=0&&S.call<S.plays.length?S.plays[S.call]:null}
 const callName=()=>{const p=callPlay();return p?p.name:'RANDOM'+(G&&G.cpt?': '+G.cpt.name:'')};
@@ -9192,14 +9555,40 @@ let DEFFORCE=null,LOOKFORCE=null;
 function defBlitz(){try{const o=typeof styOpp==='function'?styOpp():null;return o&&typeof o.blitz==='number'?o.blitz:0}catch(e){return 0}}
 function defLean(s,b){if(!b)return 1;let R=0,M=0;for(const x of[...s.lb,...s.db]){if(!x.as)R++;else if(x.as.m!=null)M++}
  if(b>0)return R>0?1+.5*b:1;return R===0&&M===0?1-.5*b:1}
-function pickWeighted(){const b=defBlitz();let t=0;for(const s of DEFD)t+=(s.w||1)*defLean(s,b);let r=Math.random()*t;for(const s of DEFD){r-=(s.w||1)*defLean(s,b);if(r<=0)return s}return DEFD[0]}
+/* v2.56: THEY NOTICE HOW YOU PLAY. G.mem keeps my last 8 snaps of THIS game as [r,d,name]: r = 'p' pass or 'r' run, d = 1 for a pass whose called play goes MEM_DEEP yards or more past the line, name = the called play (the random call's own play when the call is RANDOM). It rides in the mid-game snapshot (gs.js), never in a save, and a new game starts it empty. Not kept in an online game (OL.on).
+   Before each of my snaps pickWeighted leans the family weights by what the last snaps looked like (nothing before the 3rd snap; nothing for a mixed caller):
+   t = 0 below 5 of 8 one way, .5 at 5 of 8, 1 at 8 of 8. The favored family gets x(1 + (LV-1) t), LV = 1.1 at level 1 up to 1.6 at level 10 (level 5: 1.32). passes: zone, man and PREVENT; runs: 46 BEAR and the pressure schemes; deep passes: every two-deep scheme (hi 2). The same play 3 of the last 4: the cards that are best against it get x(1 + 1.5 (LV-1)) (1.15 at level 1, 1.9 at level 10) and the next three x(1 + .75 (LV-1)). All of it stacks with the v2.41 blitz lean. The hint line (G.lh) shows at 6 of 8 one way (75% with 6 or 7 snaps kept) or the same play 3 of 4; the same-play line comes first, then deep, pass, run. */
+const MEM_N=8,MEM_DEEP=15;
+function memAdd(type){try{if(!G||OL.on)return;const cp=callPlay(),n=cp?cp.name:(G.cpt?G.cpt.name:'');
+ const m=G.mem||(G.mem=[]);m.push([type==='pass'?'p':'r',type==='pass'&&playDepth()>=MEM_DEEP?1:0,String(n||'').slice(0,24)]);while(m.length>MEM_N)m.shift()}catch(e){}}
+const MEM_BEST={pd:[['c4','c6'],['t2','pv','c2']],ps:[['t2','c3'],['c4','c2','c6']],ru:[['c0','bear','six'],['fz','sb','b1']]};
+function memLean(){
+ if(!G||OL.on)return null;const m=G.mem;if(!Array.isArray(m)||m.length<3)return null;
+ const N=m.length;let P=0,D=0;for(const x of m){if(x[0]==='p')P++;if(x[1])D++}
+ const R=N-P,lv=1.1+(DIFF()-1)*.5/9,t=c=>{const p=c/N;return p<.625?0:.5+.5*Math.min(1,(p-.625)/.375)};
+ const tp=t(P),tr=t(R),td=t(D);
+ let same=null;{const last=m.slice(-4),c={};for(const x of last)if(x[2])c[x[2]]=(c[x[2]]||0)+1;
+  for(const n in c)if(c[n]>=3){const mine=last.filter(x=>x[2]===n),pa=mine.filter(x=>x[0]==='p').length,dp=mine.filter(x=>x[1]).length;
+   same=pa*2>=mine.length?(dp*2>=pa?MEM_BEST.pd:MEM_BEST.ps):MEM_BEST.ru;break}}
+ if(!tp&&!tr&&!td&&!same)return null;
+ const f=x=>1+(lv-1)*x,S=1+1.5*(lv-1),S2=1+.75*(lv-1),strong=c=>N>=6&&c/N>=.75;
+ let hint=null;
+ if(same)hint="THEY'VE SEEN THAT PLAY";else if(strong(D))hint="THEY'RE SITTING DEEP";else if(strong(P))hint="THEY'RE EXPECTING THE PASS";else if(strong(R))hint="THEY'RE EXPECTING THE RUN";
+ const mult=s=>{let w=1;const fam=DC_FAM[s.id];
+  if(tp&&(fam==='Z'||fam==='M'||fam==='V'))w*=f(tp);
+  if(tr&&(fam==='P'||fam==='B'))w*=f(tr);
+  if(td&&s.hi>=2)w*=f(td);
+  if(same){if(same[0].includes(s.id))w*=S;else if(same[1].includes(s.id))w*=S2}
+  return w};
+ return{mult,hint}}
+function pickWeighted(){const b=defBlitz(),L=memLean();if(G)G.lh=L?L.hint:null;let t=0;for(const s of DEFD)t+=(s.w||1)*defLean(s,b)*(L?L.mult(s):1);let r=Math.random()*t;for(const s of DEFD){r-=(s.w||1)*defLean(s,b)*(L?L.mult(s):1);if(r<=0)return s}return DEFD[0]}
 /* ---------- difficulty (v1.51): 1-10, 5 is the normal game. It only changes the defense ---------- */
 const DIFF=()=>clamp(Math.round(S.diff||5),1,10),DK=()=>DIFF()-5;
 const DNAMES=['ROOKIE','ROOKIE','EASY','EASY','PRO','HARD','HARD','ALL-PRO','ALL-PRO','LEGEND'],dName=()=>DNAMES[DIFF()-1];
 const dTrk=()=>1+.03*DK();      /* how fast defenders close on the ball in the air */
-const dSpd=()=>1+.035*DK();     /* top speed of every defender */
-const dReact=()=>1-.06*DK();    /* defenders' reaction delay multiplier */
-const dSack=()=>1-.05*DK();     /* sack clock multiplier: lower = quicker pass rush */
+const dSpd=()=>G&&G.dfo?1:1+.035*DK();     /* top speed of every defender */
+const dReact=()=>G&&G.dfo?1:1-.06*DK();    /* defenders' reaction delay multiplier */
+const dSack=()=>G&&G.dfo?1:1-.05*DK();     /* sack clock multiplier: lower = quicker pass rush */
 const dDisg=()=>clamp(DISGUISE+.08*DK(),.1,.92);  /* how often the defense shows a disguised look */
 /* smarter play calls: a defense score from the down, the distance, the field position and how deep your called play goes */
 function playDepth(){let m=0;for(const r of G.recs){if(!r.path)continue;let x=r.x0;for(const p of r.path)x=Math.max(x,p.x);m=Math.max(m,x-G.los)}return m}
@@ -9211,6 +9600,7 @@ function defScore(d,c){
  if(c.depth>=20)s+=.7*two-.6*R;else if(c.depth<=10)s+=.4*M+.4*R;
  return s}
 function pickDef(){
+ if(G)G.lh=null;   /* v2.56: the lean hint (see pickWeighted) */
  if(DEFFORCE)return DEFD.find(d=>d.id===DEFFORCE)||pickWeighted();
  const k=DK();if(k===0||!G.recs)return pickWeighted();
  const c={togo:Math.max(0,G.fd-G.los),los:G.los,depth:playDepth()};
@@ -9265,6 +9655,159 @@ function zoneStep(d,z,p,dt){
  if(tgt)steer(d,tgt.x+(deep?2.5:.5),tgt.y,d.spd*(deep?.9:.65),24,dt);
  else steer(d,Math.min(l+z.dep,d.x0+p.t*6,108),z.y,d.spd*.7,22,dt);
  mv(d,dt)}
+/* ---------- v2.58 DEFENSE ONLY (TEST): an exhibition mode where you only play defense.
+   The computer's offense (brain.js 1.3, embedded unchanged as BRAIN) has the ball every possession from its own 25, with the OPPONENT team's ratings; your team is the defense (your DEFENSE rating).
+   It runs on the game's own live play (snap, rush, coverage, catch contests, tackles, interceptions, fumbles) with the sides swapped; only the drive bookkeeping is here (dfoEnd). Kicks resolve by themselves.
+   Before each snap you pick the defense on the CALL YOUR DEFENSE cards (dc.js), then the brain reads the lined-up defense and calls (offense), and snaps after DFO_PRE seconds.
+   STAGE 2: one defender is yours (a ring). While your finger is down he runs toward it at his own speed; let go and he goes back to his job in the scheme. A tackle, a sack and the catch contests use the game's own rules.
+   Never saved, never resumed, never sent as stats: it only runs in an EXHIBITION on a throwaway league copy (S.sbx), G.dfo marks it. Normal games never touch any of this (every hook is guarded by G.dfo). ---------- */
+const DFO_N=8,DFO_PRE=1.6,DFO_MID=5;                                                  /* 8 possessions; seconds between your call and the snap; G.defs index of the middle linebacker */
+const DFO_SK=['casual','casual','default','default','strong','strong','strong','bomber','bomber','bomber']; /* the brain's preset by LEVEL: 1-2 casual, 3-4 default, 5-7 strong (waits, dodges, takes sacks), 8-10 bomber (deep throws). The `tester` preset is left out: against this defense it never waits and threw 4.9 interceptions a game */
+const dfoSt0=()=>({poss:0,pts:0,stops:0,sacks:0,ints:0,fum:0,plays:0,yds:0,tds:0,fgs:0,fgm:0,punts:0,downs:0,defTD:0,tkl:0,first:0});
+const dfoXy=d=>({x:d.x,y:d.y,vx:d.vx,vy:d.vy,k:d.k});
+/* the brain's playbook: every concept except HAIL MARY, as bot10 builds it (the route end points as the game draws them) */
+function dfoPbk(){return NFLC.filter(q=>q.name!=='HAIL MARY').map(q=>({name:q.name,routes:q.p.filter(s=>s.t!=='block').map(s=>{let end;try{const r=routePath(s,s.x,s.y);end=r.pts&&r.pts.length?r.pts[r.pts.length-1]:{x:s.x+(s.d||0),y:s.y}}catch(e){end={x:(s.d||0),y:s.y}}return{t:s.t,d:s.d,y:s.y,end}})}))}
+/* the offense's ratings are the opponent's single OFF number, the defense is yours: RO() and RR() (p1.js, p2.js) read these while G.dfo is set */
+function dfoRatings(off,def){return{r:{qb:off,wr:off,rb:off,ol:off,def,k:off},ro:{qb:{arm:off,acc:off},wr:[0,1,2].map(()=>({spd:off,cat:off})),te:{spd:off,cat:off},k:{acc:off,rng:off}}}}
+function dfoStart(auto){
+ const ex=EXH;EXH=null;if(!ex||!S)return;
+ const o=ex.o,off=+o.off||5,def=+S.r.def||5,rt=dfoRatings(off,def);
+ const D={n:0,N:DFO_N,brain:null,pbk:null,cp:null,act:null,pref:DFO_MID,sel:null,hold:null,auto:auto!==false,tch:null,T:0,pre:null,sw:0,st:dfoSt0(),r:rt.r,ro:rt.ro,o,home:ex.home,last:null};
+ G={opp:Object.assign({},o,{def}),oc:o.col||COLORS[o.ci],label:'DEFENSE ONLY (TEST)',exh:true,dfo:D,home:ex.home,qLen:S.qLen,clock:S.qLen*3,me:0,op:0,los:25,down:1,fd:35,mode:'banner',ot:false,play:null,bn:null,kick:null,t:0,poss:'opp',
+  st:{att:0,comp:0,pyd:0,ryd:0,to:0,ints:0,sacks:0,fdn:0,ptd:0,rtd:0,xp:[0,0],fg:[0,0],tp:[0,0]},qs:{me:[0,0,0,0,0],op:[0,0,0,0,0]},pl:{},ost:{dr:0,pl:0,yd:0,td:0,fg:0,to:0,pt:0},half:false,first:'opp',bp:{x:25,y:20,z:0},ro:0}; /* no G.to: no timeouts */
+ D.pbk=dfoPbk();D.brain=BRAIN.makeBrain({skill:DFO_SK[DIFF()-1],rng:()=>Math.random()});D.brain.newGame();
+ if(S.lg){const _t=S.lg.teams[S.lg.me];S.uni=lgUni(_t)||defaultUni(_t.col)}else if(!S.uni)S.uni=defaultUni(myC());G.opp.uni=G.opp.uni||defaultUni(G.oc,true);unisSet();
+ FLIP=S.flip!==false;show(null);formation();cam.x=camTarget();
+ showBanner('DEFENSE ONLY (TEST)',(ex.home===false?'AT ':'VS ')+o.name+'\nYOU DEFEND EVERY SNAP - '+DFO_N+' POSSESSIONS',2,dfoNext,'#ffd400',true)}
+function dfoNext(){
+ const D=G.dfo;if(D.n>=D.N){dfoOver();return}
+ D.n++;G.los=25;G.down=1;G.fd=35;D.cp=null;
+ showBanner('POSSESSION '+D.n+' OF '+D.N,'THEIR BALL AT THEIR OWN 25',1,dfoUp,'#ffd400')}
+/* the next snap: line up, then the CALL YOUR DEFENSE cards (AUTO is highlighted; CALL IT keeps it) */
+function dfoUp(){
+ const D=G.dfo;formation();G.poss='opp';D.sel=G.defs[D.pref]||G.lb[1];D.hold=null;D.tch=null;D.sw=0;
+ DC.start=G.los;dcAsk(G.los)}
+const dfoSpot=x=>x<=50?'THEIR '+Math.round(x):'YOUR '+Math.round(100-x);
+const dfoDD=()=>ORD[Math.min(G.down,4)-1]+' & '+togo();
+const dfoLine=()=>dfoDD()+' AT '+dfoSpot(G.los)+' - POSSESSION '+G.dfo.n+' OF '+G.dfo.N;
+/* called by dcGo (dc.js) with the scheme id: the defense is set, the brain looks at it and calls, then the pre-snap seconds run (tap a defender to steer him) */
+function dfoCalled(sch,sel){
+ const D=G.dfo;G.dcLast=sel==='auto'?null:sel;
+ G.def=DEFD.find(d=>d.id===sch)||G.def;G.look=G.def;alignDef();
+ D.act=D.brain.offense(dfoObsPre());
+ if(D.act.type==='pass'){D.cp=D.act.play?(NFLC.find(q=>q.name===D.act.play)||null):null;setRoutes();alignDef()}
+ G.mode='presnap';D.T=DFO_PRE;updCtl()}
+function dfoPreTick(dt){
+ const D=G.dfo;D.T-=dt;if(D.T>0)return;
+ const a=D.act;
+ if(a.type==='fg'||a.type==='punt'){dfoKick(a.type);return}
+ D.pre=G.defs.map(d=>({x:d.x,y:d.y,k:d.k}));
+ ctrl.ptr=false;ctrl.sv=0;ctrl.dir=0;D.sw=0;D.hold=null;
+ snap(a.type)}
+/* ---------- what the brain sees: the same fields bot10 builds (brain-interface.md), from the game state, as plain code ---------- */
+function dfoObsPre(){return{mode:'presnap',down:G.down,los:G.los,fd:G.fd,clock:G.clock,qLen:G.qLen,pat:false,score:{me:G.op,op:G.me},playbook:G.dfo.pbk,defenders:G.defs.map(dfoXy),receivers:G.recs.map((r,i)=>({id:i,x:r.x,y:r.y,route:r.route}))}}
+function dfoObsLive(){const p=G.play,D=G.dfo,q=p.runner;
+ return{phase:p.phase==='run'?'run':'back',type:p.type,t:p.t,los:G.los,qb:{x:G.qb.x,y:G.qb.y,arm:RO().qb.arm},bullet:false,ballSpeed:airSpd(G.los),defenders:G.defs.map(dfoXy),preSnap:{defenders:D.pre},
+  receivers:G.recs.map((r,i)=>{const pa=r.path||[],a=pa[pa.length-1],b=pa[pa.length-2]||{x:r.x0,y:r.y0};return{id:i,x:r.x,y:r.y,spd:r.spd,route:r.route,path:pa.slice(r.pi||0),cont:!!r.cont,lastLeg:[b,a]}}),
+  runner:q?{x:q.x,y:q.y,vx:q.vx,vy:q.vy,spd:q.spd,jcd:q.jcd}:null}}
+/* ---------- the live play: before updateLive the brain throws / steers / jukes and your defender moves; after it your defender's own step is undone and the tackle, sack and AUTO SWITCH are checked ---------- */
+function dfoBefore(dt){
+ const D=G.dfo,p=G.play;if(!p||p.phase==='done')return;
+ const b=D.brain;
+ if(p.type==='pass'&&p.phase==='back'){const a=b.tick(dfoObsLive());if(a&&a.throw)throwAt(a.throw.x,a.throw.y)}
+ else if(p.phase==='run'&&p.runner){const a=b.tick(dfoObsLive());if(a){ctrl.ptr=true;ctrl.sv=clamp(+a.steer||0,-1,1);if(a.juke)juke()}}
+ D.m0=null;D.hold=null;
+ const m=D.sel;
+ if(m&&D.tch&&(p.phase==='back'||p.phase==='air'||p.phase==='run')){
+  dfoFree(m,p);m.wait=0;m.delay=0;D.hold=m;
+  if(m.stun>0){m.stun-=dt;m.vx*=.9;m.vy*=.9;mv(m,dt)}
+  else{steer(m,D.tch.x,D.tch.y,m.spd||8,32,dt);mv(m,dt)}
+  D.m0={x:m.x,y:m.y,vx:m.vx,vy:m.vy}}}
+/* a rusher you take over has beaten his block as of now (he is a free rusher, the game's own rule); when you let go he goes straight for the QB */
+function dfoFree(m,p){if(p.rs&&p.phase==='back')for(const r of p.rs)if(r.d===m&&!m.free)r.tb=Math.min(r.tb,p.t)}
+function dfoAfter(dt){
+ const D=G.dfo,p=G.play,m=D.sel;if(!p)return;
+ if(D.m0&&m){m.x=D.m0.x;m.y=D.m0.y;m.vx=D.m0.vx;m.vy=D.m0.vy;D.m0=null}
+ if(p.phase==='done')return;
+ /* a sack by your defender: he reaches the QB before the throw */
+ if(m&&D.tch&&p.phase==='back'&&p.type==='pass'&&dst(m,G.qb)<1){sackAnim(G.qb);endPlay('sack',G.qb.x-rnd(0,1.2));return}
+ /* AUTO SWITCH: after the throw or the handoff, control goes to the defender nearest the ball */
+ if(D.auto&&!D.sw){let at=null;
+  if(p.phase==='air'&&p.land)at=p.land;else if(p.type==='run'&&p.t>=.3&&p.runner)at=p.runner;
+  if(at){let nd=null,bd=1e9;for(const d of G.defs){const q=dst(d,at);if(q<bd){bd=q;nd=d}}if(nd){D.sel=nd;D.sw=1}}}}
+/* ---------- the end of a play: the drive bookkeeping that endPlay (p3.js) does for your offense ---------- */
+function dfoEnd(kind,x){
+ const D=G.dfo,p=G.play,l=G.los,S0=D.st;if(!p||p.phase==='done')return;
+ BN_PRE=(kind==='tackle'||kind==='sack'||kind==='fumble'||(kind==='int'&&p.ret))?.8:kind==='pick6'?.5:0;
+ const rn=p.runner;p.phase='done';for(const d of G.defs)d.lock=0;for(const o of G.ol)o.lock=0;
+ G.bp=p.ret?{x:p.ret.car.x,y:p.ret.car.y,z:0}:{x:rn?rn.x:G.qb.x,y:rn?rn.y:20,z:0};
+ ctrl.ptr=false;ctrl.sv=0;D.hold=null;D.m0=null;
+ S0.plays++;if(p.tk&&p.tk===D.sel)S0.tkl++;
+ if(kind==='td'){const y=Math.round(100-l),xp=Math.random()<.93;S0.yds+=y;S0.tds++;S0.pts+=xp?7:6;G.op+=xp?7:6;sfx('bad');buzz(60);
+  dfoDrive('TOUCHDOWN - THEY SCORE',xp?'EXTRA POINT IS GOOD':'EXTRA POINT MISSED','#ff6b6b',true);return}
+ if(kind==='pick6'){S0.ints++;S0.defTD++;G.me+=6;sfx('td');roar();
+  dfoDrive('PICK SIX!','YOUR DEFENSE SCORES 6','#4ee08a',false);return}
+ if(kind==='int'){S0.ints++;sfx('catch');dfoDrive('INTERCEPTED!','THEY LOSE THE BALL','#4ee08a',false);return}
+ if(kind==='fumble'){S0.fum++;sfx('catch');dfoDrive('FUMBLE!','THEY LOSE THE BALL','#4ee08a',false);return}
+ let gain=0,title;
+ if(kind==='incomplete'){title='INCOMPLETE'}
+ else{gain=Math.round(x-l);if(kind==='sack')S0.sacks++;S0.yds+=gain}
+ const nl=l+gain;
+ if(nl<=0&&kind!=='incomplete'){G.me+=2;dfoDrive('SAFETY!','YOUR DEFENSE SCORES 2','#4ee08a',false);return}
+ if(kind!=='incomplete')title=kind==='sack'?'SACK! '+gain+' YDS':gain>0?'+'+gain+' YDS':gain===0?'NO GAIN':gain+' YDS';
+ let sub;
+ if(kind!=='incomplete'&&nl>=G.fd){G.down=1;G.los=nl;G.fd=Math.min(100,nl+10);S0.first++;title='FIRST DOWN! '+(gain>0?'+'+gain:gain);sub=ORD[0]+' & '+togo()+' - '+dfoSpot(nl)}
+ else{G.los=nl;G.down++;
+  if(G.down>4){S0.downs++;dfoDrive('TURNOVER ON DOWNS','YOUR DEFENSE HOLDS','#4ee08a',false);return}
+  sub=ORD[G.down-1]+' & '+togo()+' - '+dfoSpot(nl)}
+ showBanner(title,sub,.9,dfoUp)}
+/* a possession is over: points for them (or not), a stop when they did not score, then the next one */
+function dfoDrive(title,sub,col,scored){
+ const D=G.dfo;D.st.poss++;if(!scored)D.st.stops++;
+ D.last={title,scored};
+ showBanner(title,sub,1.7,dfoNext,col)}
+/* kicks resolve by themselves: a punt ends the possession; a field goal is good by the game's own chance (fgPct, the offense's kicker) */
+function dfoKick(type){
+ const D=G.dfo,S0=D.st;
+ if(type==='punt'){S0.punts++;dfoDrive('THEY PUNT','POSSESSION OVER','#4ee08a',false);return}
+ if(Math.random()<fgPct()){S0.fgs++;S0.pts+=3;G.op+=3;sfx('bad');dfoDrive('FIELD GOAL IS GOOD',fgDist().toFixed(0)+' YARDS - THEY SCORE 3','#ff6b6b',true)}
+ else{S0.fgm++;dfoDrive('FIELD GOAL MISSED',fgDist().toFixed(0)+' YARDS - NO GOOD','#4ee08a',false)}}
+/* ---------- the end card ---------- */
+function dfoOver(){
+ const D=G.dfo,s=D.st;G.mode='over';updCtl();show(null);
+ const ypp=s.plays?(s.yds/s.plays).toFixed(1):'0.0',o=G.opp;
+ $('post').innerHTML=`<div class="sm">${sc(`DEFENSE ONLY (TEST) - DOES NOT COUNT`)}</div><h1 style="font-size:1.6em">${sc(`THEY SCORED ${G.op}`)}</h1>
+  <div class="sm">${sc(`${hmEsc(tn(S.name.slice(0,12)))} DEFENSE VS ${hmEsc(tn(o.name.slice(0,12)))} OFFENSE - LEVEL ${DIFF()}`)}</div>
+  <p>${sc(`POINTS ALLOWED ${G.op} - STOPS ${s.stops} OF ${s.poss}`)}</p>
+  <p>${sc(`SACKS ${s.sacks} - INTERCEPTIONS ${s.ints} - FUMBLES ${s.fum} - TACKLES BY YOUR DEFENDER ${s.tkl}`)}</p>
+  <p>${sc(`YARDS ALLOWED A PLAY ${ypp} (${s.yds} YDS ON ${s.plays} PLAYS)`)}</p>
+  ${G.me?`<p style="color:#4ee08a">${sc(`YOUR DEFENSE SCORED ${G.me}`)}</p>`:''}
+  <div class="row"><button class="btn" id="bAgain">PLAY AGAIN</button><button class="btn xs alt" id="bPostGo">BACK</button></div>`;
+ $('bAgain').onclick=()=>{EXH={o:D.o,home:D.home};dfoStart(D.auto)};
+ $('bPostGo').onclick=()=>{if(S&&S.sbx)xhLeave();else renderHub()};
+ show('post')}
+/* ---------- your finger: tap a defender before the snap to switch the ring; while it is down in the live play he runs toward it ---------- */
+const dfoField=q=>({x:FLIP?cam.x+(W-q.x)/PPY:cam.x+q.x/PPY,y:clamp((q.y-FT)/UNIT,.3,39.7)});
+function dfoPtr(e,k){
+ const D=G&&G.dfo;if(!D)return;
+ if(k===2){D.tch=null;D.dn=false;return}
+ if(k===1&&!D.dn)return;
+ const q=pt(e);
+ if(G.mode==='presnap'){if(k!==0)return;D.dn=true;let bd=1e9,bi=-1;
+  G.defs.forEach((d,i)=>{const dd=Math.hypot(sx(d.x)-q.x,sy(d.y)-6-q.y);if(dd<bd){bd=dd;bi=i}});
+  if(bi>=0&&bd<56){D.pref=bi;D.sel=G.defs[bi]}
+  return}
+ if(G.mode!=='live')return;
+ D.dn=true;D.tch=dfoField(q);
+ if(k===0){try{cv.setPointerCapture(e.pointerId)}catch(_){}}}
+/* the ring under your defender (and a dot where your finger is), drawn on the top layer */
+function dfoDraw(){
+ const D=G&&G.dfo,m=D&&D.sel;if(!m||G.mode==='banner'||G.mode==='dcall'||G.mode==='over')return;
+ const x=Math.round(sx(m.x)),y=Math.round(sy(m.y)),pu=1+Math.sin(G.t*6)*.08;
+ cx.save();cx.strokeStyle='#000';cx.lineWidth=4.5;cx.beginPath();cx.ellipse(x,y+1,15*pu,7*pu,0,0,6.2832);cx.stroke();
+ cx.strokeStyle=D.tch?'#4ee08a':'#ffd400';cx.lineWidth=2.5;cx.beginPath();cx.ellipse(x,y+1,15*pu,7*pu,0,0,6.2832);cx.stroke();
+ if(D.tch&&G.mode==='live'){const fx0=sx(D.tch.x),fy0=sy(D.tch.y);cx.fillStyle='rgba(78,224,138,.55)';cx.beginPath();cx.arc(fx0,fy0,6,0,6.2832);cx.fill();cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.stroke()}
+ cx.restore()}
 
 /* ---------- drawing ---------- */
 const sx=x=>FLIP?W-(x-cam.x)*PPY:(x-cam.x)*PPY,sy=y=>FT+y*UNIT;
@@ -9721,17 +10264,17 @@ function drawSnapHints(){
  for(const[e,l,bc,ba]of[[G.qb,'PASS','#fff',.85],[G.recs[3],'RUN','#ffd400',1]]){const x=Math.round(sx(e.x)),y=Math.round(sy(e.y));
   cx.strokeStyle=bc;cx.lineWidth=1.5;cx.globalAlpha=ba;cx.strokeRect(x-11*pu,y-26*pu,22*pu,31*pu);cx.globalAlpha=1;hnText(l,rsz(6,11),bc,ps,[[x,y+14,'center'],[x+d*14,y+2,d>0?'left':'right'],[x-d*14,y+2,d>0?'right':'left']],e)}}
 function drawScene(){
- const mc=myC(),oc=G.oc,p=G.play;
+ const mc=G.dfo?G.oc:myC(),oc=G.dfo?myC():G.oc,p=G.play; /* v2.58: DEFENSE ONLY: the ball is the opponent's, the defense wears my colors */
  const all=[];
  for(const e of G.ol)all.push([e,mc.c,mc.d]);all.push([G.qb,mc.c,mc.d]);
  const air=p&&(p.phase==='back'||p.phase==='air');
- const showN=air||G.mode==='presnap';
+ const showN=!G.dfo&&(air||G.mode==='presnap');
  G.recs.forEach((r,i)=>{const o={};if(showN){o.n=r.n;o.nc=RCG[i]}
-  if(air){let dd=99;for(const d of G.defs)dd=Math.min(dd,dst(d,r));o.ring=dd>3?'#4ee08a':dd>1.8?'#ffd400':'#ff6b6b'}
+  if(air&&!G.dfo){let dd=99;for(const d of G.defs)dd=Math.min(dd,dst(d,r));o.ring=dd>3?'#4ee08a':dd>1.8?'#ffd400':'#ff6b6b'}
   if(p&&p.runner===r&&p.phase==='run')o.ring='#fff';all.push([r,mc.c,mc.d,o])});
  for(const d of G.defs)all.push([d,oc.c,oc.d,p&&p.ret&&p.ret.car===d&&p.phase==='ret'?{ring:'#ff6b6b'}:undefined]);
  all.sort((a,b)=>(a[0].y+(a[0].fall!=null?.6:0))-(b[0].y+(b[0].fall!=null?.6:0))); /* v1.60: the tackled player is drawn on top of his tacklers */
- if(G.mode==='presnap')drawRoutes(.95,false);else if(p&&p.phase==='back')drawRoutes(.6,true);else if(p&&p.phase==='air')drawRoutes(.25,true);
+ if(G.dfo){}else if(G.mode==='presnap')drawRoutes(.95,false);else if(p&&p.phase==='back')drawRoutes(.6,true);else if(p&&p.phase==='air')drawRoutes(.25,true); /* v2.58: a defense does not see the offense's routes */
  /* v2.18: three layers. The field and the routes are on #c (low resolution, as before); the players, the ball and the aim marks go on the figure layer #cfg (screen resolution); rings, numbers, bars, hints and every banner go on the top layer #ctp, so a banner still dims the players. cx points at the top layer from here until render() puts it back. */
  const low=cx,lay=figBegin();
  if(lay)cx=TX;
@@ -9739,21 +10282,27 @@ function drawScene(){
   for(const a of all)drawP(a[0],a[1],a[2],a[3]);
   if(p&&p.phase==='back'){const q=G.qb,x=sx(q.x),y=sy(q.y)-33;cx.fillStyle='#000';cx.fillRect(x-12,y,24,4);cx.fillStyle=p.k>.7?'#ff4040':'#ffd400';cx.fillRect(x-11,y+1,22*p.k,2)}
   if(lay){drawBall(curBall());cx=FX;figUnits();try{drawAim()}finally{cx=TX;FX.setTransform(1,0,0,1,0,0)}}else{cx=low;drawAim();cx=low}
-  if(G.mode==='presnap')drawSnapHints()
+  if(G.mode==='presnap'&&!G.dfo)drawSnapHints()
  }catch(err){cx=low;if(lay)TX.restore();throw err}}
 function drawOverlay(){
+ HNX=[];
  if(G.mode==='patchoice'){cx.fillStyle='rgba(6,10,20,.85)';cx.fillRect(0,110,W,100);txt('EXTRA POINT OR TWO?',W/2,150,16,'#ffd400','center');txt('KICK = +1 (YOU AIM THE KICK)   -   GO FOR 2 = ONE PLAY FROM THE 2',W/2,180,7,'#b8c4dc','center')}
  const p=G.play;let h='',hs=0;const yb=GMD?FB-6-GI.b:FB-6;let ys=GMD?[yb,FT+22]:[FB+16,FB-6,FT+22]; /* v1.79: every field tip fades with use (see hp.js) and picks a line that is clear of the QB, the receivers and the ball */
- if(G.mode==='presnap'){ys=[yb,FT+22];if(G.down===4){h=['4TH DOWN: PUNT OR KICK IN PLAYS, OR GO FOR IT','4TH DOWN: SEE PLAYS, OR GO FOR IT'];hs=hnStr('fourth')}else{h=['DRAG THE QB BACK TO PASS. TAP THE RB TO RUN.','DRAG QB = PASS. TAP RB = RUN.'];hs=hnStr('pre')}}
+ if(G.dfo){if(G.mode==='presnap'){h=['TAP A DEFENDER TO STEER HIM. HOLD A FINGER DOWN TO RUN HIM.','TAP A DEFENDER TO STEER HIM'];hs=1;ys=[yb,FT+22]}}
+ else if(G.mode==='presnap'){ys=[yb,FT+22];if(G.down===4){h=['4TH DOWN: PUNT OR KICK IN PLAYS, OR GO FOR IT','4TH DOWN: SEE PLAYS, OR GO FOR IT'];hs=hnStr('fourth')}else{h=['DRAG THE QB BACK TO PASS. TAP THE RB TO RUN.','DRAG QB = PASS. TAP RB = RUN.'];hs=hnStr('pre')}}
  /* v2.34: no tip is drawn from the snap until the next pre-snap (the aim and steer tips of v1.79 are gone; the pre-snap tip says how); HNL and the counters in hp.js stay as they were */
  if(h&&!G.lv){const A=GMD?hintArea():{c:W/2,w:W},z=rsz(7,11);let t=h[0];if(t.length*z>A.w)t=h[1]; /* v2.46: at least 11 CSS px tall on a dark strip; when the room is narrow the SHORTER words are used, not a smaller size */
   hnText(t,t.length*z>A.w?Math.max(6,Math.floor(A.w/t.length)):z,'#fff',hs,ys.map(y=>[A.c,y,'center']))}
+ /* v2.56: THEY NOTICE HOW YOU PLAY: one line when the lean is strong (df.js memLean). Drawn after the how-to tip (the tip keeps its line, the hint takes the other free one), at full strength; gone at the snap; never online */
+ if(G.mode==='presnap'&&G.lh&&!G.lv&&!OL.on){const A=GMD?hintArea():{c:W/2,w:W},z=rsz(7,11);let t=G.lh;if(t.length*z>A.w)t=t.replace("THEY'RE ",'').replace("THEY'VE SEEN ",'SEEN ');
+  hnText(t,t.length*z>A.w?Math.max(6,Math.floor(A.w/t.length)):z,'#ffd400',1,[yb,FT+22].map(y=>[A.c,y,'center']))}
  if(G.rev&&(G.mode==='presnap'||G.mode==='banner'&&!(G.bn&&G.bn.dl))){const z=rsz(6,11),x=8+(GMD?GI.l:0);let t='LAST PLAY: '+G.rev.n+(G.rev.l?'  (SHOWED '+G.rev.l+')':'');if(t.length*z>W-x-8)t='LAST PLAY: '+G.rev.n;rstrip(t,x,FT+10,z,'left');txt(t,x,FT+10,z,G.rev.l?'#ff9f43':'#ffd400')}
  if(G.mode==='banner'&&G.bn&&G.bn.dl&&!(G.bn.pre>0))bnRecap(G.bn);
  else if(G.mode==='banner'&&G.bn&&G.bn.tc&&!(G.bn.pre>0)){const b=G.bn,z1=rsz(8,11),z0=Math.min(rsz(12,15),Math.floor((W-16)/Math.max(1,b.t.length))),bh=z0+z1+16,y0=FT+4,off=RM()?0:-Math.round((1-Math.min(1,b.a/.15))*(bh+y0)); /* v2.49: a title card is a short band in the top third of the field (never over the line of scrimmage), its second line at least 11 CSS px, and it slides in from the top in about 150 ms (none with reduced motion) */
   cx.fillStyle='rgba(6,10,20,.82)';cx.fillRect(0,y0+off,W,bh);txt(b.t,W/2,y0+off+z0+6,z0,b.col||'#fff','center');if(b.sub)txt(String(b.sub).split('\n')[0],W/2,y0+off+z0+z1+11,z1,'#b8c4dc','center')}
  else if(G.mode==='banner'&&G.bn&&!(G.bn.pre>0)){const b=G.bn;cx.fillStyle='rgba(6,10,20,.82)';cx.fillRect(0,130,W,90);txt(b.t,W/2,170,b.t.length>22?13:18,b.col||'#fff','center');if(b.sub){const ls=String(b.sub).split('\n');if(ls.length>1){txt(ls[0],W/2,196,8,'#b8c4dc','center');txt(ls[1],W/2,211,8,'#ffd400','center')}else txt(b.sub,W/2,200,8,'#b8c4dc','center')}}
- for(const f of fx){txt(f.t,sx(f.x),sy(f.y)-f.life*14,8,f.c,'center')}}
+ for(const f of fx){txt(f.t,sx(f.x),sy(f.y)-f.life*14,8,f.c,'center')}
+ if(G.dfo)dfoDraw()}
 /* v1.98 PLAY RECAP: a banner with detail lines. Title and usual sub line(s) as before, then up to three detail lines in the same pixel font. The font is exactly 1 em wide, so a line is
    s.length*size px: if a line is wider than the screen, words are shortened first (BN_AB), then the font drops to 7 and 6. Nothing is drawn over the field's top bar. */
 const BN_AB=[[' IN THE AIR',' AIR'],[' AFTER CATCH',' YAC'],['TACKLED BY','TKL BY'],['SHOWED','SHOW'],[' - ',' ']];
@@ -9847,7 +10396,8 @@ function update(dt){
  if(!G)return;G.t+=dt;if(LV.on)lvStep();
  for(const f of fx)f.life-=dt;fx=fx.filter(f=>f.life>0);
  cam.x+=(camTarget()-cam.x)*Math.min(1,dt*5);
- if(G.mode==='live'){updateLive(dt*gameSpeed());if(OL.on)lkTick(dt)}
+ if(G.mode==='live'){if(G.dfo){const d2=dt*gameSpeed();dfoBefore(d2);updateLive(d2);if(G&&G.dfo)dfoAfter(d2)}else{updateLive(dt*gameSpeed());if(OL.on)lkTick(dt)}} /* v2.58: DEFENSE ONLY (TEST): the brain plays the offense before the frame, your defender is steered, then the checks (dfo.js) */
+ else if(G.dfo&&G.mode==='presnap')dfoPreTick(dt*gameSpeed())
  else if(G.mode==='kick')updateKick(dt);
  else if(G.mode==='park')parkStep(dt);
  else if(G.mode==='banner'&&G.bn){if(G.bn.pre>0)G.bn.pre-=dt;else{G.bn.a+=dt;G.bn.left-=dt;if(G.bn.left<=0){const f=G.bn.fn;G.bn=null;f&&f()}}}}
@@ -9873,6 +10423,7 @@ function pt(e){const r=cv.getBoundingClientRect(),CW=cv.width,CH=cv.height;
  return ptc((e.clientX-r.left)*CW/r.width,(e.clientY-r.top)*CH/r.height)}
 cv.addEventListener('pointerdown',e=>{
  if(DS.on){dsDown(e);return}
+ if(G&&G.dfo&&(G.mode==='presnap'||G.mode==='live')){dfoPtr(e,0);return} /* v2.58: DEFENSE ONLY (TEST): a tap picks the defender, a finger steers him */
  if(G&&G.mode==='banner'&&G.bn&&G.bn.dl&&!(G.bn.pre>0)){G.bn.left=0;return} /* v1.98: a tap skips a banner that carries recap lines */
  if(ctrl.aim&&G&&G.mode==='live'&&G.play&&G.play.phase==='back'&&G.play.type==='pass'&&e.pointerId!==ctrl.aim.id){if(!G.bullet)toggleBullet();return} /* v1.48: a second finger while aiming makes it a bullet */
  ctrl.down=true;
@@ -9885,7 +10436,7 @@ cv.addEventListener('pointerdown',e=>{
   if(Math.hypot(q.x-sx(G.qb.x),q.y-(sy(G.qb.y)-6))<70){ctrl.aim={id:e.pointerId,px:q.x,py:q.y,cx:q.x,cy:q.y};try{cv.setPointerCapture(e.pointerId)}catch(_){}}
   else{let best=null,bd=40;for(const r of G.recs){const d=Math.hypot(sx(r.x)-q.x,sy(r.y)-q.y);if(d<bd){bd=d;best=r}}if(best)throwTo(best);else toggleBullet()}} /* v1.48: tapping empty field while passing switches to a bullet */
  else if(p.phase==='run'){ctrl.ptr=true;ctrl.anchor=q.y;ctrl.sv=0;try{cv.setPointerCapture(e.pointerId)}catch(_){}}});
-cv.addEventListener('pointermove',e=>{if(DS.on){dsMove(e);return}if(ctrl.aim&&ctrl.aim.id!=null&&e.pointerId!==ctrl.aim.id)return;const q=pt(e);
+cv.addEventListener('pointermove',e=>{if(DS.on){dsMove(e);return}if(G&&G.dfo){dfoPtr(e,1);return}if(ctrl.aim&&ctrl.aim.id!=null&&e.pointerId!==ctrl.aim.id)return;const q=pt(e);
  if(ctrl.kaim){let dx=q.x-ctrl.kaim.px,dy=q.y-ctrl.kaim.py;const F=kickFull();dx=clamp(dx,-F*100/140,F*100/140);dy=clamp(dy,0,F);ctrl.kaim.cx=ctrl.kaim.px+dx;ctrl.kaim.cy=ctrl.kaim.py+dy}
  else if(ctrl.aim){let dx=q.x-ctrl.aim.px,dy=q.y-ctrl.aim.py;const L=Math.hypot(dx,dy);if(L>140){dx*=140/L;dy*=140/L}ctrl.aim.cx=ctrl.aim.px+dx;ctrl.aim.cy=ctrl.aim.py+dy}
  else if(ctrl.down&&G&&G.mode==='live'&&G.play&&G.play.phase==='run'){
@@ -9894,11 +10445,11 @@ cv.addEventListener('pointermove',e=>{if(DS.on){dsMove(e);return}if(ctrl.aim&&ct
   const off=q.y-ctrl.anchor,M=8;
   if(off>M)ctrl.anchor=q.y-M;else if(off<-M)ctrl.anchor=q.y+M;
   const o2=q.y-ctrl.anchor;ctrl.sv=Math.abs(o2)<1?0:clamp(o2/3,-1,1)}});
-const rel=e=>{if(DS.on){dsUp();return}if(e&&ctrl.aim&&ctrl.aim.id!=null&&e.pointerId!==ctrl.aim.id)return;ctrl.ptr=false;ctrl.down=false;ctrl.sv=0;
+const rel=e=>{if(DS.on){dsUp();return}if(G&&G.dfo){dfoPtr(e,2);return}if(e&&ctrl.aim&&ctrl.aim.id!=null&&e.pointerId!==ctrl.aim.id)return;ctrl.ptr=false;ctrl.down=false;ctrl.sv=0;
  if(ctrl.kaim&&G&&G.mode==='kickaim'){const k=ctrl.kaim,n=KN(),dx=(k.cx-k.px)*n,dy=(k.cy-k.py)*n;if(dy>=12)kickFire(dx,dy);else ctrl.kaim=null}
 const a=ctrl.aim;ctrl.aim=null;
  if(a&&G&&G.mode==='live'){const dx=a.cx-a.px,dy=a.cy-a.py;if(Math.hypot(dx,dy)>=cancelR()){const l=aimLanding(dx,dy);throwAt(l.x,l.y)}}};
-addEventListener('pointerup',rel);addEventListener('pointercancel',()=>{ctrl.ptr=false;ctrl.down=false;ctrl.sv=0;ctrl.aim=null;ctrl.kaim=null});
+addEventListener('pointerup',rel);addEventListener('pointercancel',()=>{if(G&&G.dfo)dfoPtr(null,2);ctrl.ptr=false;ctrl.down=false;ctrl.sv=0;ctrl.aim=null;ctrl.kaim=null});
 addEventListener('keydown',e=>{
  KEYUSED=true; /* v2.46 */
  if(DS.on){dsKey(e);return}
@@ -9909,7 +10460,8 @@ addEventListener('keydown',e=>{
  if(PC.on){if(e.key==='Escape')closeCalls();return}
  if(GPZ.on){if(e.key==='Escape'){e.preventDefault();pzEsc()}return}
  if(GPL.on){if(e.key==='Escape'){e.preventDefault();gpClose()}return}
- if(e.key==='Escape'){e.preventDefault();pzOpen();return} /* v2.06: Escape opens the PAUSE sheet (v1.81: it used to open LEAVE THIS GAME? at a pre-snap) */
+ if(e.key==='Escape'){e.preventDefault();pzOpen();return}
+ if(G&&G.dfo)return; /* v2.58: no offense keys in DEFENSE ONLY */ /* v2.06: Escape opens the PAUSE sheet (v1.81: it used to open LEAVE THIS GAME? at a pre-snap) */
  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return; /* v2.04: typing in a text field is never a game key (S and W were swallowed in team and league names; M and B flipped sound and bullet mode) */
  const k=e.key.toLowerCase();
  if(k==='arrowup'||k==='w'){ctrl.dir=-1;e.preventDefault()}
@@ -9940,9 +10492,10 @@ function ghH(id,v){if(GHC['h'+id]!==v){GHC['h'+id]=v;$(id).innerHTML=v}}
 function ghUpdate(){
  if(!GMD||!G||!S)return;
  const c=Math.ceil(G.clock),rem=G.ot||G.half?G.clock:Math.max(0,G.clock-G.qLen*2),u=rem<=30?2:rem<=120?1:0;
- const run=G.mode==='live'&&!G.pat&&!G.hold&&G.clock>0&&!gpFrozen();
+ const run=G.mode==='live'&&!G.pat&&!G.hold&&!G.dfo&&G.clock>0&&!gpFrozen();
  let dd,cls='dd';
- if(G.poss==='opp')dd='THEIR BALL';
+ if(G.dfo)dd=G.dfo.n&&G.mode!=='banner'?dfoDD():'THEIR BALL';
+ else if(G.poss==='opp')dd='THEIR BALL';
  else if(G.mode==='patchoice'||(G.mode==='banner'&&G.bn&&/^TOUCHDOWN/.test(G.bn.t||''))){dd='TOUCHDOWN';cls='dd td'}
  else if(!G.sn&&!G.online&&!OL.on)dd='KICKOFF'; /* v2.46: until the first snap */
  else{dd=ORD[Math.min(G.down,4)-1]+' & '+togo();if(G.down>=4)cls='dd hot'}
@@ -9952,12 +10505,13 @@ function ghUpdate(){
  {const sh=!!G.to&&toIsOn()&&!G.ot&&!G.online&&!OL.on,pips=n=>[0,1,2].map(i=>`<b class="${i<n?'':'x'}"></b>`).join(''); /* v2.40: timeouts left, as marks under each team's name */
   ghH('ghto1',sh?pips(G.to.me):'');ghH('ghto2',sh?pips(G.to.op):'');$('ghto1').title=sh?G.to.me+' timeouts left':'';$('ghto2').title=sh?G.to.op+' timeouts left':'';
   ghC('bTo','bt tcp'+(toCan(false)&&toTl()<=120&&(qn===2||qn===4)?'':' hide'))} /* v2.46: only in the last 2 minutes of Q2 and Q4 */
- ghT('ghq',ql);ghT('ght',Math.floor(cq/60)+':'+String(cq%60).padStart(2,'0'));
+ ghT('ghq',G.dfo?'POSS':ql);ghT('ght',G.dfo?G.dfo.n+'/'+G.dfo.N:Math.floor(cq/60)+':'+String(cq%60).padStart(2,'0')); /* v2.58: DEFENSE ONLY shows the possession number */
  ghC('ghdot','dot'+(run?'':' off'));$('ghdot').title=run?'Clock running':'Clock stopped';
  ghC('ghck','bck u'+u);ghC('gh','gh u'+u);ghT('ghdd',dd);ghC('ghdd',cls);
  /* the corner button */
  let m='',lab='';const p=G.play;
- if(G.mode==='presnap'||G.mode==='patchoice'){m='plays';lab='PLAYS'}
+ if(G.dfo){m='';lab=''}
+ else if(G.mode==='presnap'||G.mode==='patchoice'){m='plays';lab='PLAYS'}
  else if(G.mode==='live'&&p&&p.runner){m='juke';lab='JUKE'}
  else if(G.mode==='live'&&p&&p.phase==='back'&&p.type==='pass'){m='bullet';lab=G.bullet?'SOFT':'BULLET'} /* v2.46: the button says what a tap does */
  ghC('bMenu','bt mn'+((G.mode==='live'||G.mode==='kick'||G.lv)?' hide':'')); /* v2.34: MENU is out of the banner's way from the snap until the play is over, and while the defense phone watches a live play */
@@ -9997,7 +10551,7 @@ $('bPlay').addEventListener('click',()=>{if($('bPlay').dataset.m==='plays')gpTap
    You call one before a snap: MENU sheet (TIMEOUT, n LEFT) any time, or the chip by the clock in the last 2 minutes of a half. It stops the clock: the run-off after your last play (G.ro, p3.js) is given back. */
 const toLeft=()=>G&&G.to&&!G.ot&&!G.online&&!OL.on&&toIsOn()?G.to.me:0;
 const toTl=()=>{const h=G.qLen*2;return G.clock-(G.half||G.clock<=h?0:h)}; /* seconds left in this half */
-function toCan(menu){return!!G&&G.mode==='presnap'&&!G.pat&&toLeft()>0&&G.clock>0&&!GPL.on&&!PC.on&&!XP.on&&!HP.on&&!TURN.on&&!DS.on&&(!!menu||!GPZ.on)&&!document.querySelector('#app .screen.on:not(#pzs)')}
+function toCan(menu){return!!G&&!G.dfo&&G.mode==='presnap'&&!G.pat&&toLeft()>0&&G.clock>0&&!GPL.on&&!PC.on&&!XP.on&&!HP.on&&!TURN.on&&!DS.on&&(!!menu||!GPZ.on)&&!document.querySelector('#app .screen.on:not(#pzs)')}
 function doTimeout(){if(!toCan(true))return false;
  G.to.me--;if(G.ro>0)G.clock=Math.min(G.qLen*4,G.clock+G.ro);G.ro=0;
  try{pop('TIMEOUT',G.los,12,'#ffd400');sfx('catch')}catch(e){}
@@ -10108,6 +10662,6 @@ function fsTry(){if(fsTried)return;if(!(coarse()&&innerHeight>innerWidth))return
 document.addEventListener('pointerup',fsTry,{capture:true});
 UI.ready=true;fit();try{pbList()}catch(e){}openMenu();olBoot();ttlShow();   /* v2.53: the one playbook is read (or merged from the saves, first run) before any league loads; HOME is the permanent title screen */
 requestAnimationFrame(frame);
-window.__pp={openHome,hmOpen,xexOpen,hsSetTab,hsInfo,hsSetTabs,pbList,pbMerge,PBK,HS,lgCol,lgColOk,czColWarn,xhQuick,XH,xhLeave,RUNU:()=>RUNU,xhQsPulse,scoreTD,confetti,roar,buzz,sndSet,bzSet,sfx,ttlShow,hpCards,hbInk,COLORS,cssK,rsz,kickFull,KN,cancelR,gpItems,keyOn,hmBks,whiteLook,pickSix,gsLine,ghUpdate,stdLookBack,stdCfgOf,stdOrder,hmRename,hmDraft,hmMake,hmShape,hmStart,hmName,hmNew,lgStand,lgOpenStand,lgPoTie,lgSimMine,openSet,persRec,persOpen,persTake,PERS,PERS_N,scoutPhrases,scoutTxt,SCOUT_T,defLean,defBlitz,pickWeighted,DEFD,styOpp,styNorm,newFranchise,renderHub,drvPref,openExh,v24Set,setPresnap,EXHset:v=>{EXH=v},mkOpp,pop,toLeft,toCan,toTl,doTimeout,hitGo,hitOn,hitTint,HIT,hitShake,oppTimeouts,figFront,figFMake,figSide,fgFrontSolve,fgFrontDraw,FIGX,FRB,DS_SC,hmPlay,exportCode,bkUnpack,bkCommit,lnMenu,lnLeave,lnFlush,lnBuy,lnPlayLabel,lnHubClick,lnOpen,lnWatch,lnUnwatch,lnAfterGame,lnPlayGo,lnSimGo,lnWaitHub,LN:LNK,LNC,CG,ACC,acSignIn,acSignOut,acFinishRedirect,acRow,acSaveRow,acCreate,hmStartCloud,acLoadList,acOpenCloud,acRows,acMark,acHint,acEmail,lnEnter,lnTakeover,LNA,lnAdv,lnIsCommish,lnSimMine,lnAdvHtml,lnDerive,lnPull,lnFind,lnJoin,lnShape,lnCur,lnLast,lnWeeksOf,lnLocalize,lnKeepLocal,lnPanel,lnJoinHtml,FULL,LGFULL,gsResume,LGD,simOppDrv,drvOn,drvSet,drvCtx,drvMix,drvRng,LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,openRoster,RR,rrInjLine,rrYours,rrList,rrCard,rrHand,stdStars,stdStandIn,stdFitTeam,stdSnap,stdYourSet,STD_POS,hmInj,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:upShift,upShift,stdRelief,stdSetRelief,stdCostR,stdOppLine,RELIEF_SLOPE,RELIEF_CAP,STD_NEAR,teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,foPlay,foOpen,foDress,foPaint,foBack,foSimShow,FO,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdN,n:spdN,mult:m,step:SPD_STEP[spdN-1]}},spdMul:SPD_MUL,spdStep:SPD_STEP,czSetColor,czRedraw,czDraw,FIGPV,figPv,setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub,tiltV2:on=>{DC_TILT_V2=!!on;LGD.tiltV2(on)},tiltTable:()=>DC_T,dcAutoCall,lgPoTie,lgPoCoin,sty:t=>typeof t==='number'?styTeam(t):t&&typeof t==='object'?styNorm(t.sty):null,styNorm,wdFix,lgUni,jClose,olUni,czSet,czWd,czRebuild,czUnis,czUniK,czOwnOf,fgPal,fgDraw,figMake,styFix,styGive,styMake,styClass,styOpp,styMine,STY_CLS};
+window.__pp={openHome,DFO_SK,dfoStart,dfoPtr,dfoEnd,dfoDD,dfoCalled,DFO_N,dfoPbk,BRAIN,dfoObsPre,dfoObsLive,hmOpen,xexOpen,hsSetTab,hsInfo,hsSetTabs,pbList,pbMerge,PBK,HS,lgCol,lgColOk,czColWarn,xhQuick,XH,xhLeave,RUNU:()=>RUNU,xhQsPulse,scoreTD,confetti,roar,buzz,sndSet,bzSet,sfx,ttlShow,hpCards,hbInk,COLORS,cssK,rsz,kickFull,KN,cancelR,gpItems,keyOn,hmBks,whiteLook,pickSix,gsLine,ghUpdate,stdLookBack,stdCfgOf,stdOrder,hmRename,hmDraft,hmMake,hmShape,hmStart,hmName,hmNew,lgStand,lgOpenStand,lgPoTie,lgSimMine,openSet,persRec,persOpen,persTake,PERS,PERS_N,scoutPhrases,scoutTxt,SCOUT_T,defLean,defBlitz,pickWeighted,memLean,memAdd,DEFD,styOpp,styNorm,newFranchise,renderHub,drvPref,openExh,v24Set,setPresnap,EXHset:v=>{EXH=v},mkOpp,pop,toLeft,toCan,toTl,doTimeout,hitGo,hitOn,hitTint,HIT,hitShake,oppTimeouts,figFront,figFMake,figSide,fgFrontSolve,fgFrontDraw,FIGX,FRB,DS_SC,hmPlay,exportCode,bkUnpack,bkCommit,lnMenu,lnLeave,lnFlush,lnBuy,lnPlayLabel,lnHubClick,lnOpen,lnWatch,lnUnwatch,lnAfterGame,lnPlayGo,lnSimGo,lnWaitHub,LN:LNK,LNC,CG,ACC,acSignIn,acSignOut,acFinishRedirect,acRow,acSaveRow,acCreate,hmStartCloud,acLoadList,acOpenCloud,acRows,acMark,acHint,acEmail,lnEnter,lnTakeover,LNA,lnAdv,lnIsCommish,lnSimMine,lnAdvHtml,lnDerive,lnPull,lnFind,lnJoin,lnShape,lnCur,lnLast,lnWeeksOf,lnLocalize,lnKeepLocal,lnPanel,lnJoinHtml,FULL,LGFULL,gsResume,LGD,simOppDrv,drvOn,drvSet,drvCtx,drvMix,drvRng,LGE,bkPack,bkShape,bkInfo,STD,STD_RULES,STD_CFG,stdView,stdSync,stdAttach,stdDerive,stdDraft,stdNew,stdRt,stdGame,stdPoPairs,stdFinishWeek,stdEndRegular,stdPoRound,stdSimRestPo,stdSimMy,stdNewSeason,openRoster,RR,rrInjLine,rrYours,rrList,rrCard,rrHand,stdStars,stdStandIn,stdFitTeam,stdSnap,stdYourSet,STD_POS,hmInj,stdTarget,stdCanUp,stdBuy,lgSimMy,lgAfterGame,lgSeasonEnd,lgSync,lgRt,hbOff,hbBuy,hbHub,upCost,migrate,slotInfo,sqNote,gsWrite,gsPeek,gsMatch,gsRead,newSeason,SAVE_VERSION,odCut,halfDue,timeUp,startMyDrive,pvIsOn,pvSet,PS,PKW,parkWant,parkRun,parkSkip,parkEnd,parkZ,parkCam,parkShot,PARK_MS,PK,parkBuild,parkDraw,figBmp,FIG,SPR_SCALE,figStance,shK,fgSolve,drawP,drawBall,flGet,flSet,fl:{pic:flPic,K:FLK,C:FLC,wear:flWear,names:FL_NAMES},oppDrive,simOpp,PBP,pbpShow,pbpSkip,pbpGo,pbpBtn,upSpent,upSh:upShift,upShift,stdRelief,stdSetRelief,stdCostR,stdOppLine,RELIEF_SLOPE,RELIEF_CAP,STD_NEAR,teamPower,stdLeagueAvg,stdPower,stdCost,stdSpent,stdRatingsOf,UPSHIFT,UPCAP,LK,LV,lkUp,lkEnc,lkDec,lvStep,lvHold,lvGhost,lkEnts,czWarn,lgNextOpp,afSet,OLN_D,OLN_L,defaultUni,outlineRule,uniFix,jClose,dE76,cRat,rLum,cbSim,awayUni,oppAlt,unisSet,afIsOn,unis:()=>RUNU,formation,gpOpen,gpTap,sc,tn,cam:()=>cam,vw:()=>VW,gpKick,camBehind,gpClose,pzOpen,pzClose,pzEsc,cbRect,ghUpdate,goForTwo,gpOn:()=>GPL.on,pzOn:()=>GPZ.on,cbSide:()=>CBS,geo:()=>GEO,gi:()=>GI,BOK,ST,openBook,boDraw,lgStand,lgSubs,drawDefCard,ddLayout,dcCardCanvas,dcCacheClear,DEFD,FM,UI,SHL,shDraw,hmTab,fit,show,hpOpen,rpOpen,cgOpen,bkOpenImport,dcAsk,gsAsk,showSeasonEnd,showHalf,foPlay,foOpen,foDress,foPaint,foBack,foSimShow,FO,openSet,openCoach,openExh,openLook,openHelp,OL,olSend,olTick,olRcPack,rcLines,dtSet,dtIsOn,recap:()=>G&&G.recap,nmRoster,nmMore,HOME,turn:()=>TURN.on,upOn,upSet,isIOS,intercept,RET,glAdd,glBuild,glText,glLogText,glModel,glRating,glOpen,glClose,GL:()=>GL,afterScore,safety,turnover,secondHalf,dcPickStyle,defcall:()=>dcIsOn(),setDefcall:dcSet,dc:()=>({on:DC.on,sel:DC.sel,start:DC.start}),dcGo,dcSelect,dcFactors,dcTend,dcFam:DC_FAM,DEFD,simOpp,oppPossession,speed:()=>{const m=gameSpeed();return{cur:spdN,n:spdN,mult:m,step:SPD_STEP[spdN-1]}},spdMul:SPD_MUL,spdStep:SPD_STEP,czSetColor,czRedraw,czDraw,FIGPV,figPv,setSpeed:spdSet,xpOpen,xpOn:()=>XP.on,gsHas,hints:()=>Object.assign({},hnGet()),hintStr:hnStr,helpOpen:hpOpen,helpClose:hpClose,helpOn:()=>HP.on,TK,resolveCatch,floatF,airSpd,simOpp,getSprite,sx,sy,DX,ctrl:()=>ctrl,pt,rot:()=>ROT,fit,setInsets,insets,version:APP_VERSION,buildReport,openReport:rpOpen,closeReport:rpClose,snapInfo,resumeGame:gsResume,saveNow,updateCheck:nvCheck,setRotPref,renderHub,updCtl,lateKick,NFLC,lgNew,lgSimMine,lgMake,lgOpenStand,openMenu,renderHome,HOME,delSlot,rdIdx,loadSlot,lgPoGames,lgCfg,lgSchedule,lgSeedPO,lgOrder,lgStand,setDef:id=>{DEFFORCE=id||null},setLook:id=>{LOOKFORCE=id||null},DEFD,openCalls,setRoutes,callPlay,openDesigner,routePath,playToRoute,DS:()=>DS,spriteGrid,defaultUni,resetSprites,dress,S:()=>S,G:()=>G,update,snap,camX:()=>cam.x,throwTo,throwAt,kickFire,startKickAim,predictRec,aimLanding,doKick,juke,startGame,newFranchise,endGame,setCtrl:c=>Object.assign(ctrl,c),sim:simOpp,render,renderHub,tiltV2:on=>{DC_TILT_V2=!!on;LGD.tiltV2(on)},tiltTable:()=>DC_T,dcAutoCall,lgPoTie,lgPoCoin,sty:t=>typeof t==='number'?styTeam(t):t&&typeof t==='object'?styNorm(t.sty):null,styNorm,wdFix,lgUni,jClose,olUni,czSet,czWd,czRebuild,czUnis,czUniK,czOwnOf,fgPal,fgDraw,figMake,styFix,styGive,styMake,styClass,styOpp,styMine,STY_CLS};
 })();
 </script></body></html>
