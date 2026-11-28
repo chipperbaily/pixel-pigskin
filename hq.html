@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pixel Pigskin HQ v0.13</title>
+<title>Pixel Pigskin HQ v0.15</title>
 <style>
 /* Pixel Pigskin HQ v0.3: plain dark theme, system fonts only. */
 :root{
@@ -306,7 +306,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=LGE;   /* Node, th
 </script>
 <!-- lg-std.js, byte copy of D:\PigskinLeague\lg-std.js -->
 <script id="src-lg-std">// =============================================================================
-// lg-std.js  -  the rules of the STANDARD league, in one file.   (1.4: INJURIES, a setting OFF / LOW / NORMAL, default OFF = byte for byte as before; 1.3: any league shape)
+// lg-std.js  -  the rules of the STANDARD league, in one file.   (1.5: TEAM COLORS far apart; 1.4: INJURIES, a setting OFF / LOW / NORMAL, default OFF = byte for byte as before; 1.3: any league shape)
 //
 // What is in here: the league maker (with its 10 hidden burn-in seasons), a
 // team's strength worked out from its starters (the game's lgRt formula) plus
@@ -330,7 +330,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=LGE;   /* Node, th
 //               STD.playSeason(L); STD.offseason(L, STD.newCtx());
 // =============================================================================
 const LGSTD = (function () {
-  const VERSION = 'lg-std 1.4 (injuries)';
+  const VERSION = 'lg-std 1.5 (colors)';
 
   // ------------------------------------------------------------ small helpers
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -569,9 +569,41 @@ const LGSTD = (function () {
       if (nm.length > 15 || seen.has(nm)) continue;
       seen.add(nm);
       const h = Math.round((out.length * 137.508 + rng() * 20) % 360);
-      out.push([nm, hsl(h, 62, 42), hsl((h + 180) % 360, 25, 88)]);
+      const cc = shapeCol(h); out.push([nm, cc[0], cc[1]]);
     }
     return out;
+  }
+  // 1.5: a new league's PRIMARY and SECONDARY are far apart: at least 3:1 (contrast ratio) AND delta E 25 or more in normal, deuteranopia and
+  // protanopia vision. The same rule and the same helpers as the game's lgCol / cRat / jClose (v2.52). The first try is the old pair (62/42 and
+  // the opposite hue 25/88), so a hue that already passed gives the same colors as before. When it fails, up to 60 pairs come from a tiny
+  // generator seeded by the hue ALONE: it never touches the league's streams, so a seed makes exactly the same league (names, players, games) as before.
+  const hx6 = (h) => (typeof h === 'string' && /^#[0-9a-fA-F]{6}$/.test(h) ? h : '#808080');
+  const rgbOf = (h) => [1, 3, 5].map((i) => parseInt(hx6(h).slice(i, i + 2), 16));
+  const lin1 = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  const rLum = (h) => { const [r, g, b] = rgbOf(h).map(lin1); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const cRat = (a, b) => { const x = rLum(a), y = rLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const lab76 = (h) => { const [r, g, b] = rgbOf(h).map(lin1), f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116),
+    X = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047), Y = f(0.2126 * r + 0.7152 * g + 0.0722 * b), Z = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
+    return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)]; };
+  const dE76 = (a, b) => { const p = lab76(a), q = lab76(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
+  // Machado 2009, severity 1.0, in linear RGB (same numbers as the game's cbSim)
+  const CB_M = { deutan: [[0.367322, 0.860646, -0.227968], [0.280085, 0.672501, 0.047413], [-0.011820, 0.042940, 0.968881]],
+    protan: [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]] };
+  const cbSim = (h, k) => { const l = rgbOf(h).map(lin1), g = (v) => { v = Math.max(0, Math.min(1, v)); return Math.round(255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055)); };
+    return '#' + CB_M[k].map((r) => g(r[0] * l[0] + r[1] * l[1] + r[2] * l[2]).toString(16).padStart(2, '0')).join(''); };
+  const jClose = (a, b) => { let m = dE76(a, b); for (const k of ['deutan', 'protan']) m = Math.min(m, dE76(cbSim(a, k), cbSim(b, k))); return m; };
+  const colOk = (c, d) => cRat(c, d) >= 3 && jClose(c, d) >= 25;
+  function shapeCol(h) {
+    const c0 = hsl(h, 62, 42), d0 = hsl((h + 180) % 360, 25, 88); if (colOk(c0, d0)) return [c0, d0];
+    let z = (Math.round(h * 1000) ^ 0x9e3779b9) >>> 0;
+    const r = () => { z = (z + 0x6D2B79F5) >>> 0; let t = z; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const OF = [0, 0, 180, 150, 210, 30, 330];
+    for (let i = 0; i < 60; i++) {
+      const c = hsl(h, 55 + r() * 35, 30 + r() * 22), o = OF[Math.floor(r() * OF.length)];
+      const d = r() < 0.5 ? hsl((h + o) % 360, 25 + r() * 60, 10 + r() * 18) : hsl((h + o) % 360, 25 + r() * 60, 78 + r() * 14);
+      if (colOk(c, d)) return [c, d];
+    }
+    const c = hsl(h, 62, 42); for (const d of ['#ffffff', '#10141f']) if (colOk(c, d)) return [c, d]; return [c, '#ffffff'];
   }
   function hsl(h, s, l) {
     s /= 100; l /= 100; const k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
@@ -1175,10 +1207,559 @@ const LGSTD = (function () {
   }
 
   // ROUND 5: the engine-free helpers the Full league (lg-full.js) reuses, handed out as they are (no code in them changed).
-  const parts = { K, checkInj, healAll, TEAM_DEFS, mintId, makeName, stochRound, drawPotential, rookieRatings, newRookie, makeSchedule, scheduleFor, shapeTeamDefs, teamOfId, checkShape, usedIds, tally };
+  const parts = { K, checkInj, healAll, TEAM_DEFS, mintId, makeName, stochRound, drawPotential, rookieRatings, newRookie, makeSchedule, scheduleFor, shapeTeamDefs, shapeCol, colOk, cRat, jClose, teamOfId, checkShape, usedIds, tally };
   return { make, shapeOf, roundName, PRESETS, shapeSchedule, derive, effective, overall, checkLeague, injured, newCtx, engineLeague, parts, INJ, STARTERS, version: VERSION };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = LGSTD;
+</script>
+<!-- lg-full.js (1.3), byte copy of D:\PigskinLeague\lg-full.js: the Full league (backups, pool, draft) -->
+<script id="src-lg-full">// =============================================================================
+// lg-full.js  -  the FULL league (round 5, option 1: backups, draft, free agency; no money, no trades)
+//
+// A Full league is a new kind of league: dp 'full' (a Standard league is dp 'std' and never gets any of this).
+// Same record as the Standard league (v 2, fmt 'p8', teams with ro, rc, ed ...) plus:
+//   * team.ro holds 40 players: the starters (sl below the number of starters at his position) and the backups (sl at or above it)
+//   * L.fa  = the free-agent pool (a list of player records)
+//   * L.dr  = the offseason record, null in a season: { s, ord, cls, pk, dn } (see the API note)
+//   * L.ph  = 'reg' | 'done' (as before) | 'dr' (draft) | 'fa' (free agency) | 'cut' (roster check)
+//
+// Rules of this file (the same as lg-std.js):
+//  * Pure and seeded. Every random number comes from STD.stream = mulberry32(seedFor(rs, season, kind, n)). No Math.random, Math.log, Math.cos.
+//  * Nothing Node-only (no fs, process, require). The rules (rules.json with its "full" section) and the engine are handed in.
+//  * Playing the season is lg-std.js's job (playWeekWith, playoffRoundWith, applyWeek ...): they work on a Full league as they are.
+//  * Injuries (lg-std 1.4, seed kind 1008 HURT, the player field p.ou): in a Full league the BACKUP plays for a hurt starter (lg-std's derive does it); the setting is makeFullLeague(rs, { rules, shape, injuries: 'OFF' | 'LOW' | 'NORMAL' }).
+//  * 1.3: upgradeToFull(L, { rules, ctx }) turns a Standard league into a Full league (one way). Every shape (8, NFL 32, COLLEGE 60, custom) works:
+//    the draft class (rounds x teams), its tiers and the free-agent pool scale with the number of teams (makeFullLeague and upgradeToFull use the same scaling).
+//  * 1.4: WISH LISTS for a human team (the auto-draft queue of fantasy football). Draft: { t, wish: [prospect ids, best first] } = on each of his turns he gets the first
+//    one still available, else the pick-for-me choice. Free agency: { t, wish: [player ids] } = the first ones still in the pool, up to his limit (holes + signs).
+//    Cuts stay { t, ids }. A team with a wish list never holds the stage. Nothing else changes (every other call gives the same bytes as 1.3).
+//  * Seed kinds used here: 1010 DRAFTCLASS, 1011 FAWALK, 1012 BENCH, 1013 AIPICK, 1014 DRAFTORDER, 1015 POOLFADE
+//    (plus lg-std's 1003 GROWTH, 1004 RETIRE, 1005 EDGE, 1002 SCHED). 1020 to 1031 are reserved and NOT used.
+//  * A function that throws has changed nothing. Errors are plain Errors whose message starts "lg-full:".
+//
+// How to use:   const FULL = LGFULL.make(LGSTD, LGE);           // LGSTD = lg-std.js, LGE = the game's engine
+//               const L = FULL.makeFullLeague(918273, { rules });  // rules = rules.json (with "full")
+//               FULL.STD.playSeason(L); FULL.offseasonFull(L);
+// =============================================================================
+const LGFULL = (function () {
+  const VERSION = 'lg-full 1.4 (wish lists)';
+  const KIND = { DRAFTCLASS: 1010, FAWALK: 1011, BENCH: 1012, AIPICK: 1013, DRAFTORDER: 1014, POOLFADE: 1015 };
+  const RESERVED = { CONTRACT: 1020, RESIGN: 1021, TRADEAI: 1030, TRADEPICK: 1031 };       // not used in this round
+  // the stage list, as names (a later round inserts 'resign' after 'retire' and a trade window anywhere)
+  const STAGES = ['end', 'retire', 'draft', 'fa', 'cut', 'depth'];
+  const PHASES = ['reg', 'done', 'dr', 'fa', 'cut'];
+
+  const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  const round3 = (x) => Math.round(x * 1000) / 1000;
+  const byId = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  const bad = (msg) => { throw new Error('lg-full: ' + msg); };
+
+  function make(LGSTD, E) {
+    if (!LGSTD || !LGSTD.parts) bad('lg-std.js (version 1.2 or later, with its parts) is missing');
+    const STD = LGSTD.make(E), P = LGSTD.parts, overall = STD.overall;
+
+    // ------------------------------------------------------------ rules helpers
+    const FR = (L) => L.rules.full;
+    const startersOf = (rules) => Object.fromEntries(rules.positions);                       // QB 1, RB 1, WR 3 ...
+    const minOf = (rules) => { const N = startersOf(rules), b = rules.full.bench, m = {}; for (const [pos, n] of rules.positions) m[pos] = n + (b[pos] || 0); return m; };
+    const rosterSize = (rules) => Object.values(minOf(rules)).reduce((s, x) => s + x, 0);
+    // rules for a NEW player (draft class, walk-on, backup): the potential mean is lowered by full.newPlayers.potentialMeanShift
+    function newRules(rules, tier) {
+      const r = clone(rules); const sh = (rules.full.newPlayers.potentialMeanShift || 0) + ((tier && tier.meanShift) || 0);
+      r.potential.mean += sh; if (tier && tier.sdMult) r.potential.sd *= tier.sdMult;
+      const sm = rules.full.newPlayers.starChanceMult; if (sm !== undefined && sm !== 1) for (const k of Object.keys(r.potential.star.chance)) r.potential.star.chance[k] *= sm;
+      return r;
+    }
+
+    // ------------------------------------------------------------ THE ONE VALUE FUNCTION (design section 3)
+    // value = W[position] x blend of rating and potential (potential counts for the young). Kicker: token weight.
+    function value(p, rules) {
+      const V = rules.full.value, w = V.W[p.ps] || 0, o = overall(p);
+      const pull = p.ag <= V.pull[0][0] ? V.pull[0][1] : p.ag <= V.pull[1][0] ? V.pull[1][1] : 0;
+      return w * ((1 - pull) * o + pull * p.pt);
+    }
+    // the gain a team gets from a player: his value minus the value of the man he would push out
+    // (the weakest player the team keeps at that position, counting starters and backups); a hole at the position = his whole value
+    function gain(L, ti, p) {
+      const rules = L.rules, n = minOf(rules)[p.ps];
+      const vals = L.teams[ti].ro.filter((q) => q.ps === p.ps).map((q) => value(q, rules)).sort((a, b) => b - a);
+      return value(p, rules) - (vals.length >= n ? vals[n - 1] : 0);
+    }
+
+    // ------------------------------------------------------------ roster pieces
+    const count = (t, pos) => t.ro.filter((p) => p.ps === pos).length;
+    function addPlayer(t, p) { p.sl = count(t, p.ps); t.ro.push(p); }                          // at the back of his position
+    function removePlayer(t, p) {
+      t.ro.splice(t.ro.indexOf(p), 1);
+      for (const q of t.ro) if (q.ps === p.ps && q.sl > p.sl) q.sl--;                         // the others keep their order, no gap
+    }
+    // depth chart, best rating first (ties: id). A human may reorder with depthWith.
+    function fixDepth(t) {
+      const by = {}; for (const p of t.ro) (by[p.ps] = by[p.ps] || []).push(p);
+      for (const k in by) by[k].sort((a, b) => overall(b) - overall(a) || byId(a, b)).forEach((p, i) => { p.sl = i; });
+    }
+    function holes(L, t) { const m = minOf(L.rules); let h = 0; for (const pos in m) h += Math.max(0, m[pos] - count(t, pos)); return h; }
+    function humanSet(L, opts) {
+      const s = new Set((opts && opts.humans) || []); L.teams.forEach((t, i) => { if (t.ow !== 'ai') s.add(i); }); return s;
+    }
+    // all ids / names in use (rosters, pool, open class, retired list), for minting new players
+    function usedAll(L) {
+      const s = P.usedIds(L); for (const p of L.fa) s.add(p.id); if (L.dr) for (const p of L.dr.cls) s.add(p.id); return s;
+    }
+    function takenAll(L) {
+      const s = new Set(); for (const t of L.teams) for (const p of t.ro) s.add(p.nm); for (const p of L.fa) s.add(p.nm); if (L.dr) for (const p of L.dr.cls) s.add(p.nm); return s;
+    }
+    // the best item by a score; ties are settled with the seeded AIPICK stream (made only when a tie happens)
+    function bestBy(items, score, mkRng) {
+      let best = -Infinity, c = [];
+      for (const it of items) { const s = score(it); if (s > best + 1e-9) { best = s; c = [it]; } else if (Math.abs(s - best) <= 1e-9) c.push(it); }
+      if (!c.length) return null;
+      if (c.length === 1) return c[0];
+      c.sort(byId); return c[Math.floor(mkRng()() * c.length)];
+    }
+    // all-or-nothing for calls that can throw on a human's choice
+    // (the league is put back IN PLACE, so a caller's reference to L, L.teams[i] or a roster list stays valid)
+    function restore(dst, src) {
+      if (Array.isArray(dst)) {
+        dst.length = src.length;
+        src.forEach((v, i) => { if (v && typeof v === 'object' && dst[i] && typeof dst[i] === 'object' && Array.isArray(dst[i]) === Array.isArray(v)) restore(dst[i], v); else dst[i] = v; });
+      } else {
+        for (const k of Object.keys(dst)) if (!(k in src)) delete dst[k];
+        for (const k of Object.keys(src)) { const v = src[k]; if (v && typeof v === 'object' && dst[k] && typeof dst[k] === 'object' && Array.isArray(dst[k]) === Array.isArray(v)) restore(dst[k], v); else dst[k] = v; }
+      }
+    }
+    function tx(L, fn) {
+      const snap = JSON.stringify(L);
+      try { return fn(); } catch (e) { restore(L, JSON.parse(snap)); throw e; }
+    }
+    const sum = (p) => ({ id: p.id, nm: p.nm, ps: p.ps, ag: p.ag, ov: round3(overall(p)), pt: p.pt });
+
+
+    // ------------------------------------------------------------ the scaled "full" section (one function, used by makeFullLeague and upgradeToFull)
+    // rules.json is written for 8 teams: the class is rounds x teams, the tiers and the pool grow with teams / 8.
+    function scaleFull(F0, nTeams) {
+      const k = nTeams / 8;
+      F0.draft.classSize = F0.draft.rounds * nTeams; F0.draft.tiers.forEach((t) => { t.n = Math.round(t.n * k); }); F0.fa.poolSize = Math.round(F0.fa.poolSize * k);
+    }
+
+    // ------------------------------------------------------------ UPGRADE: a Standard league becomes a Full league (one way, 1.3)
+    // upgradeToFull(L, { rules, ctx }): rules = rules.json WITH its "full" section (the Standard loader strips it), ctx = STD.newCtx() (optional).
+    // Allowed when the season is over (ph 'done') or before game 1 of a season (ph 'reg', week 0, no results, no playoffs).
+    // Each team gets its backups (kind 1012, season = the current season, team index as n, the same rule as makeFullLeague), put behind the starters
+    // (the starters keep their slots); dp 'full', fa [], dr null; the scaled "full" section is written into L.rules. Nothing that was played changes:
+    // history, results, records, schedule, the playoffs and every career line stay. The league id and name stay too. A call that throws changes nothing.
+    // Returns { added: backups per team, players: total, ssn, ph }.
+    function upgradeToFull(L, options = {}) {
+      if (L.dp === 'full') bad('this league is already a Full league');
+      if (L.dp !== 'std') bad('only a Standard league can be upgraded');
+      const rules0 = options.rules;
+      if (!rules0 || !rules0.full) bad('upgradeToFull needs rules with a "full" section (rules.json)');
+      const fresh = L.ph === 'reg' && L.wk === 0 && L.res.length === 0 && !L.po;
+      if (!(L.ph === 'done' || fresh)) bad('a league can only be upgraded when the season is over or before the first game of a season');
+      const ctx = options.ctx || STD.newCtx();
+      return tx(L, () => {
+        const rules = L.rules;
+        rules.full = clone(rules0.full); scaleFull(rules.full, L.teams.length);
+        for (const [pos] of rules.positions) if (rules.full.bench[pos] === undefined) bad('the "full" section has no bench size for ' + pos);
+        L.fa = []; L.dr = null;
+        const used = usedAll(L), taken = takenAll(L), nr = newRules(rules), F = rules.full; let added = 0;
+        L.teams.forEach((t, ti) => {
+          const rng = STD.stream(L.rs, L.ssn, KIND.BENCH, ti);
+          for (const [pos] of rules.positions) for (let i = 0; i < (F.bench[pos] || 0); i++) {
+            const p = P.newRookie(rng, nr, pos, 99, used, taken, ctx), target = rng.int(F.newPlayers.backupAge[0], F.newPlayers.backupAge[1]);
+            while (p.ag < target) { p.ag++; STD.applyYear(p, rules, 0, rng); }
+            addPlayer(t, p); added++;
+          }
+        });
+        L.dp = 'full';
+        const problems = checkFull(L);
+        if (problems.length) bad('the upgrade would break the league: ' + problems[0]);
+        return { added: added / L.teams.length, players: added, ssn: L.ssn, ph: L.ph };
+      });
+    }
+
+    // ------------------------------------------------------------ the league maker
+    // Same hidden 10 seasons as the Standard league, but with backups, the draft and free agency running in them.
+    // The starters are made by the Standard maker (same stream, same code) with the lowered potential for new players;
+    // backups come from kind 1012 (team index as n).
+    function makeFullLeague(rs, options = {}) {
+      const rules = options.rules && clone(options.rules);
+      if (!rules || !rules.full) bad('makeFullLeague needs rules with a "full" section (rules.json)');
+      const ctx = options.ctx || STD.newCtx(), burn = rules.league.burnIn;
+      const base = newRules(rules); base.league.burnIn = 0; delete base.full;                // starters: the Standard maker, no hidden seasons yet
+      // options.shape: undefined = the 8-team league; 'NFL', 'COLLEGE' or a custom spec (see LGSTD shapeOf). A shape that cannot work throws.
+      const S = STD.makeLeague(rs, base, ctx, options.shape);
+      if (S.shape) scaleFull(rules.full, S.shape.n);      // the draft class, its tiers and the free-agent pool grow with the number of teams (rules.json is written for 8)
+      const L = { v: 2, dp: 'full', fmt: 'p8', nm: 'PROOF 8 FULL', id: 'F' + S.id.slice(1), cmr: null, ssn: 1 - burn, wk: 0, ph: 'reg', burn, sch: [], po: null, hist: [], res: [],
+        rs, rules, rtd: [], fa: [], dr: null, teams: S.teams };
+      if (S.shape) { L.fmt = S.fmt; L.nm = 'PROOF ' + S.shape.n + ' FULL'; L.shape = S.shape; }
+      const used = usedAll(L), taken = takenAll(L), nr = newRules(rules), F = rules.full;
+      L.teams.forEach((t, ti) => {
+        const rng = STD.stream(rs, 0, KIND.BENCH, ti);
+        for (const [pos] of rules.positions) for (let i = 0; i < (F.bench[pos] || 0); i++) {
+          const p = P.newRookie(rng, nr, pos, 99, used, taken, ctx), target = rng.int(F.newPlayers.backupAge[0], F.newPlayers.backupAge[1]);
+          while (p.ag < target) { p.ag++; STD.applyYear(p, rules, 0, rng); }                 // backups grow with no XP
+          addPlayer(t, p);
+        }
+        fixDepth(t);
+      });
+      L.sch = P.scheduleFor(L.shape, STD.stream(rs, L.ssn, P.K.SCHED));
+      for (let k = 0; k < burn; k++) { STD.playSeason(L); offseasonFull(L, { ctx }); }
+      L.ssn = 1; L.hist = []; L.res = [];
+      for (const t of L.teams) for (const p of t.ro) p.cr = [];
+      for (const p of L.fa) p.cr = [];
+      STD.setInjuries(L, options.injuries);      // 1.2: after the hidden seasons, so the league is the same whatever the setting (OFF = no field)
+      return L;
+    }
+
+    // ------------------------------------------------------------ stage 1: the season is over -> growth, retirement, the draft opens
+    // Needs ph 'done' (champion known). Adds the history row, career lines (starters only), age + yearly change (XP for starters only),
+    // retirement (all rostered players and the pool), builds the draft class (kind 1010) and the draft order (worst first, kind 1014 for ties).
+    // Returns { retired, report: [{team, retired: [{id,nm,ps,sl,ag,ov}]}], pool: n retired from the pool, class: [prospects], order: [team indexes] }.
+    function openOffseason(L, opts = {}) {
+      if (L.dp !== 'full') bad('this is not a Full league');
+      if (L.ph !== 'done') bad(L.ph === 'reg' ? 'the season is not over yet' : 'the offseason is already open (phase ' + L.ph + ')');
+      return tx(L, () => {
+        P.healAll(L);      // 1.2: injuries do not carry into the next season
+        const rules = L.rules, R = rules.retire, s = L.ssn, N = startersOf(rules), { games, wins } = P.tally(L);
+        const report = L.teams.map((t, i) => ({ team: i, retired: [] }));
+        L.hist.push({ s, ch: L.po.ch, ru: L.po.ru, st: L.teams.map((t) => t.rc.slice()) });
+        // growth: starters get the XP (2 per game started, 1 per win), backups and the pool none
+        const rngG = STD.stream(L.rs, s, P.K.GROWTH);
+        L.teams.forEach((t, ti) => t.ro.forEach((p) => {
+          const st = p.sl < N[p.ps];
+          if (st) p.cr.push([s, games[ti]]);
+          p.ag++; STD.applyYear(p, rules, st ? rules.xp.perGame * games[ti] + rules.xp.perWin * wins[ti] : 0, rngG);
+        }));
+        L.fa.forEach((p) => { p.ag++; STD.applyYear(p, rules, 0, rngG); });
+        // retirement: age chance, higher below the league median at the position (all rostered players), sure at 36 (QB, K 39)
+        const med = {};
+        for (const [pos] of rules.positions) { const v = L.teams.flatMap((t) => t.ro.filter((p) => p.ps === pos).map(overall)).sort((a, b) => a - b); med[pos] = v[Math.floor(v.length / 2)]; }
+        const ageChance = (p) => { const late = R.lateShift[p.ps] || 0, eff = p.ag - late; return p.ag >= (late ? R.forceAgeLate : R.forceAge) ? 1 : (R.chanceByAge[eff] || 0); };
+        const rngR = STD.stream(L.rs, s, P.K.RETIRE); let retired = 0;
+        L.teams.forEach((t, ti) => {
+          for (const p of t.ro.slice()) {
+            let c = ageChance(p); if (c < 1 && overall(p) < med[p.ps]) c = Math.min(1, c * R.belowMedianMultiplier);
+            if (rngR() < c) { L.rtd.push([s, p.id]); report[ti].retired.push({ id: p.id, nm: p.nm, ps: p.ps, sl: p.sl, ag: p.ag, ov: round3(overall(p)) }); removePlayer(t, p); retired++; }
+          }
+        });
+        const rngP = STD.stream(L.rs, s, KIND.POOLFADE), before = L.fa.length;
+        L.fa = L.fa.filter((p) => { if (rngP() < Math.max(ageChance(p), FR(L).fa.poolFade)) { L.rtd.push([s, p.id]); return false; } return true; });
+        L.rtd = L.rtd.filter(([rs]) => rs > s - 10);
+        // the draft class (kind 1010) and the order: worst record first (win share, then points difference, then the 1014 draw)
+        const rd = STD.stream(L.rs, s, KIND.DRAFTCLASS, 0), used = usedAll(L), taken = takenAll(L), mix = [], D = FR(L).draft, cls = [];
+        for (const [pos, n] of rules.positions) for (let i = 0; i < n; i++) mix.push(pos);
+        let tier = 0, left = D.tiers[0].n;
+        for (let i = 0; i < D.classSize; i++) {
+          while (left <= 0 && tier < D.tiers.length - 1) { tier++; left = D.tiers[tier].n; }
+          const pos = rd.pick(mix); cls.push(P.newRookie(rd, newRules(rules, D.tiers[tier]), pos, 99, used, taken, opts.ctx)); left--;
+        }
+        const dd = STD.stream(L.rs, s, KIND.DRAFTORDER, 0), draw = L.teams.map(() => dd());
+        const key = (t, i) => [(t.rc[0] + 0.5 * t.rc[2]) / Math.max(1, t.rc[0] + t.rc[1] + t.rc[2]), t.rc[3] - t.rc[4], draw[i]];
+        const ord = L.teams.map((t, i) => [i, key(t, i)]).sort((a, b) => a[1][0] - b[1][0] || a[1][1] - b[1][1] || a[1][2] - b[1][2]).map((x) => x[0]);
+        L.dr = { s, ord, cls, pk: [], dn: [] }; L.ph = 'dr';
+        return { retired, report, pool: before - L.fa.length, class: cls.map((p) => clone(p)), order: ord.slice() };
+      });
+    }
+
+    // ------------------------------------------------------------ stage 2: the draft
+    // humanPicks = [{t, id}] (id = a prospect's id, or null = "pick for me"); a team with entries uses them in order, one per turn.
+    // opts = { humans: [team indexes], hold, ctx }. A team is human when it is in opts.humans or its team.ow is not 'ai'.
+    // The AI teams pick the prospect with the biggest gain (design section 4). A human team with no entry: with hold the draft STOPS there
+    // (everything before it is done and saved in L.dr; calling again with the same state and no new entry changes nothing), without hold it is picked for.
+    // Returns { held, done, picks: [{n, round, t, src: 'ai'|'human'|'auto', id, nm, ps, ag, ov, pt}], pending: [{t, n, round}] }.
+    function draftWith(L, humanPicks = [], opts = {}) {
+      if (L.dp !== 'full') bad('this is not a Full league');
+      if (L.ph !== 'dr') bad('there is no draft open (phase ' + L.ph + ')');
+      return tx(L, () => {
+        const hu = humanSet(L, opts), dr = L.dr, nT = L.teams.length, total = FR(L).draft.rounds * nT, out = [], entries = [], wishes = new Map();
+        for (const e of humanPicks || []) {
+          if (!e || !Number.isInteger(e.t) || e.t < 0 || e.t >= nT) bad('a pick needs a team index t');
+          if (!hu.has(e.t)) bad(`team ${e.t} is not a human team (it has no turn to choose)`);
+          if (e.wish !== undefined) {      // 1.4: a wish list: prospect ids, best first
+            if (!Array.isArray(e.wish) || e.wish.some((x) => typeof x !== 'string')) bad('a wish list is a list of prospect ids');
+            if (e.id !== undefined) bad('a draft entry is either an id or a wish list, not both');
+            if (wishes.has(e.t)) bad(`team ${e.t} has two wish lists`);
+            wishes.set(e.t, e.wish); continue;
+          }
+          if (e.id !== null && typeof e.id !== 'string') bad('a pick needs the prospect id (or null to pick for me)');
+          entries.push({ t: e.t, id: e.id, used: false });
+        }
+        const picked = () => new Set(dr.pk.map((x) => x[1]));
+        let pending = [];
+        while (dr.pk.length < total && dr.cls.length) {
+          const n = dr.pk.length, round = Math.floor(n / nT), ti = dr.ord[n % nT];
+          let cand = null, src = 'ai';
+          if (hu.has(ti)) {
+            const done = picked(), e = entries.find((x) => x.t === ti && !x.used && (x.id === null || !done.has(x.id)));
+            if (e) {
+              e.used = true;
+              if (e.id === null) src = 'auto';
+              else { cand = dr.cls.find((p) => p.id === e.id); if (!cand) bad(`prospect ${e.id} is not available at pick ${n + 1}`); src = 'human'; }
+            } else if (wishes.has(ti)) {       // 1.4: the first one on his wish list that is still there, else the pick-for-me choice
+              const w = wishes.get(ti), taken = picked(); src = 'auto';
+              for (const id of w) { if (taken.has(id)) continue; const c = dr.cls.find((p) => p.id === id); if (c) { cand = c; src = 'wish'; break; } }
+            } else if (opts.hold) { pending = [{ t: ti, n, round }]; break; } else src = 'auto';
+          }
+          if (!cand) cand = bestBy(dr.cls, (p) => gain(L, ti, p), () => STD.stream(L.rs, dr.s, KIND.AIPICK, n));
+          dr.cls.splice(dr.cls.indexOf(cand), 1); addPlayer(L.teams[ti], cand); dr.pk.push([ti, cand.id]);
+          out.push({ n, round, t: ti, src, ...sum(cand) });
+        }
+        const done = !pending.length;
+        if (done) { L.fa.push(...dr.cls); dr.cls = []; dr.dn = []; L.ph = 'fa'; }
+        return { held: !done, done, picks: out, pending };
+      });
+    }
+
+    // ------------------------------------------------------------ stage 3: free agency
+    // humanSigns = [{t, ids: [player ids from the pool]}] (an empty list = no signing). A team may sign as many players as it has holes
+    // (positions under their minimum) plus fulfil full.fa.signs (2) extra. Turns go in reverse order of finish (L.dr.ord).
+    // The AI team: first its holes from the pool (best value), then up to 2 with gain above full.fa.minGain.
+    // A human team with no entry: with hold the stage STOPS there, without hold it is signed for like an AI team.
+    // Returns { held, done, signed: [{t, src, id, nm, ps, ag, ov, pt}], pending: [{t, holes, max}] }.
+    function freeAgencyWith(L, humanSigns = [], opts = {}) {
+      if (L.dp !== 'full') bad('this is not a Full league');
+      if (L.ph !== 'fa') bad('free agency is not open (phase ' + L.ph + ')');
+      return tx(L, () => {
+        const hu = humanSet(L, opts), dr = L.dr, F = FR(L).fa, m = minOf(L.rules), out = [], by = new Map(), wishBy = new Map();
+        for (const e of humanSigns || []) {
+          if (!e || !Number.isInteger(e.t) || e.t < 0 || e.t >= L.teams.length) bad('a signing entry needs a team index t');
+          if (!hu.has(e.t)) bad(`team ${e.t} is not a human team`);
+          if (e.wish !== undefined) {      // 1.4: a wish list of pool player ids, best first: the first ones still in the pool, up to his limit
+            if (!Array.isArray(e.wish) || e.wish.some((x) => typeof x !== 'string')) bad('a wish list is a list of player ids');
+            if (e.ids !== undefined) bad('a signing entry is either ids or a wish list, not both');
+            if (wishBy.has(e.t) || by.has(e.t)) bad(`team ${e.t} has two signing entries`);
+            wishBy.set(e.t, e.wish); continue;
+          }
+          if (!Array.isArray(e.ids)) bad('a signing entry needs a list ids');
+          by.set(e.t, e.ids);
+        }
+        let pending = [];
+        for (const ti of dr.ord) {
+          if (dr.dn.includes(ti)) continue;
+          const t = L.teams[ti], h = holes(L, t);
+          let src = 'ai';
+          if (hu.has(ti)) {
+            if (by.has(ti)) {
+              const ids = by.get(ti);
+              if (new Set(ids).size !== ids.length) bad(`team ${ti}: a player is listed twice`);
+              if (ids.length > h + F.signs) bad(`team ${ti}: at most ${h + F.signs} signings (${h} holes + ${F.signs}), got ${ids.length}`);
+              for (const id of ids) {
+                const p = L.fa.find((x) => x.id === id); if (!p) bad(`team ${ti}: ${id} is not in the pool`);
+                L.fa.splice(L.fa.indexOf(p), 1); addPlayer(t, p); out.push({ t: ti, src: 'human', ...sum(p) });
+              }
+              dr.dn.push(ti); continue;
+            }
+            if (wishBy.has(ti)) {
+              const seen = new Set(); let k = 0;
+              for (const id of wishBy.get(ti)) {
+                if (k >= h + F.signs) break; if (seen.has(id)) continue; seen.add(id);
+                const p = L.fa.find((x) => x.id === id); if (!p) continue;
+                L.fa.splice(L.fa.indexOf(p), 1); addPlayer(t, p); out.push({ t: ti, src: 'wish', ...sum(p) }); k++;
+              }
+              dr.dn.push(ti); continue;
+            }
+            if (opts.hold) { pending = [{ t: ti, holes: h, max: h + F.signs }]; break; }
+            src = 'auto';
+          }
+          const mkRng = () => STD.stream(L.rs, dr.s, KIND.AIPICK, 100 + ti), sign = (p) => { L.fa.splice(L.fa.indexOf(p), 1); addPlayer(t, p); out.push({ t: ti, src, ...sum(p) }); };
+          for (const pos in m) while (count(t, pos) < m[pos]) {                              // 1. holes: the best value at the position
+            const c = bestBy(L.fa.filter((p) => p.ps === pos), (p) => value(p, L.rules), mkRng); if (!c) break; sign(c);
+          }
+          for (let k = 0; k < F.signs; k++) {                                               // 2. up to 2 more, if they help enough
+            const c = bestBy(L.fa, (p) => gain(L, ti, p), mkRng);
+            if (!c || gain(L, ti, c) <= F.minGain) break; sign(c);
+          }
+          dr.dn.push(ti);
+        }
+        const done = !pending.length;
+        if (done) { dr.dn = []; L.ph = 'cut'; }
+        return { held: !done, done, signed: out, pending };
+      });
+    }
+
+    // ------------------------------------------------------------ stage 4: the roster check
+    // humanCuts = [{t, ids}]: the players a human team cuts. A team that is over its size (the sum over positions of the larger of its count
+    // and its minimum, minus 40) must cut exactly that many, only from positions that are above their minimum. Cut players go to the pool.
+    // Then every hole is filled from the pool (best value), then from a walk-on (kind 1011, team index as n). Turns in reverse order of finish.
+    // A human team with nothing to cut needs no entry. A human team over its size with no entry: with hold the stage STOPS, without hold the
+    // lowest-value players are cut like an AI team's. When all teams are done: the pool is trimmed to full.fa.poolSize (best value stay),
+    // every depth chart is set best rating first, the team edge moves, and the new season starts (ph 'reg', week 0, new schedule).
+    // Returns { held, done, cut: [{t, id, nm, ps}], filled: [{t, from: 'pool'|'walkon', id, nm, ps}], pending: [{t, surplus, holes}], season }.
+    function cutWith(L, humanCuts = [], opts = {}) {
+      if (L.dp !== 'full') bad('this is not a Full league');
+      if (L.ph !== 'cut') bad('the roster check is not open (phase ' + L.ph + ')');
+      return tx(L, () => {
+        const rules = L.rules, hu = humanSet(L, opts), dr = L.dr, m = minOf(rules), SIZE = rosterSize(rules), by = new Map(), cut = [], filled = [];
+        for (const e of humanCuts || []) {
+          if (!e || !Number.isInteger(e.t) || e.t < 0 || e.t >= L.teams.length) bad('a cut entry needs a team index t');
+          if (!hu.has(e.t)) bad(`team ${e.t} is not a human team`);
+          if (!Array.isArray(e.ids)) bad('a cut entry needs a list ids');
+          by.set(e.t, e.ids);
+        }
+        const surplusOf = (t) => { let s = -SIZE; for (const pos in m) s += Math.max(count(t, pos), m[pos]); return s; };
+        let pending = [];
+        for (const ti of dr.ord) {
+          if (dr.dn.includes(ti)) continue;
+          const t = L.teams[ti], sur = surplusOf(t), h = holes(L, t);
+          let victims = null;
+          if (hu.has(ti) && sur === 0 && by.has(ti) && by.get(ti).length) bad(`team ${ti} has nothing to cut but gave ${by.get(ti).length} players`);
+          if (hu.has(ti) && sur > 0) {
+            if (by.has(ti)) {
+              const ids = by.get(ti);
+              if (new Set(ids).size !== ids.length) bad(`team ${ti}: a player is listed twice`);
+              if (ids.length !== sur) bad(`team ${ti} must cut exactly ${sur} players, got ${ids.length}`);
+              const left = {}; for (const pos in m) left[pos] = count(t, pos);
+              victims = ids.map((id) => {
+                const p = t.ro.find((x) => x.id === id); if (!p) bad(`team ${ti}: ${id} is not on the roster`);
+                if (left[p.ps] <= m[p.ps]) bad(`team ${ti}: ${p.nm} (${p.ps}) cannot be cut: the position is at its minimum`);
+                left[p.ps]--; return p;
+              });
+            } else if (opts.hold) { pending = [{ t: ti, surplus: sur, holes: h }]; break; }
+          }
+          if (!victims) {                                                                    // the AI rule: cut the lowest value above the minimum
+            victims = []; const left = {}; for (const pos in m) left[pos] = count(t, pos);
+            for (let k = 0; k < sur; k++) {
+              const c = t.ro.filter((p) => left[p.ps] > m[p.ps] && !victims.includes(p)).sort((a, b) => value(a, rules) - value(b, rules) || byId(a, b))[0];
+              victims.push(c); left[c.ps]--;
+            }
+          }
+          for (const p of victims) { removePlayer(t, p); L.fa.push(p); cut.push({ t: ti, id: p.id, nm: p.nm, ps: p.ps }); }
+          let wr = null;
+          for (const pos in m) while (count(t, pos) < m[pos]) {                              // holes: the pool first, then a walk-on
+            const pool = L.fa.filter((p) => p.ps === pos).sort((a, b) => value(b, rules) - value(a, rules) || byId(a, b));
+            let p, from;
+            if (pool.length) { p = pool[0]; L.fa.splice(L.fa.indexOf(p), 1); from = 'pool'; }
+            else { wr = wr || STD.stream(L.rs, dr.s, KIND.FAWALK, ti); p = P.newRookie(wr, newRules(rules), pos, 99, usedAll(L), takenAll(L), opts.ctx); from = 'walkon'; }
+            addPlayer(t, p); filled.push({ t: ti, from, id: p.id, nm: p.nm, ps: p.ps });
+          }
+          fixDepth(t); dr.dn.push(ti);
+        }
+        const done = !pending.length;
+        if (done) closeOffseason(L);
+        return { held: !done, done, cut, filled, pending, season: L.ssn };
+      });
+    }
+
+    // the last step: pool trimmed, team edge, next season
+    function closeOffseason(L) {
+      const rules = L.rules, s = L.dr.s, E_ = rules.edge;
+      L.fa = L.fa.sort((a, b) => value(b, rules) - value(a, rules) || byId(a, b)).slice(0, FR(L).fa.poolSize);
+      const rngE = STD.stream(L.rs, s, P.K.EDGE);
+      for (const t of L.teams) t.ed = round3(clamp(E_.keep * t.ed + E_.sd * rngE.gauss(), -E_.clamp, E_.clamp));
+      L.ssn = s + 1; L.wk = 0; L.ph = 'reg'; L.po = null; L.res = []; L.dr = null;
+      L.teams.forEach((t) => { t.rc = [0, 0, 0, 0, 0]; });
+      L.sch = P.scheduleFor(L.shape, STD.stream(L.rs, L.ssn, P.K.SCHED));
+    }
+
+    // ------------------------------------------------------------ depth chart
+    // orders = [{t, auto: true}] (best rating first) or [{t, order: {QB: [ids best first], WR: [...]}}] (each listed position must name
+    // every player of the team at that position exactly once). Allowed before the first game of a season (phase 'reg', week 0, no results):
+    // XP follows the depth chart of the season that was played, so it cannot be changed during the season.
+    // Returns { changed: [team indexes] }.
+    function depthWith(L, orders = [], opts = {}) {
+      if (L.dp !== 'full') bad('this is not a Full league');
+      if (!(L.ph === 'reg' && L.wk === 0 && L.res.length === 0 && !L.po)) bad('the depth chart can only be set before the first game of a season');
+      return tx(L, () => {
+        const changed = [];
+        for (const e of orders || []) {
+          if (!e || !Number.isInteger(e.t) || e.t < 0 || e.t >= L.teams.length) bad('a depth entry needs a team index t');
+          const t = L.teams[e.t];
+          if (e.auto) fixDepth(t);
+          else {
+            if (!e.order || typeof e.order !== 'object') bad(`team ${e.t}: give auto: true or an order`);
+            for (const pos of Object.keys(e.order)) {
+              const ids = e.order[pos], have = t.ro.filter((p) => p.ps === pos);
+              if (!have.length) bad(`team ${e.t}: unknown position ${pos}`);
+              if (!Array.isArray(ids) || ids.length !== have.length || new Set(ids).size !== ids.length || ids.some((id) => !have.some((p) => p.id === id))) bad(`team ${e.t}: the ${pos} list must name each of the team's ${have.length} players once`);
+              ids.forEach((id, i) => { have.find((p) => p.id === id).sl = i; });
+            }
+          }
+          changed.push(e.t);
+        }
+        return { changed };
+      });
+    }
+
+    // ------------------------------------------------------------ the whole offseason
+    // Runs every stage that is open: opens the offseason (ph 'done'), the draft, free agency, the roster check. opts = { humans, hold, ctx,
+    // picks: [{t,id}], signs: [{t,ids}], cuts: [{t,ids}] }. With no humans (and no hold) it runs by itself. With humans and hold it stops at the
+    // first human turn that has no entry: held true, stage 'dr' | 'fa' | 'cut', pending [...]. Call again with more entries to go on.
+    // Returns { held, stage, retired, report, picks, signed, cut, filled, pending, season }.
+    function offseasonFull(L, opts = {}) {
+      const out = { held: false, stage: null, retired: null, report: null, picks: [], signed: [], cut: [], filled: [], pending: [], season: null };
+      if (L.ph === 'done') { const o = openOffseason(L, opts); out.retired = o.retired; out.report = o.report; }
+      if (L.ph === 'dr') { const r = draftWith(L, opts.picks || [], opts); out.picks = r.picks; if (r.held) return Object.assign(out, { held: true, stage: 'dr', pending: r.pending }); }
+      if (L.ph === 'fa') { const r = freeAgencyWith(L, opts.signs || [], opts); out.signed = r.signed; if (r.held) return Object.assign(out, { held: true, stage: 'fa', pending: r.pending }); }
+      if (L.ph === 'cut') { const r = cutWith(L, opts.cuts || [], opts); out.cut = r.cut; out.filled = r.filled; if (r.held) return Object.assign(out, { held: true, stage: 'cut', pending: r.pending }); }
+      out.season = L.ssn; return out;
+    }
+
+    // where the offseason stands (changes nothing): { stage: 'play' | 'done' | 'dr' | 'fa' | 'cut', next: {t, ...} | null, human: bool }
+    function offseasonStatus(L, opts = {}) {
+      const hu = humanSet(L, opts);
+      if (L.ph === 'reg') return { stage: 'play', next: null, human: false };
+      if (L.ph === 'done') return { stage: 'done', next: null, human: false };
+      const dr = L.dr, nT = L.teams.length;
+      if (L.ph === 'dr') { const n = dr.pk.length, t = dr.ord[n % nT]; return { stage: 'dr', next: { t, n, round: Math.floor(n / nT) }, human: hu.has(t) }; }
+      const t = dr.ord.find((x) => !dr.dn.includes(x));
+      return { stage: L.ph, next: { t }, human: hu.has(t) };
+    }
+
+    // ------------------------------------------------------------ checks (no files)
+    // Returns a list of problems (empty = fine). Rosters are checked at 40 / every position at its minimum in phases 'reg' and 'done'.
+    function checkFull(L) {
+      const bad_ = [], rules = L.rules, m = minOf(rules), SIZE = rosterSize(rules), ids = new Set(), names = new Set();
+      if (L.dp !== 'full') bad_.push('dp is not full');
+      if (!PHASES.includes(L.ph)) bad_.push('phase ' + L.ph);
+      if (!Array.isArray(L.fa)) bad_.push('no pool'); if (L.dr === undefined) bad_.push('no dr field');
+      const chk = (p, where) => {
+        if (ids.has(p.id)) bad_.push('duplicate id ' + p.id); ids.add(p.id);
+        for (const [k, v] of Object.entries(p.rt)) {
+          if (!(v >= 1 && v <= 10)) bad_.push(`${p.id} ${k} ${v} outside 1 to 10`);
+          if (v > p.pt + 1e-9) bad_.push(`${p.id} ${k} ${v} above potential ${p.pt}`);
+          if (Math.abs(v * 10 - Math.round(v * 10)) > 1e-6) bad_.push(`${p.id} ${k} ${v} not one decimal`);
+        }
+        if (!(p.xp === 0)) bad_.push(`${p.id} xp stored`);
+      };
+      const settled = L.ph === 'reg' || L.ph === 'done';
+      for (const t of L.teams) {
+        if (settled && t.ro.length !== SIZE) bad_.push(`${t.nm} has ${t.ro.length} players`);
+        for (const [pos] of rules.positions) {
+          const ps = t.ro.filter((p) => p.ps === pos).sort((a, b) => a.sl - b.sl);
+          if (settled && ps.length !== m[pos]) bad_.push(`${t.nm} has ${ps.length} ${pos}, minimum ${m[pos]}`);
+          if (ps.some((p, i) => p.sl !== i)) bad_.push(`${t.nm} ${pos} slots wrong`);
+        }
+        const own = new Set();        // 1.3: a name must be unique within its team in EVERY shape (the Standard rule; Standard 8-team leagues may repeat a name on two teams, and an upgraded one keeps it)
+        for (const p of t.ro) { chk(p, t.nm); if (own.has(p.nm)) bad_.push('duplicate name ' + p.nm); own.add(p.nm); }
+      }
+      for (const p of L.fa) chk(p, 'pool');
+      if (L.dr) for (const p of L.dr.cls) chk(p, 'class');
+      if (settled && L.fa.length > FR(L).fa.poolSize) bad_.push('pool too big: ' + L.fa.length);
+      for (const [, id] of L.rtd) if (ids.has(id)) bad_.push('retired id is live: ' + id);
+      if (settled && L.dr !== null) bad_.push('dr is not null in a season');
+      if (L.shape) P.checkShape(L, bad_);
+      P.checkInj(L, bad_);
+      return bad_;
+    }
+    // depth charts best rating first (ties id) for the teams in `teams` (default all): the AI default
+    function depthIsBestFirst(L, teams) {
+      const bad_ = [];
+      for (const ti of teams || L.teams.map((t, i) => i)) {
+        const t = L.teams[ti], by = {}; for (const p of t.ro) (by[p.ps] = by[p.ps] || []).push(p);
+        for (const pos in by) { const s = by[pos].slice().sort((a, b) => a.sl - b.sl); for (let i = 1; i < s.length; i++) if (overall(s[i - 1]) < overall(s[i]) - 1e-12) bad_.push(`${t.nm} ${pos} not best first`); }
+      }
+      return bad_;
+    }
+
+    return { STD, makeFullLeague, upgradeToFull, openOffseason, draftWith, freeAgencyWith, cutWith, depthWith, offseasonFull, offseasonStatus,
+      value, gain, checkFull, depthIsBestFirst, rosterSize, minOf, version: VERSION, KIND, RESERVED, STAGES, PHASES };
+  }
+
+  return { make, version: VERSION, KIND, RESERVED, STAGES, PHASES };
+})();
+if (typeof module !== 'undefined' && module.exports) module.exports = LGFULL;
 </script>
 <!-- STD_RULES: the rules object the game embeds (compact JSON, same text as the game's STD_RULES) -->
 <script type="application/json" id="std-rules">{"version":"round3","positions":[["QB",1],["RB",1],["WR",3],["TE",1],["OL",5],["DL",4],["LB",3],["DB",4],["K",1]],"ratingKeys":{"QB":["arm","acc"],"RB":["run"],"WR":["spd","cat"],"TE":["spd","cat"],"OL":["blk"],"DL":["def"],"LB":["def"],"DB":["def"],"K":["acc","rng"]},"league":{"target":3.7,"burnIn":10,"playoffTeams":4},"potential":{"mean":5,"sd":0.75,"min":3,"max":7.2,"posSdMult":{"QB":0.35,"RB":0.35,"WR":1,"TE":1,"OL":1,"DL":1,"LB":1,"DB":1,"K":1},"posShift":{"QB":-0.523,"RB":-0.523,"WR":-0.523,"TE":-0.523,"OL":-0.523,"DL":-0.15,"LB":-0.15,"DB":-0.15,"K":0},"star":{"min":7.5,"max":9.4,"curve":0.9,"chance":{"QB":0.03,"RB":0.03,"WR":0.16,"TE":0.16,"OL":0.03,"DL":0.04,"LB":0.04,"DB":0.045,"K":0.02}}},"rookie":{"ageMin":21,"ageMax":23,"ratingMin":2,"ratingMax":4.6,"potentialPull":0.3,"jitter":0.3,"floor":1.5},"growth":{"peakAge":26,"startAge":21,"maxShare":0.35,"ptLift":0.35,"ptLiftFrom":5,"shareCap":0.95,"noiseSd":0.075,"lateShift":{"QB":3,"K":3}},"decline":{"perYearPastPeak":[0,0.05,0.1,0.15,0.2,0.3,0.4,0.6],"floor":1},"xp":{"perGame":2,"perWin":1,"boostPer100":0.5,"maxBoost":0.6},"retire":{"chanceByAge":{"31":0.06,"32":0.12,"33":0.2,"34":0.32,"35":0.5},"belowMedianMultiplier":1.8,"forceAge":36,"forceAgeLate":39,"lateShift":{"QB":3,"K":3}},"edge":{"scale":1,"keep":0.4,"sd":0.17,"clamp":0.5}}</script>
@@ -1191,7 +1772,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = LGSTD;
    page makes no network request of any kind. It opens PPSAVE1 backup codes and
    Standard league files as before (read only), and linked leagues from the cloud.
    ===================================================================== */
-var HQ_VERSION = '0.13';   /* filled in by build.mjs from package.json "version" (major.minor): the ONE place to bump it */
+var HQ_VERSION = '0.15';   /* filled in by build.mjs from package.json "version" (major.minor): the ONE place to bump it */
 
 /* ---------- small helpers (build page parts without innerHTML, so a
    strange name inside a save can never run as code) ---------- */
@@ -1364,7 +1945,7 @@ async function unpackCode(text){
    ===================================================================== */
 function isObj(x){ return x && typeof x === 'object' && !Array.isArray(x); }
 /* a Standard league FILE (the tool's league record) */
-function isStd(o){ return isObj(o) && (o.dp === 'std' || (o.fmt === 'p8' && (o.teams || o.tm))); }
+function isStd(o){ return isObj(o) && (o.dp === 'std' || o.dp === 'full' || (o.fmt === 'p8' && (o.teams || o.tm))); }      /* HQ 0.14: a FULL league (dp 'full') is read like a Standard one, with backups, a pool and the offseason */
 /* a GAME save of a Standard league: the league record sits inside as `std`, my team index as `stm` */
 function isStdSave(o){ return isObj(o) && isObj(o.std) && Array.isArray(o.std.teams); }
 function isSimple(o){ return !isStdSave(o) && isObj(o) && (isObj(o.lg) || (('season' in o) && (('w' in o) || ('r' in o)))); }
@@ -1493,8 +2074,26 @@ var RT_ORDER = ['arm','acc','spd','cat','run','blk','def','rng'];
 var STD_DIV_NAMES = ['EAST','WEST'];       /* the game's own names for the two divisions; the file stores only 0 and 1 */
 
 /* the game's own strength formula applied to the starters; each part is null when a starter is missing */
+/* HQ 0.14: who really plays. A hurt starter is replaced by the next FIT man behind him on the depth chart (in a Full league a real backup, with his own
+   ratings), else by a stand-in (his ratings 2 lower, never below 1): the same rule as lg-std's derive. The unit strengths count the men who play. */
+function lineupOf(team){
+  var lu = {};
+  Object.keys(STARTERS).forEach(function(pos){
+    var list = team.roster.filter(function(p){ return p.pos === pos; }).sort(function(a,b){ return a.sl - b.sl; }), n = STARTERS[pos];
+    var bench = list.slice(n).filter(function(p){ return !p.ou; });
+    lu[pos] = list.slice(0, n).map(function(p){
+      if (!p.ou) return {p:p, rt:p.rt, by:null};
+      var b = bench.shift();
+      if (b){ b.fillFor = p; p.fillBy = b; return {p:b, rt:b.rt, by:p}; }
+      var rt = {}; Object.keys(p.rt).forEach(function(k){ rt[k] = isNum(p.rt[k]) ? Math.max(1, Math.round((p.rt[k] - 2) * 10) / 10) : p.rt[k]; });
+      p.standIn = true; return {p:null, rt:rt, by:p};
+    });
+  });
+  return lu;
+}
 function stdStrength(team){
-  function pick(pos){ return team.roster.filter(function(p){ return p.pos === pos && p.starter; }).sort(function(a,b){ return a.sl - b.sl; }); }
+  var lu = team.lineup || lineupOf(team);
+  function pick(pos){ return (lu[pos] || []).map(function(x){ return {rt:x.rt}; }); }
   var qb = pick('QB')[0], rb = pick('RB')[0], wr = pick('WR'), te = pick('TE')[0], ol = pick('OL'), dl = pick('DL'), lb = pick('LB'), db = pick('DB');
   function g(p, k){ return p && isNum(p.rt[k]) ? p.rt[k] : null; }
   var out = {off:null, def:null, q:null, rc:null, rb:null, ol:null};
@@ -1522,6 +2121,8 @@ function buildStd(J, info){
   var m = {depth:'STANDARD', S:save, save:save, L:J, classic:false, warn:info.warn, from:info.from, teams:[], idMap:{}, std:true,
     rules:rules, starMin:star, gl:[], players:[]};
   m.name = str(J.nm, 'League'); m.fmt = str(J.fmt, '?'); m.season = J.ssn; m.week = J.wk; m.phase = J.ph;
+  m.full = J.dp === 'full';                              /* HQ 0.14: a FULL league: 40 players a team, a pool, a draft */
+  if (m.full){ m.depth = 'FULL'; m.fa = Array.isArray(J.fa) ? J.fa.filter(isObj) : []; m.dr = isObj(J.dr) ? J.dr : null; }
   m.shape = isObj(J.shape) ? J.shape : null;             /* HQ 0.8: a shaped league (NFL 32, COLLEGE 60, custom); null = the 8-team league, shown as before */
   m.inj = (J.inj === 'LOW' || J.inj === 'NORMAL') ? J.inj : null;
   m.sched = Array.isArray(J.sch) ? J.sch : []; m.stdRes = Array.isArray(J.res) ? J.res.filter(function(r){ return isObj(r) && Array.isArray(r.sc); }) : [];
@@ -1548,6 +2149,7 @@ function buildStd(J, info){
       team.roster.filter(function(p){ return p.pos === pos; }).sort(function(a,b){ return a.sl - b.sl; })
         .forEach(function(p, j){ p.starter = j < STARTERS[pos]; });
     });
+    team.lineup = lineupOf(team);                                              /* 0.14: a hurt starter is out of the unit strengths */
     team.str = stdStrength(team); team.off = team.str.off; team.def = team.str.def;
     maxDv = Math.max(maxDv, team.div); maxCf = Math.max(maxCf, team.conf);
     m.teams.push(team); m.idMap[team.id] = i;
@@ -2536,7 +3138,7 @@ function vTeamStd(main){
   var m = state.m;
   if (state.selTeam == null || !m.teams[state.selTeam]) state.selTeam = m.meIdx >= 0 ? m.meIdx : 0;
   var t = m.teams[state.selTeam], P = m.po;
-  add(main, [el('h1', null, 'TEAM'), el('p', {class:'sub'}, 'Pick a team from the list. All 23 starters are shown.')]);
+  add(main, [el('h1', null, 'TEAM'), el('p', {class:'sub'}, state.m.full ? 'Pick a team from the list. Starters and backups are shown by position, in depth chart order.' : 'Pick a team from the list. All 23 starters are shown.')]);
   var list = el('div', {class:'tlist', role:'list'}), lastG = null;
   m.teams.slice().sort(function(a, b){
     var x = groupOf(m, a).order - groupOf(m, b).order; if (x) return x;
@@ -2577,10 +3179,10 @@ function vTeamStd(main){
   ]));
   if (S.off == null || S.def == null) techNodes.push(el('p', {class:'note'}, 'A unit could not be worked out because a starter or a rating is missing.'));
   var hurt = t.roster.filter(function(p){ return p.ou; });
-  if (hurt.length) d.appendChild(el('p', {class:'note', id:'hurtNote'}, hurt.length + ' starter' + (hurt.length === 1 ? ' is' : 's are') + ' hurt (' + hurt.map(function(p){ return p.pos + ' ' + p.name + ' ' + outText(p).toLowerCase(); }).join(', ') + '). The sim replaces a hurt starter with the next fit player; the unit strengths above still count him.'));
+  if (hurt.length) d.appendChild(el('p', {class:'note', id:'hurtNote'}, hurt.length + ' starter' + (hurt.length === 1 ? ' is' : 's are') + ' hurt (' + hurt.map(function(p){ return p.pos + ' ' + p.name + ' ' + outText(p).toLowerCase(); }).join(', ') + '). ' + hurt.filter(function(p){ return p.fillBy; }).map(function(p){ return p.fillBy.name + ' plays for ' + p.name; }).concat(hurt.filter(function(p){ return p.standIn; }).map(function(p){ return 'a stand-in plays for ' + p.name + ' (his ratings 2 lower)'; })).join('; ') + '. The unit strengths above count the men who play.'));
 
   /* the starters */
-  d.appendChild(el('h3', null, 'STARTERS'));
+  d.appendChild(el('h3', null, state.m.full ? 'STARTERS AND BACKUPS' : 'STARTERS'));
   var rows = [], miss = [];
   var positions = POS_ORDER.concat(Array.from(new Set(t.roster.map(function(p){ return p.pos; }))).filter(function(p){ return POS_ORDER.indexOf(p) < 0; }));
   positions.forEach(function(pos){
@@ -2589,13 +3191,14 @@ function vTeamStd(main){
     if (need && have < need) miss.push(pos + ' ' + have + '/' + need);
     if (ps.length){ rows.push({__section:pos + (need ? '  (starters: ' + need + ')' : '')}); ps.forEach(function(p){ rows.push(p); }); }
   });
-  d.appendChild(table([
-    {h:'NAME', v:function(p){ return [p.name, p.star ? tag('STAR', 'star') : null, p.starter ? null : tag('BACKUP', 'bk'), p.ou ? tag(outText(p), 'rt') : null]; }},
+  d.appendChild(table((state.m.full ? [{h:'DEPTH', v:function(p){ return String(p.sl + 1); }, n:true}] : []).concat([
+    {h:'NAME', v:function(p){ return [p.name, p.star ? tag('STAR', 'star') : null, p.starter ? null : tag('BACKUP', 'bk'), p.ou ? tag(outText(p), 'rt') : null,
+      p.fillFor ? tag('PLAYS FOR ' + p.fillFor.name.toUpperCase(), 'st') : null, p.fillBy ? tag(p.fillBy.name.toUpperCase() + ' PLAYS', 'st') : null, p.standIn ? tag('STAND-IN PLAYS', 'st') : null]; }},
     {h:'AGE', v:function(p){ return str(p.age, '-'); }, n:true},
     {h:'RATINGS', v:function(p){ return ratingTextStd(p); }},
     {h:'POT', v:function(p){ return rd(p.pot); }, n:true}, {h:'XP', hm:true, v:function(p){ return str(p.xp, '-'); }, n:true},
     {h:'TO POTENTIAL', v:function(p){ var g = progressOf(p); return g == null ? '-' : [el('span', {class:'pbarw'}, bar(g)), ' ' + Math.round(g) + '%']; }}
-  ], rows, {click:function(p){ state.selPlayer = {t:t.idx, p:p.key}; go('player'); }}));
+  ]), rows, {click:function(p){ state.selPlayer = {t:t.idx, p:p.key}; go('player'); }}));
   if (miss.length) d.appendChild(el('p', {class:'note'}, 'Missing starters: ' + miss.join(', ') + '.'));
   d.appendChild(el('p', {class:'note'}, 'STAR = potential ' + rd(m.starMin) + ' or more (the file has no star flag of its own). TO POTENTIAL = the average of the player\'s ratings divided by his potential (worked out here). Ratings and potential are shown as stored.'));
 
@@ -2755,15 +3358,17 @@ document.addEventListener('drop', function(e){
 /* ---------- the league tool's own files, loaded above as LGE / LGSTD ---------- */
 var STD_RULES = JSON.parse(document.getElementById('std-rules').textContent);
 var STD = LGSTD.make(LGE);
+var FULL = LGFULL.make(LGSTD, LGE);
 
 /* ===== HQ CLOUD LAYER BEGIN =====
    lg-cloud.js - ONE shared file: HQ (hq.html) and the phone game embed it byte for byte. Version string just below.
    Plain JavaScript: no DOM, no SDK import. It needs these globals, set by the page (or by the emulator test):
    LGE (lg-engine.js), LGSTD (lg-std.js), STD = LGSTD.make(LGE), STD_RULES (the rules object the game embeds).
+   1.2 (a linked FULL league) also needs FULL = LGFULL.make(LGSTD, LGE) (lg-full 1.4) for runFullStep; reading a Full league needs no lg-full.
    Three parts: (1) a thin ADAPTER over Firestore, (2) PURE functions that turn a Standard league into cloud documents and back,
    (3) the CLOUD OPERATIONS (create, resume, read) written against the adapter only. */
 
-var LG_CLOUD_VERSION = 'lg-cloud 1.1 (HQ 0.13: every field of a phone Standard league: personalities, wardrobes, injuries, names, playbook, YOUR PLAYERS)';
+var LG_CLOUD_VERSION = 'lg-cloud 1.2 (HQ 0.15: linked FULL leagues: pool, draft, wish lists, the offseason steps; 1.1 = every field of a phone Standard league)';
 var CLOUD_SDK_VERSION = '10.14.1';           /* the same Firebase web SDK version the game loads */
 var CLOUD_FORMAT = 1;                        /* meta.v of the OLD layout (one document per team, 8 teams) */
 var CLOUD_FORMAT_BIG = 2;                    /* meta.v of the NEW layout (meta.lay === 2): one league document + one document per HUMAN team */
@@ -3006,8 +3611,32 @@ function metaOf2(L, uid, now){
   if (L.shape) m.shape = JSON.parse(JSON.stringify(L.shape));
   if (L.cx) m.cx = jcopy(L.cx);                       /* 1.1: renamed conference / division of the 8-team league */
   if (L.inj === 'LOW' || L.inj === 'NORMAL'){ m.inj = L.inj; m.hurt = hurtOf(L); }   /* 1.1: the injury setting and who is out */
+  if (L.dp === 'full') Object.assign(m, fullFields(L));                              /* 1.2: dp, the free-agent pool, the draft */
   return m;
 }
+/* ---------- lg-cloud 1.2: a FULL league in the league document ----------
+   dp = 'full'; fa = the pool (players, encPlayer); dr = the offseason record while ph is dr / fa / cut: { s: the season being closed, ord: draft order (team indexes),
+   pk: ["team:playerId", ...] the picks so far (a list inside a list is not allowed in Firestore), dn: teams done in the current stage, cls: the prospects left }.
+   Every team keeps its 40+ players in ts (computer) or in its team document (human). A human team document may carry of = his entries for THIS offseason:
+   { s: season, dr: [prospect ids, best first] (a WISH LIST), fa: [pool player ids, best first] (a wish list), cut: [player ids] } (each key present = entry made). */
+function drEnc(dr){
+  return { s: dr.s, ord: dr.ord.slice(), pk: dr.pk.map(function(x){ return x[0] + ':' + x[1]; }), dn: dr.dn.slice(), cls: dr.cls.map(encPlayer) };
+}
+function drDec(d, rules){
+  if (!d || !Array.isArray(d.ord) || !Array.isArray(d.pk) || !Array.isArray(d.cls)) throw bad('the draft record is damaged');
+  return { s: d.s, ord: d.ord.slice(), pk: d.pk.map(function(x){ var j = String(x).indexOf(':'); return [Number(String(x).slice(0, j)), String(x).slice(j + 1)]; }),
+    dn: (d.dn || []).slice(), cls: d.cls.map(function(q){ return decPlayer(q, rules); }) };
+}
+function fullFields(L){
+  var o = { dp: 'full', fa: L.fa.map(encPlayer) };
+  if (L.dr) o.dr = drEnc(L.dr);
+  return o;
+}
+/* the phases of the Full offseason: the draft, free agency, the roster check (ph 'done' = the season is over, the offseason is not open yet) */
+function isOffPhase(ph){ return ph === 'dr' || ph === 'fa' || ph === 'cut'; }
+function inOffseason(meta){ return !!(meta && meta.dp === 'full' && isOffPhase(meta.ph)); }
+/* the hist documents to read: the finished seasons, and in the Full offseason the season being closed too (its row is written when the offseason opens) */
+function lastHist(meta){ return inOffseason(meta) ? meta.season : meta.season - 1; }
 /* a short label for a screen: 8 TEAMS, 32 TEAMS (NFL), 60 TEAMS (COLLEGE), 12 TEAMS (CUSTOM) */
 function sizeLabel(meta){
   var n = teamCount(meta), sh = layoutOf(meta) === 2 && meta.shape ? meta.shape : null;
@@ -3053,6 +3682,8 @@ function buildLeague(meta, teamDocs, weekDocs, histDocs){
   if (shape) L.shape = JSON.parse(JSON.stringify(shape));
   if (lay2 && meta.cx && typeof meta.cx === 'object') L.cx = jcopy(meta.cx);
   if (lay2 && (meta.inj === 'LOW' || meta.inj === 'NORMAL')) L.inj = meta.inj;          /* set BEFORE the weeks are applied: the engine's injury step runs with each week */
+  var full = lay2 && meta.dp === 'full';
+  if (full){ L.dp = 'full'; L.fa = (meta.fa || []).map(function(q){ return decPlayer(q, rules); }); L.dr = null; }
   Object.keys(histDocs).map(Number).sort(function(a, b){ return a - b; }).forEach(function(s){ L.hist.push(histRowOf(s, histDocs[s])); });
   var nG = L.sch.length, w, applied = 0;
   for (w = 0; w < nG; w++){ var wd = weekDocs[weekKey(season, w)]; if (!wd) break; STD.applyWeek(L, gamesOfDoc(wd)); applied++; }
@@ -3065,6 +3696,12 @@ function buildLeague(meta, teamDocs, weekDocs, histDocs){
   }
   for (var q = r + 1; q < r + 8; q++) if (weekDocs[weekKey(season, 100 + q)]) throw bad(q === 1 ? 'the final is stored without the semifinals' : 'a playoff round is stored without the one before it');
   if (L.inj && meta.hurt && typeof meta.hurt === 'object') applyHurt(L, meta.hurt);      /* what the commissioner stored is the truth (it also covers a setting changed mid-season) */
+  if (full && isOffPhase(meta.ph)){                                  /* 1.2: the offseason: the season's weeks are replayed (the season is over), then the stage and the draft record are set */
+    if (L.ph !== 'done' || L.wk !== meta.wk) throw bad('the league says offseason ' + meta.ph + ' but the stored weeks give week ' + L.wk + ' (' + L.ph + ')');
+    L.ph = meta.ph; L.dr = meta.dr ? drDec(meta.dr, rules) : null;
+    if (!L.dr) throw bad('the draft record is missing');
+    return L;
+  }
   if (L.wk !== meta.wk || L.ph !== meta.ph) throw bad('the league says week ' + meta.wk + ' (' + meta.ph + ') but the stored weeks give week ' + L.wk + ' (' + L.ph + ')');
   return L;
 }
@@ -3104,7 +3741,13 @@ function planOf(L, uid, lg, now, layout){
 }
 /* a plan for a league whose meta is already in the cloud (to finish an interrupted creation): the same league, made again from rs */
 function planFromMeta(meta, lg, uid, code){
-  var L = STD.makeLeague(meta.rs, rulesOf(meta), STD.newCtx(), layoutOf(meta) === 2 && meta.shape ? meta.shape : null);
+  var L;
+  if (meta.dp === 'full'){                                          /* 1.2: a Full league is made again by lg-full (season 1, as at creation) */
+    if (typeof FULL === 'undefined') throw CloudError('bad', 'This is a Full league: finishing its creation needs lg-full.');
+    var fo = { rules: rulesOf(meta), shape: meta.shape || undefined };
+    if (meta.inj === 'LOW' || meta.inj === 'NORMAL') fo.injuries = meta.inj;
+    L = FULL.makeFullLeague(meta.rs, fo);
+  } else L = STD.makeLeague(meta.rs, rulesOf(meta), STD.newCtx(), layoutOf(meta) === 2 && meta.shape ? meta.shape : null);
   L.nm = meta.nm;
   var p = planOf(L, uid, lg, meta.updatedAt, layoutOf(meta));
   p.meta = meta; p.code = code || null;
@@ -3217,7 +3860,7 @@ async function readParts(ad, lg, meta, cache){
     if (meta.wk >= nG) wp.push(want(weekKey(season, 100), PATH.week(lg, season, 100)));
     if (meta.wk >= nG + 2) wp.push(want(weekKey(season, 101), PATH.week(lg, season, 101)));
   }
-  for (var s = 1; s < season; s++) (function(s){
+  for (var s = 1; s <= lastHist(meta); s++) (function(s){
     if (!cache.hist[s]) wp.push(ad.get(PATH.hist(lg, s)).then(function(g){ if (g.exists) cache.hist[s] = g.data; }));
   })(s);
   var teamSnaps = await Promise.all(p), slotList = await slotsP, humanList = lay2 ? await humanP : [];
@@ -3310,7 +3953,7 @@ async function readForAdvance(g, lg, m, cache, noSlots){
     if (m.wk >= nG) want(weekKey(season, 100), PATH.week(lg, season, 100));
     if (m.wk >= nG + 2) want(weekKey(season, 101), PATH.week(lg, season, 101));
   }
-  for (var s = 1; s < season; s++) (function(s){ if (!cache.hist[s]) wp.push(g.get(PATH.hist(lg, s)).then(function(x){ if (x.exists) cache.hist[s] = x.data; })); })(s);
+  for (var s = 1; s <= lastHist(m); s++) (function(s){ if (!cache.hist[s]) wp.push(g.get(PATH.hist(lg, s)).then(function(x){ if (x.exists) cache.hist[s] = x.data; })); })(s);
   var ts = await Promise.all(tp), ss = await Promise.all(sp);
   var slots = {}; ss.forEach(function(x, k){ if (x.exists) slots[String(k)] = x.data; });
   if (lay2){
@@ -3342,6 +3985,7 @@ async function advanceWeek(ad, lg, o){
     if (m.commish !== o.uid) throw CloudError('denied', 'Only the commissioner can do this.');
     if (staleMeta(m, o.expect)) throw CloudError('stale', STALE_TEXT);
     if (o.mode === 'unhold'){ var u = Object.assign({}, m, { hold: false, updatedAt: nextStamp(m.updatedAt) }); tx.set(PATH.meta(lg), u); result = { kind: 'unheld', meta: u, reads: reads }; return; }
+    if (inOffseason(m)) throw CloudError('bad', 'The offseason is open. Use the offseason steps (DRAFT, FREE AGENCY, ROSTER CHECK).');
     var parts = await readForAdvance(g, lg, m, o.cache);
     var L = buildLeague(m, parts.teamDocs, parts.weeks, parts.hist);
     var plan = STD.nextGames(L);
@@ -3466,6 +4110,7 @@ async function runOffseason(ad, lg, o){
     var m = mg.data;
     if (m.commish !== o.uid) throw CloudError('denied', 'Only the commissioner can do this.');
     if (staleMeta(m, o.expect)) throw CloudError('stale', STALE_TEXT);
+    if (m.dp === 'full') throw CloudError('bad', 'This is a Full league: its offseason runs in steps (OPEN, DRAFT, FREE AGENCY, ROSTER CHECK).');
     var parts = await readForAdvance(g, lg, m, o.cache, true);
     var L = buildLeague(m, parts.teamDocs, parts.weeks, parts.hist);
     if (STD.nextGames(L).kind !== 'done') throw CloudError('bad', 'The season is not over yet: the playoffs must finish before the offseason.');
@@ -3506,6 +4151,152 @@ async function runOffseason(ad, lg, o){
   });
   return result;
 }
+/* ===================================================================================================================
+   lg-cloud 1.2: the FULL offseason in a linked league. Four commissioner steps, each like advancing a week (one transaction):
+     OPEN         ph done -> dr   the season is over: growth, retirements, the draft class and order (FULL.openOffseason); the history row is written
+     DRAFT        ph dr   -> fa   FULL.draftWith with every human's wish list
+     FREE AGENCY  ph fa   -> cut  FULL.freeAgencyWith with every human's wish list
+     ROSTER CHECK ph cut  -> reg  FULL.cutWith with every human's cuts; the new season starts (week 0)
+   Before each step a human sets his entries on his own phone (saveEntries: of.dr, of.fa, of.cut in his team document). ADVANCE runs the step with the entries
+   there are; a human with NO entry stops the step (held; what was done is kept and the next ADVANCE goes on from there). With o.auto (ADVANCE + AUTO FOR ANYONE WAITING)
+   a human with no entry is picked for like a computer team. A present but empty wish list is an entry: draft = pick for me every turn, free agency = sign nobody.
+   A bad cut entry (wrong number, a player at his position minimum) is ignored (reported in `ignored`), so it can never block the commissioner.
+   =================================================================================================================== */
+var OF_MAX = { dr: 200, fa: 30, cut: 20 };
+function ofOfDoc(d, season){
+  var o = d && d.of && typeof d.of === 'object' && !Array.isArray(d.of) ? d.of : null;
+  return o && o.s === season ? o : {};
+}
+function idList(a, max){ return Array.isArray(a) ? a.filter(function(x){ return typeof x === 'string' && x.length >= 1 && x.length <= 24; }).slice(0, max) : null; }
+/* a human's cut entry is usable when it names exactly the surplus, all on his roster, none at a position minimum. Returns { surplus, ok } */
+function cutCheck(L, ti, ids){
+  var t = L.teams[ti], m = FULL.minOf(L.rules), sur = -FULL.rosterSize(L.rules), left = {}, pos;
+  for (pos in m){ var c = t.ro.filter(function(p){ return p.ps === pos; }).length; left[pos] = c; sur += Math.max(c, m[pos]); }
+  var ok = sur > 0 && Array.isArray(ids) && ids.length === sur && new Set(ids).size === ids.length;
+  if (ok) ids.forEach(function(id){
+    var p = t.ro.filter(function(x){ return x.id === id; })[0];
+    if (!p || left[p.ps] <= m[p.ps]) ok = false; else left[p.ps]--;
+  });
+  return { surplus: Math.max(0, sur), ok: ok };
+}
+/* PURE: who has made the entries the current step needs. rows = [{ t, nm, state: 'in' | 'waiting' | 'none' (nothing to do), n: how many ids }], waiting = how many wait.
+   L = the rebuilt league (ph dr / fa / cut), teamDocs = the n team documents of parts (a human's own document carries his `of`), slots = parts.slots */
+function entryStatus(meta, L, teamDocs, slots){
+  var stage = meta && meta.dp === 'full' && isOffPhase(meta.ph) ? meta.ph : null;
+  var out = { stage: stage, label: stage === 'dr' ? 'DRAFT' : stage === 'fa' ? 'FREE AGENCY' : stage === 'cut' ? 'ROSTER CHECK' : null, rows: [], waiting: 0 };
+  if (!stage || !L) return out;
+  humansOf(slots || {}).forEach(function(i){
+    var d = teamDocs[i] || {}, of = ofOfDoc(d, meta.season), row = { t: i, nm: L.teams[i] ? L.teams[i].nm : String(i), state: 'waiting', n: 0 };
+    if (stage === 'dr' || stage === 'fa'){ var a = of[stage]; if (Array.isArray(a)){ row.state = 'in'; row.n = a.length; } }
+    else {
+      var cc = cutCheck(L, i, of.cut), sur = cc.surplus;
+      if (!sur){ row.state = 'none'; } else if (Array.isArray(of.cut)){ row.state = cc.ok ? 'in' : 'waiting'; row.n = of.cut.length; row.bad = !cc.ok; row.surplus = sur; }
+      else row.surplus = sur;
+    }
+    if (row.state === 'waiting') out.waiting++;
+    out.rows.push(row);
+  });
+  return out;
+}
+/* the owner's entries: ONE transaction on his own team document (only `of` changes, so the rules let him). patch = { dr: [ids] | null, fa: [ids] | null, cut: [ids] | null };
+   null removes that entry. o = { idx, season } */
+async function saveEntries(ad, lg, o, patch){
+  var out = null;
+  await ad.transaction(async function(tx){
+    var tg = await tx.get(PATH.team(lg, o.idx));
+    if (!tg.exists) throw CloudError('missing', 'Your team document was not found.');
+    var of = Object.assign({}, ofOfDoc(tg.data, o.season));
+    ['dr', 'fa', 'cut'].forEach(function(k){
+      if (!(k in patch)) return;
+      if (patch[k] === null){ delete of[k]; return; }
+      var a = idList(patch[k], OF_MAX[k]); if (!a) throw CloudError('bad', 'An entry is a list of player ids.');
+      of[k] = a;
+    });
+    of.s = o.season;
+    var nd = Object.assign({}, tg.data); if (Object.keys(of).length > 1) nd.of = of; else delete nd.of;
+    tx.set(PATH.team(lg, o.idx), nd); out = nd.of || null;
+  });
+  return out;
+}
+/* ONE step of the Full offseason. o = { uid, expect, cache, auto }.
+   -> { kind: 'fullstep', stage: 'open' | 'dr' | 'fa' | 'cut', meta, held, done, res (what the engine returned), ignored: [{t, why}], entries (entryStatus of the stage that ran), reads, writes } */
+async function runFullStep(ad, lg, o){
+  if (typeof FULL === 'undefined') throw CloudError('bad', 'This page cannot run a Full league step (lg-full is missing).');
+  var reads = 0, result = null;
+  await ad.transaction(async function(tx){
+    reads = 0; result = null;
+    var g = { get: function(p){ reads++; return tx.get(p); } };
+    var mg = await g.get(PATH.meta(lg));
+    if (!mg.exists) throw CloudError('missing', 'This league does not exist in the cloud.');
+    var m = mg.data;
+    if (m.commish !== o.uid) throw CloudError('denied', 'Only the commissioner can do this.');
+    if (staleMeta(m, o.expect)) throw CloudError('stale', STALE_TEXT);
+    if (layoutOf(m) !== 2 || m.dp !== 'full') throw CloudError('bad', 'This is not a Full league.');
+    var stage = m.ph === 'done' ? 'open' : (isOffPhase(m.ph) ? m.ph : null);
+    if (!stage) throw CloudError('bad', 'The season is not over yet: the playoffs must finish before the offseason.');
+    var parts = await readForAdvance(g, lg, m, o.cache, true);
+    var L = buildLeague(m, parts.teamDocs, parts.weeks, parts.hist);
+    var season = m.season, humans = humansOf(parts.slots), isH = {}, ctx = STD.newCtx(), ignored = [], res, snaps = {};
+    humans.forEach(function(i){ isH[i] = true; });
+    var entries = entryStatus(m, L, parts.teamDocs, parts.slots);
+    var owSave = L.teams.map(function(t){ return t.ow; });
+    L.teams.forEach(function(t, i){ if (!isH[i]) t.ow = 'ai'; });             /* a team nobody owns is the computer's, whatever its ow says */
+    var opts = { humans: humans, hold: !o.auto, ctx: ctx };
+    var ofs = function(i){ return ofOfDoc(parts.teamDocs[i], season); };
+    var hg = null;
+    if (stage === 'open'){
+      hg = await g.get(PATH.hist(lg, season));
+      if (hg.exists) throw CloudError('stale', STALE_TEXT);
+      if (L.ph !== 'done') throw CloudError('bad', 'The season is not over yet: the playoffs must finish before the offseason.');
+      humans.forEach(function(i){ snaps[i] = snapOf(L.teams[i]); });
+      res = FULL.openOffseason(L, { ctx: ctx });
+    } else if (stage === 'dr'){
+      var de = []; humans.forEach(function(i){ var w = idList(ofs(i).dr, OF_MAX.dr); if (w) de.push({ t: i, wish: w }); });
+      res = FULL.draftWith(L, de, opts);
+    } else if (stage === 'fa'){
+      var fe = []; humans.forEach(function(i){ var w = idList(ofs(i).fa, OF_MAX.fa); if (w) fe.push({ t: i, wish: w }); });
+      res = FULL.freeAgencyWith(L, fe, opts);
+    } else {
+      var ce = [];
+      humans.forEach(function(i){
+        var cc = cutCheck(L, i, ofs(i).cut);
+        if (cc.surplus && Array.isArray(ofs(i).cut)){ if (cc.ok) ce.push({ t: i, ids: ofs(i).cut.slice() }); else ignored.push({ t: i, why: 'the cut list does not fit (it must name exactly ' + cc.surplus + ' players, none at a position minimum)' }); }
+      });
+      res = FULL.cutWith(L, ce, opts);
+    }
+    L.teams.forEach(function(t, i){ t.ow = owSave[i]; });
+    var now = nextStamp(m.updatedAt), ts = {}, nh = 0, closed = L.ph === 'reg', stageDone = stage === 'open' || L.ph !== m.ph, nd;
+    L.teams.forEach(function(t, i){
+      var k = String(i);
+      if (parts.slots[k]){
+        var od = parts.teamDocs[i] || {};
+        nd = encTeam(t, [], null, L.rules);
+        ['pb', 'stx', 'yp', 'pv'].forEach(function(f){ if (od[f] != null) nd[f] = jcopy(od[f]); });
+        if (stage === 'open'){ var ys = yourSet(snaps[i], t, season); nd.yp = encYp(ys.yp); nd.pv = ys.pv; }
+        if (closed && nd.yp && nd.pv){                         /* the new season: YOUR PLAYERS also lists the rookies and signings of this offseason */
+          var yy = decYp(nd.yp); yy.rk = t.ro.filter(function(p){ return !(p.id in nd.pv); }).map(function(p){ return [p.ps, p.nm, stdStarsOf(p.pt)]; });
+          nd.yp = encYp(yy);
+        }
+        if (!closed){                                          /* his entries stay until their step is done */
+          var keep = {}, of = ofs(i); ['dr', 'fa', 'cut'].forEach(function(f){ if (of[f] != null && !(stageDone && f === stage)) keep[f] = of[f]; });
+          if (Object.keys(keep).length){ keep.s = season; nd.of = keep; }
+        }
+        tx.set(PATH.team(lg, i), nd); nh++;
+      }
+      else ts[k] = encTeamLite(t);
+    });
+    parts.tidy.del.forEach(function(k){ tx.del(PATH.team(lg, k)); nh++; });
+    var nm = Object.assign({}, m, { season: L.ssn, wk: L.wk, ph: L.ph, hold: false, ovr: [], updatedAt: now, ts: ts, rtd: rtdStrings(L.rtd) });
+    delete nm.dr; delete nm.picks; Object.assign(nm, fullFields(L));
+    if (L.inj) nm.hurt = {};
+    var writes = nh + 1;
+    if (stage === 'open'){ tx.set(PATH.hist(lg, season), histDocOf(L.hist[L.hist.length - 1], now)); writes++; }
+    tx.set(PATH.meta(lg), nm);
+    result = { kind: 'fullstep', stage: stage, meta: nm, held: !!res.held, done: stage === 'open' ? true : !!res.done, res: res, ignored: ignored, entries: entries, reads: reads, writes: writes };
+  });
+  return result;
+}
+
 /* rename the league (meta.nm) */
 async function renameLeague(ad, lg, o){
   var name = cleanName(o.name), out = null;
@@ -3830,16 +4621,17 @@ function fmtDate(t){ try { return new Date(t).toISOString().slice(0, 10); } catc
 function viewOK(id){
   if (id === 'open') return true;
   if (id === 'cloud' || id === 'week' || id === 'audit' || id === 'champs' || id === 'about') return !!state.cl && !!state.m;
+  if (id === 'fulloff') return !!state.m && !!state.m.full;
   return !!state.m;
 }
 var VIEWS = [
-  ['open', 'MY LEAGUES'], ['cloud', 'CODE AND SLOTS'], ['week', 'THE WEEK'], ['audit', 'AUDIT'], ['champs', 'CHAMPIONS AND HISTORY'], ['about', 'ABOUT THIS LEAGUE'], ['league', 'LEAGUE'], ['standings', 'STANDINGS'], ['team', 'TEAM'],
+  ['open', 'MY LEAGUES'], ['cloud', 'CODE AND SLOTS'], ['week', 'THE WEEK'], ['audit', 'AUDIT'], ['champs', 'CHAMPIONS AND HISTORY'], ['about', 'ABOUT THIS LEAGUE'], ['league', 'LEAGUE'], ['standings', 'STANDINGS'], ['team', 'TEAM'], ['fulloff', 'POOL AND DRAFT'],
   ['player', 'PLAYER'], ['schedule', 'SCHEDULE AND RESULTS'], ['stats', 'MY STATS'], ['playbook', 'PLAYBOOK']
 ];
 function go(v){ state.view = v; render(); window.scrollTo(0, 0); }
 /* HQ 0.9: the menu leads with what people look at. MY LEAGUES (home), then, with a league open, STANDINGS, TEAM, SCHEDULE, PLAYER, MY STATS, LEAGUE;
    the code, the slots, the week and the other commissioner pages sit together under their own small heading at the bottom. */
-var MENU_TOP = ['open'], MENU_LEAGUE = ['standings', 'team', 'schedule', 'player', 'stats', 'playbook', 'league'], MENU_ADMIN = ['cloud', 'week', 'audit', 'champs', 'about'];
+var MENU_TOP = ['open'], MENU_LEAGUE = ['standings', 'team', 'fulloff', 'schedule', 'player', 'stats', 'playbook', 'league'], MENU_ADMIN = ['cloud', 'week', 'audit', 'champs', 'about'];
 function renderMenu(){
   var nav = document.getElementById('menu'); nav.textContent = '';
   /* HQ 0.12: the top line (the name of the app and of the open league) and, under it, the buttons in one box: a column on a wide screen, ONE row that scrolls sideways on a phone */
@@ -3853,7 +4645,7 @@ function renderMenu(){
       'aria-current':state.view === id ? 'page' : null, onclick:function(){ go(id); }}, label[id]));
     return true;
   }
-  if (state.m) top.appendChild(el('div', {class:'lgname top'}, [el('b', null, state.m.name), el('span', null, state.m.linked ? 'Linked Standard league' : (state.m.depth + ' league' + (state.m.std ? (state.m.save ? ' (game save)' : ' (file)') : '')))]));
+  if (state.m) top.appendChild(el('div', {class:'lgname top'}, [el('b', null, state.m.name), el('span', null, state.m.linked ? (state.m.full ? 'Linked Full league' : 'Linked Standard league') : (state.m.depth + ' league' + (state.m.std ? (state.m.save ? ' (game save)' : ' (file)') : '')))]));
   MENU_TOP.forEach(btn);
   MENU_LEAGUE.forEach(btn);
   var adm = MENU_ADMIN.filter(function(id){ return viewOK(id); });
@@ -3869,7 +4661,7 @@ function renderMenu(){
 function render(){
   renderMenu();
   var main = document.getElementById('main'); main.textContent = '';
-  var fn = {open:vOpen, cloud:vCloud, week:vWeek, audit:vAudit, champs:vChamps, about:vAbout, league:vLeague, standings:vStandings, team:vTeam, player:vPlayer, schedule:vSchedule, stats:vStats, playbook:vPlaybook}[state.view];
+  var fn = {open:vOpen, cloud:vCloud, week:vWeek, audit:vAudit, champs:vChamps, about:vAbout, league:vLeague, standings:vStandings, team:vTeam, player:vPlayer, schedule:vSchedule, stats:vStats, playbook:vPlaybook, fulloff:vFull}[state.view];
   if (!viewOK(state.view)) fn = vOpen;
   fn(main);
   document.getElementById('foot').textContent = 'Pixel Pigskin HQ v' + HQ_VERSION;
@@ -4017,7 +4809,7 @@ function vWeek(main){
   main.appendChild(cards([['SEASON', String(meta.season)], ['NOW', roundName(plan, L.shape)], ['WAITING (HOLD)', meta.hold ? 'YES' : 'NO'], ['SIM MARKS', String((meta.ovr || []).length)]]));
   if (meta.hold) main.appendChild(el('div', {class:'msg warn', id:'holdNote'}, 'The league is WAITING: the games stay open until the commissioner advances. Advancing clears this.'));
   if (plan.kind === 'done'){
-    main.appendChild(el('div', {class:'msg ok', id:'seasonOver'}, 'The season is over. Champion: ' + (L.po && L.po.ch != null ? teamName(L, L.po.ch) : '-') + (L.po && L.po.ru != null ? ', runner-up: ' + teamName(L, L.po.ru) : '') + '. The commissioner runs the OFFSEASON in the game on the phone. Create and run leagues in the game on your phone.'));
+    main.appendChild(el('div', {class:'msg ok', id:'seasonOver'}, 'The season is over. Champion: ' + (L.po && L.po.ch != null ? teamName(L, L.po.ch) : '-') + (L.po && L.po.ru != null ? ', runner-up: ' + teamName(L, L.po.ru) : '') + (meta.dp === 'full' ? '. The commissioner runs the offseason on his phone in four steps (OPEN, DRAFT, FREE AGENCY, ROSTER CHECK); see POOL AND DRAFT for the entries.' : '. The commissioner runs the OFFSEASON in the game on the phone. Create and run leagues in the game on your phone.')));
     return;
   }
   if (!w || w.loading){ main.appendChild(el('p', {class:'note', id:'weekLoading'}, 'Reading the submissions...')); return; }
@@ -4176,6 +4968,89 @@ function vAbout(main){
   main.appendChild(el('div', {class:'row'}, [el('span', {class:'note'}, 'LEAGUE CODE'), el('span', {class:'codebig'}, cl.code || '-')]));
   main.appendChild(el('pre', {id:'aboutText', class:'aboutbox'}, txt));
   if (navigator.clipboard) main.appendChild(el('button', {type:'button', class:'btn', id:'btnCopyAbout', onclick:function(){ try { navigator.clipboard.writeText(txt); } catch (e){} }}, 'COPY THIS TEXT'));
+}
+
+/* ---------- HQ 0.14: FULL leagues, LOOK ONLY. A Full league (the league record with dp 'full', made and run on the phone) has 40 players a team (the starters and
+   their backups), a free-agent pool (L.fa) and, in the offseason, a draft (L.dr: the order, the prospects left, the picks so far). HQ shows all of it; the phone
+   makes every choice. The league tool's own lg-full.js (FULL) gives the value order of the pool and whose turn it is. ---------- */
+var PHASE_WORDS = {reg:'THE SEASON', done:'SEASON OVER', dr:'THE DRAFT', fa:'FREE AGENCY', cut:'THE ROSTER CHECK'};
+function fullRow(p){
+  p = isObj(p) ? p : {};
+  var rt = isObj(p.rt) ? p.rt : {}, ov = null;
+  try { ov = FULL.STD.overall(p); } catch (e){ ov = null; }
+  return {id:str(p.id, '?'), name:str(p.nm, 'Player'), pos:str(p.ps, '?'), age:p.ag, pot:p.pt, rt:rt, ov:ov, raw:p};
+}
+function fullValue(m, p){ try { return FULL.value(p, m.L.rules); } catch (e){ return 0; } }
+function fullCols(){
+  return [
+    {h:'NAME', v:function(r){ return r.name; }}, {h:'POS', v:function(r){ return r.pos; }},
+    {h:'AGE', v:function(r){ return str(r.age, '-'); }, n:true}, {h:'RATING', v:function(r){ return rd(r.ov); }, n:true},
+    {h:'RATINGS', hm:true, v:function(r){ return ratingTextStd(r); }}, {h:'POT', v:function(r){ return rd(r.pot); }, n:true}
+  ];
+}
+function fullTeam(m, i){ return m.teams[i] ? m.teams[i].name : 'Team ' + (i + 1); }
+/* HQ 0.15: a LINKED Full league: who has made the entries the current step needs (lg-cloud 1.2 entryStatus). Look only: the entries are made on each person's phone. */
+function fullEntries(main){
+  var cl = state.cl; if (!cl || !cl.meta || cl.meta.dp !== 'full' || !cl.L) return;
+  var es = entryStatus(cl.meta, cl.L, cl.teamDocs, cl.slots);
+  if (!es.stage) return;
+  main.appendChild(el('h3', {id:'fullEntriesH'}, 'ENTRIES FOR THE ' + es.label + ' (' + (es.waiting ? es.waiting + ' WAITING' : 'ALL IN') + ')'));
+  if (!es.rows.length) main.appendChild(el('p', {class:'note', id:'fullEntriesNone'}, 'No team in this league belongs to a person yet: the computer runs every team, so nobody has to make an entry.'));
+  else main.appendChild(table([{h:'PLAYER', v:function(r){ return str(who(cl, r.t), '-'); }}, {h:'TEAM', v:function(r){ return fullTeam(cl.m || state.m, r.t); }},
+    {h:'ENTRIES', v:function(r){ return r.state === 'in' ? tag('IN', 'st') : r.state === 'none' ? tag('NOTHING TO DO', 'bk') : tag('WAITING', 'rt'); }},
+    {h:'WHAT', v:function(r){
+      if (es.stage === 'dr') return r.state === 'in' ? (r.n ? 'wish list of ' + r.n + (r.n === 1 ? ' prospect' : ' prospects') : 'pick for me every turn') : 'no wish list yet';
+      if (es.stage === 'fa') return r.state === 'in' ? (r.n ? 'wish list of ' + r.n + (r.n === 1 ? ' player' : ' players') : 'signs nobody') : 'no wish list yet';
+      if (r.state === 'none') return 'the roster is at its size';
+      if (r.state === 'in') return 'cuts ' + r.n;
+      return (r.bad ? 'the cut list does not fit; ' : '') + 'must cut ' + r.surplus;
+    }}], es.rows));
+  main.appendChild(el('p', {class:'note', id:'fullEntriesNote'}, 'Each person sets his entries on his own phone before the commissioner runs the step. ADVANCE runs the step with the entries there are and stops at a person with none; ADVANCE + AUTO FOR ANYONE WAITING picks for him like a computer team. HQ only looks.'));
+}
+function vFull(main){
+  var m = state.m, L = m.L, D = m.dr, nT = m.teams.length, ph = str(m.phase, 'reg');
+  add(main, [el('h1', null, 'POOL AND DRAFT'), el('p', {class:'sub'}, (state.m && state.m.linked ? 'The free agents and the offseason of a linked FULL league. HQ only looks: each person makes his entries on his own phone and the commissioner runs DRAFT, FREE AGENCY and ROSTER CHECK on his phone.' : 'The free agents and the offseason of a FULL league. HQ only looks: the draft, free agency and the roster check are made on the phone.'))]);
+  var rules = L.rules || {}, F = rules.full || {}, poolMax = F.fa && isNum(F.fa.poolSize) ? F.fa.poolSize : null;
+  var rounds = F.draft && isNum(F.draft.rounds) ? F.draft.rounds : 3, total = rounds * nT;
+  var st = null; try { st = FULL.offseasonStatus(L, {}); } catch (e){ st = null; }
+  var cs = [['PHASE', PHASE_WORDS[ph] || ph.toUpperCase()], ['SEASON', str(m.season, '-')], ['FREE AGENTS', String(m.fa.length) + (poolMax != null ? ' (LIMIT ' + poolMax + ')' : '')]];
+  if (D && ph === 'dr') cs.push(['PICKS MADE', D.pk.length + ' OF ' + total]);
+  main.appendChild(cards(cs));
+  if (!D && ph === 'reg') main.appendChild(el('p', {class:'note'}, 'No offseason is open. The draft, free agency and the roster check open after the playoffs, on the phone.'));
+  if (!D && ph === 'done') main.appendChild(el('p', {class:'note'}, 'The season is over. The offseason (retirements, the draft, free agency, the roster check) has not been opened yet' + (m.linked ? ': the commissioner opens it on the phone (OPEN THE OFFSEASON).' : '.')));
+  if (m.linked) fullEntries(main);
+  if (D && (ph === 'dr' || ph === 'fa' || ph === 'cut')){
+    var turn = st && st.next ? st.next : null, who = turn ? fullTeam(m, turn.t) : null, human = !!(st && st.human);
+    var line = ph === 'dr' ? ('Draft of season ' + D.s + ': ' + (turn ? 'pick ' + (turn.n + 1) + ' of ' + total + ' (round ' + (turn.round + 1) + ') is ' + who + '.' : 'all picks are made.'))
+      : ph === 'fa' ? ('Free agency of season ' + D.s + ': ' + (turn ? who + ' is next.' : 'every team has had its turn.'))
+      : ('Roster check of season ' + D.s + ': ' + (turn ? who + ' is next.' : 'every team is done.'));
+    main.appendChild(el('div', {class:'msg ok', id:'fullTurn'}, [line, human ? ' It is a human team: the phone waits for its owner.' : (turn ? ' A computer team: it goes by itself.' : '')]));
+    var onClock = turn ? turn.t : -1;
+    if (ph === 'dr'){
+      var found = {}; L.teams.forEach(function(t, ti){ (t.ro || []).forEach(function(p){ found[p.id] = {p:p, ti:ti}; }); });
+      var picks = D.pk.map(function(x, n){ var f = found[x[1]]; return {n:n, round:Math.floor(n / nT) + 1, t:x[0], r:f ? fullRow(f.p) : {name:'?', pos:'?', age:null, pot:null, rt:{}, ov:null}}; });
+      main.appendChild(el('h3', null, 'PICKS SO FAR (' + picks.length + ')'));
+      if (picks.length) main.appendChild(table([{h:'PICK', v:function(x){ return String(x.n + 1); }, n:true}, {h:'RD', v:function(x){ return String(x.round); }, n:true},
+        {h:'TEAM', v:function(x){ return fullTeam(m, x.t); }}].concat(fullCols().map(function(c){ return {h:c.h, hm:c.hm, n:c.n, v:function(x){ return c.v(x.r); }}; })), picks.slice().reverse()));
+      else main.appendChild(el('p', {class:'note'}, 'No pick has been made yet.'));
+      main.appendChild(el('h3', null, 'DRAFT ORDER (the same in each of the ' + rounds + ' rounds; the weakest record picks first)'));
+      main.appendChild(table([{h:'#', v:function(x){ return String(x.k + 1); }, n:true}, {h:'TEAM', v:function(x){ return [x.name, x.mine ? tag('MY TEAM', 'me') : null, x.t === onClock ? tag('ON THE CLOCK', 'st') : null]; }},
+        {h:'W-L-T', v:function(x){ return x.rec; }, n:true}], D.ord.map(function(ti, k){ var t = m.teams[ti]; return {k:k, t:ti, name:fullTeam(m, ti), mine:!!(t && t.mine), rec:t ? recStr(t.rec) : '-'}; })));
+      var board = D.cls.map(fullRow).sort(function(a, b){ return fullValue(m, b.raw) - fullValue(m, a.raw); });
+      main.appendChild(el('h3', null, 'BEST PLAYERS LEFT (' + Math.min(40, board.length) + ' of ' + board.length + ')'));
+      main.appendChild(table(fullCols(), board.slice(0, 40)));
+    } else {
+      main.appendChild(el('h3', null, ph === 'fa' ? 'FREE AGENCY TURNS (the weakest record goes first)' : 'ROSTER CHECK TURNS'));
+      var done = D.dn || [];
+      main.appendChild(table([{h:'#', v:function(x){ return String(x.k + 1); }, n:true}, {h:'TEAM', v:function(x){ return [x.name, x.mine ? tag('MY TEAM', 'me') : null, x.t === onClock ? tag('ON THE CLOCK', 'st') : null]; }},
+        {h:'DONE', v:function(x){ return x.done ? 'YES' : ''; }}], D.ord.map(function(ti, k){ var t = m.teams[ti]; return {k:k, t:ti, name:fullTeam(m, ti), mine:!!(t && t.mine), done:done.indexOf(ti) >= 0}; })));
+    }
+  }
+  var pool = m.fa.map(fullRow).sort(function(a, b){ return fullValue(m, b.raw) - fullValue(m, a.raw); });
+  main.appendChild(el('h3', null, 'FREE AGENTS (' + pool.length + ', best value first)'));
+  if (pool.length) main.appendChild(table(fullCols(), pool));
+  else main.appendChild(el('p', {class:'note'}, 'The pool is empty. Players a team cuts in the roster check, and the retired leave it, go through here.'));
+  main.appendChild(el('p', {class:'note'}, 'Every player is on a team of 40: the starters first, then the backups. A backup plays when a starter is hurt (see the TEAM page). No money, no trades.'));
 }
 
 /* ---------- HQ 0.9 UNIFORMS, HQ 0.13 look-only. The phone's way: PRIMARY and SECONDARY build HOME, AWAY and (when neither color is white) WHITE; a team may also carry a
